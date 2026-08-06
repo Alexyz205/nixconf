@@ -1,0 +1,12 @@
+# sops-nix configuration: which keys can decrypt which files.
+#
+# After creating the machine's age key (one-time, see README), replace
+# AGE-PUBLIC-KEY with the output of:
+#   age-keygen -y /var/lib/sops-nix/key.txt
+keys:
+  - &machine_age AGE-PUBLIC-KEY
+
+creation_rules:
+  - path_regex: secrets/.+\.yaml$
+    age:
+      - *machine_age
