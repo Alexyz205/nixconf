@@ -72,7 +72,7 @@ Structured after Vimjoyer's "Modularize NixOS and Home Manager" video:
 
 ```
 .
-├── flake.nix             # inputs (nixpkgs, disko, sops-nix) + hosts (iso, default, workstation)
+├── flake.nix             # inputs (nixpkgs, disko, sops-nix) + hosts (iso-proxmox, default, workstation)
 ├── nixos-modules/        # SHARED, toggleable modules (video pattern)
 │   ├── default.nix       # imports every module (the library's "front door")
 │   ├── boot.nix          # systemd-boot (UEFI)
@@ -90,7 +90,8 @@ Structured after Vimjoyer's "Modularize NixOS and Home Manager" video:
 ├── hosts/                # one directory per machine
 │   ├── default/          # main machine (CLI, dev/remote work)
 │   ├── workstation/      # headless server (dev containers / devpod)
-│   └── iso/              # live/installer ISO customizations (not a real host)
+│   └── iso/              # live/installer ISOs, one file per purpose (not a real host)
+│       └── proxmox.nix   # ISO for a default Proxmox VM
 ├── .sops.yaml            # sops rules: which age keys can decrypt the secrets
 ├── secrets/              # encrypted secrets (sops secrets/secrets.yaml)
 └── flake.lock            # pins exact nixpkgs/disko revisions (generated on first build)
@@ -118,9 +119,9 @@ Disable a feature = flip one boolean. No commenting-out, no copy-paste.
 
 ```sh
 # Build the ISO
-nix build .#nixosConfigurations.iso.config.system.build.isoImage
+nix build .#nixosConfigurations.iso-proxmox.config.system.build.isoImage
 
-# Result symlink points to result/iso/nixos-<version>-x86_64-linux.iso
+# Result symlink points to result/iso/nixos-proxmox-<version>-x86_64-linux.iso
 ls -la result/iso/
 
 # Test in a VM without flashing anything (QEMU)
@@ -128,6 +129,16 @@ qemu-system-x86_64 -m 2G -cdrom result/iso/*.iso -boot d
 ```
 
 The standard NixOS ISO is hybrid: it boots on both **BIOS and UEFI** machines.
+
+**CI**: a GitHub Actions workflow (`.github/workflows/build-iso.yml`) builds this
+ISO on every push to `main` and on manual dispatch, then uploads it as an
+artifact (`Actions` → **build-iso** → workflow summary → Artifacts). All inputs
+(nixpkgs, disko, sops-nix) are public, so no secrets are needed.
+
+Add another ISO for a different purpose: copy `hosts/iso/proxmox.nix`, change
+its `isoImage.edition`, and register it in `flake.nix` via `mkIso`, e.g.
+`iso-rescue = mkIso "rescue";`. Each purpose builds to its own
+`nixos-<edition>-<version>-x86_64-linux.iso`.
 
 ## Install the secure system from the ISO
 
@@ -167,10 +178,11 @@ Inherited from the official minimal installer (`installation-cd-minimal.nix`):
 - NetworkManager, git, all-hardware enablement
 - Memtest86+, USB + EFI boot support
 
-Added by us in `hosts/iso/configuration.nix`:
+Added by us in `hosts/iso/proxmox.nix`:
 
 - Latest Linux kernel (`linuxPackages_latest`)
 - Extra filesystems for rescue work (btrfs, xfs, ntfs, cifs, ...)
+- QEMU guest agent (shows IP / graceful shutdown in Proxmox)
 - Packages: `curl wget htop tmux ripgrep fd vim nix-tree nix-output-monitor`
 
 ## Security measures in the installed system (modules)
@@ -303,4 +315,4 @@ authorizes **one repo only** — for private submodules you'd need per-repo depl
 - [ ] Add CPU microcode + GPU drivers (hardware-specific, in `system.nix`)
 - [ ] Optional security upgrades: TPM2 auto-unlock, Secure Boot (lanzaboote), AppArmor, Btrfs snapshots
 - [ ] Preconfigure SSH keys in the ISO for headless installs
-- [ ] Automate the build with CI (build ISO on every push)
+- [x] Automate the build with CI (build ISO on every push)
