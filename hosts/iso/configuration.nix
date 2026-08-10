@@ -1,8 +1,9 @@
-# Customization layer for our ISO.
+# Host: `iso` — the live/installer ISO.
 #
-# This module is layered ON TOP of the official minimal installer
-# (imported in flake.nix). Everything we add here lands in the
-# live environment AND the installer.
+# This is NOT a real machine. It layers the shared tooling on top of the
+# official minimal installer, so the live environment has what you need to
+# install any host. It does NOT enable the hardened modules — the ISO is
+# deliberately a plain rescue/install tool.
 { lib, pkgs, ... }:
 
 {

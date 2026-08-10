@@ -32,7 +32,7 @@ Learn NixOS the practical way: build our own ISO that boots into a live environm
 | SSH | keys-only, no root login, **fail2ban** | No password brute-forcing |
 | Firewall | Default deny, only SSH open | Minimal attack surface |
 
-### Partition layout (from disko-config.nix)
+### Partition layout (from nixos-modules/disko.nix)
 
 ```
 GPT
@@ -67,19 +67,52 @@ Check: `nix --version` and `nix flake show` (must not complain about flakes bein
 
 ## Project structure
 
+Structured after Vimjoyer's "Modularize NixOS and Home Manager" video:
+**one directory per host**, sharing a **library of toggleable modules**.
+
 ```
 .
-├── flake.nix        # inputs (nixpkgs, disko) + outputs (iso + default system config)
-├── iso.nix          # live/installer ISO customizations (on top of official installer CD)
-├── disko-config.nix # declarative partitioning: LUKS2 + btrfs subvolumes + swapfile
-├── system.nix       # the secure target system installed from the ISO
-├── secrets.nix      # sops-nix: encrypted GitHub deploy key + ssh/git config (enable after bootstrap)
-├── .sops.yaml       # sops rules: which age keys can decrypt the secrets
-├── secrets/         # encrypted secrets (sops secrets/secrets.yaml)
-└── flake.lock       # pins exact nixpkgs/disko revisions (generated on first build)
+├── flake.nix             # inputs (nixpkgs, disko, sops-nix) + hosts (iso, default, workstation)
+├── nixos-modules/        # SHARED, toggleable modules (video pattern)
+│   ├── default.nix       # imports every module (the library's "front door")
+│   ├── boot.nix          # systemd-boot (UEFI)
+│   ├── network.nix       # hostname, NetworkManager, firewall
+│   ├── security.nix      # kernel/runtime hardening
+│   ├── ssh.nix           # hardened OpenSSH + fail2ban
+│   ├── podman.nix        # rootless podman + docker socket
+│   ├── nix.nix           # nix daemon hardening
+│   ├── users.nix         # user account + sudo policy
+│   ├── shell.nix         # zsh + git + bootstrap essentials
+│   ├── packages.nix      # Nix-managed package groups (containers, security)
+│   ├── dotfiles.nix      # auto-clone + install dotfiles on first login
+│   ├── disko.nix         # declarative partitioning (shared LUKS2+btrfs layout)
+│   └── secrets.nix       # sops-nix: encrypted GitHub deploy key + git identity
+├── hosts/                # one directory per machine
+│   ├── default/          # main machine (CLI, dev/remote work)
+│   ├── workstation/      # headless server (dev containers / devpod)
+│   └── iso/              # live/installer ISO customizations (not a real host)
+├── .sops.yaml            # sops rules: which age keys can decrypt the secrets
+├── secrets/              # encrypted secrets (sops secrets/secrets.yaml)
+└── flake.lock            # pins exact nixpkgs/disko revisions (generated on first build)
 ```
 
-Key insight: the flake **imports the official minimal installer module** (for the ISO) and the **disko module + disko config** (for the installed system).
+**How it works (the key idea):** every module in `nixos-modules/` is inert by
+default. Each declares its own `options.modules.<name>.enable` flag and wraps
+its config in `lib.mkIf`. A host enables exactly what it wants, e.g.:
+
+```nix
+# hosts/workstation/configuration.nix
+modules = {
+  boot.enable = true;
+  ssh.enable = true;
+  podman.enable = true;
+  packages = { enable = true; basic = true; containers = true; };
+  disko = { enable = true; device = "/dev/disk/by-id/..."; };
+};
+```
+
+Add a machine = new `hosts/<name>/configuration.nix` + one line in `flake.nix`.
+Disable a feature = flip one boolean. No commenting-out, no copy-paste.
 
 ## Build the ISO
 
@@ -105,7 +138,8 @@ Boot the ISO, connect to the network, then:
 git clone <this-repo-url> && cd nixOS_config
 
 # 2. Set your real disk (check `lsblk`; use /dev/disk/by-id/... if possible)
-#    and edit disko-config.nix (device) + system.nix (hostname, username, SSH key)
+#    and edit hosts/<host>/configuration.nix (disko device) + the
+#    host's modules.* settings (hostname, user, SSH keys, packages)
 
 # 3. Partition, format, mount and install in ONE step
 sudo nix run github:nix-community/disko/latest#disko-install -- \
@@ -115,13 +149,13 @@ sudo nix run github:nix-community/disko/latest#disko-install -- \
 reboot
 ```
 
-`disko-install` uses the **exact** partitioning declared in `disko-config.nix` — no manual `fdisk`. It does NOT write UEFI boot entries to the host NVRAM by default (safe for test disks); add `--write-efi-boot-entries` to register the boot entry on the real machine.
+`disko-install` uses the **exact** partitioning declared in `nixos-modules/disko.nix` — no manual `fdisk`. It does NOT write UEFI boot entries to the host NVRAM by default (safe for test disks); add `--write-efi-boot-entries` to register the boot entry on the real machine.
 
 ### After first boot (account is locked on purpose)
 
 ```sh
-sudo passwd alexis   # set a real password (change username in system.nix)
-# or drop your public key into openssh.authorizedKeys.keys in system.nix and rebuild
+sudo passwd alexis   # set a real password (change username in hosts/<host>/configuration.nix)
+# or drop your public key into modules.users.authorizedKeys in the host config and rebuild
 ```
 
 ## What's in the ISO
@@ -133,15 +167,15 @@ Inherited from the official minimal installer (`installation-cd-minimal.nix`):
 - NetworkManager, git, all-hardware enablement
 - Memtest86+, USB + EFI boot support
 
-Added by us in `iso.nix`:
+Added by us in `hosts/iso/configuration.nix`:
 
 - Latest Linux kernel (`linuxPackages_latest`)
 - Extra filesystems for rescue work (btrfs, xfs, ntfs, cifs, ...)
 - Packages: `curl wget htop tmux ripgrep fd vim nix-tree nix-output-monitor`
 
-## Security measures in the installed system (system.nix)
+## Security measures in the installed system (modules)
 
-- **LUKS2 full-disk encryption** (passphrase at boot)
+- **LUKS2 full-disk encryption** (passphrase at boot) — `nixos-modules/disko.nix`
 - **Firewall**: default deny, only port 22 open
 - **SSH**: password auth disabled, root login disabled, fail2ban enabled
 - **GitHub deploy key** encrypted with sops-nix (never committed in plaintext)
@@ -183,7 +217,8 @@ sops secrets/secrets.yaml
 
 ### Enable sops in the config
 
-In `flake.nix` uncomment `sops-nix.nixosModules.sops` and `./secrets.nix`, then:
+In `hosts/<host>/configuration.nix` set `modules.secrets.enable = true` (the
+sops module is already imported for every host), then:
 
 ```sh
 nixos-rebuild switch --flake .#default   # on the machine
@@ -197,7 +232,7 @@ git clone git@github.com:you/private-repo.git   # now works
 The dev environment (shell, nvim, tmux, mise + language runtimes, ...) lives in the **dotfiles repo**
 (`git@github.com:Alexyz205/dotfiles.git`, public). `install` runs `setup_dotfiles` (symlinks + submodules) then
 `scripts/install_packages.sh` (installs `mise` via `curl -fsSL https://mise.run | sh` and installs the tools from
-`config/mise/config.toml`). `system.nix` installs only the `mise` binary + system tools declaratively; runtimes come from
+`config/mise/config.toml`). The shell module installs only the `mise` binary + bootstrap essentials declaratively; runtimes come from
 mise per-user so versions can switch per project.
 
 ### In any devcontainer (devpod / podman / VS Code)
@@ -215,6 +250,10 @@ git credentials helper.
 
 ### On the NixOS machine (after first boot)
 
+If `modules.dotfiles.enable = true` (set on both hosts), a systemd user unit
+clones the dotfiles repo and runs `install` automatically on your first login
+(try `systemctl --user status dotfiles-bootstrap`). Manually, it's the same as:
+
 ```sh
 git clone git@github.com:Alexyz205/dotfiles.git ~/dotfiles
 bash ~/dotfiles/install
@@ -225,11 +264,11 @@ authorizes **one repo only** — for private submodules you'd need per-repo depl
 
 ### Containers on the machine (podman, rootless)
 
-- `virtualisation.podman` is enabled in `system.nix` (dockerCompat + `/run/docker.sock` for the `podman` group, weekly
+- `modules.podman` is enabled per-host (dockerCompat + `/run/docker.sock` for the `podman` group, weekly
   auto-prune). Rootless podman uses a per-user socket automatically.
 - Background rootless containers need the user session to keep running after logout:
   `sudo loginctl enable-linger alexis`
-- `devpod` is installed system-wide; workspaces run against the user's rootless podman socket.
+- `devpod` is installed via `modules.packages.containers`; workspaces run against the user's rootless podman socket.
 
 ## Concepts to learn along the way
 

@@ -1,14 +1,13 @@
+# Flake: the entry point of a reproducible Nix project.
+#
+# Structure (video: "Modularize NixOS and Home Manager"):
+#   hosts/<host>/          one directory per machine, config.nix + hardware
+#   nixos-modules/         shared toggleable modules (see default.nix)
+#
+# Each host imports the shared module library and only enables the modules
+# it needs via `modules.<name>.enable` flags.
 {
-  # ------------------------------------------------------------------
-  # Flake: the entry point of a reproducible Nix project.
-  #
-  # - `inputs`: external dependencies (here: the nixpkgs package repo,
-  #   pinned to a specific revision via flake.lock for reproducibility).
-  # - `outputs`: what this flake produces (here: a NixOS configuration
-  #   that builds a bootable ISO image).
-  # ------------------------------------------------------------------
-
-  description = "Custom NixOS installer/live ISO + secure target system";
+  description = "Modular NixOS configuration: hosts + toggleable shared modules";
 
   inputs = {
     # Use the unstable channel to get the latest packages/kernel.
@@ -18,8 +17,8 @@
     # Follows our nixpkgs to avoid dependency drift.
     disko.url = "github:nix-community/disko/latest";
     disko.inputs.nixpkgs.follows = "nixpkgs";
-    # sops-nix: encrypted secrets (GitHub deploy key). Enable only after
-    # the one-time bootstrap in README "Private repos" (see secrets.nix).
+    # sops-nix: encrypted secrets (GitHub deploy key). Hosts opt in via
+    # modules.secrets.enable AFTER the one-time bootstrap (README).
     sops-nix.url = "github:Mic92/sops-nix";
     sops-nix.inputs.nixpkgs.follows = "nixpkgs";
   };
@@ -27,11 +26,25 @@
   outputs = { self, nixpkgs, disko, sops-nix }: let
     system = "x86_64-linux";
     # Absolute path to the nixpkgs NixOS modules, used to import the
-    # official installer CD module.
+    # official installer CD module for the ISO.
     modulesPath = "${nixpkgs}/nixos/modules";
+
+    # Build a real host: always gets disko + sops-nix modules plus the
+    # shared module library and the host's own config.
+    mkHost = host: nixpkgs.lib.nixosSystem {
+      inherit system;
+      modules = [
+        disko.nixosModules.disko
+        sops-nix.nixosModules.sops
+        # Shared, toggleable module library (imports all modules; hosts
+        # enable the ones they need).
+        ./nixos-modules
+        ./hosts/${host}/configuration.nix
+      ];
+    };
   in {
     nixosConfigurations = {
-      # The live/installer ISO.
+      # The live/installer ISO (not a real host).
       #
       # Build it with:
       #   nix build .#nixosConfigurations.iso.config.system.build.isoImage
@@ -43,29 +56,16 @@
           # Reuse the official minimal installer: live environment + console
           # installer (autologin nixos user, sshd, NetworkManager, ...).
           "${modulesPath}/installer/cd-dvd/installation-cd-minimal.nix"
-          # Our own customizations on top of the installer.
-          ./iso.nix
+          # Our customizations on top of the installer.
+          ./hosts/iso/configuration.nix
         ];
       };
 
-      # The secure system the ISO installs.
-      #
-      # Filesystems + LUKS come from disko-config.nix, so no
-      # hardware-configuration.nix is needed for mounting.
-      # Install it with disko-install (see README):
+      # Real machines. Install with disko-install (see README):
       #   sudo nix run github:nix-community/disko/latest#disko-install -- \
       #     --flake .#default --disk main /dev/disk/by-id/...
-      default = nixpkgs.lib.nixosSystem {
-        inherit system;
-        modules = [
-          disko.nixosModules.disko
-          # Enable both lines after the sops bootstrap (README "Private repos"):
-          # sops-nix.nixosModules.sops
-          # ./secrets.nix
-          ./disko-config.nix
-          ./system.nix
-        ];
-      };
+      default = mkHost "default";
+      workstation = mkHost "workstation";
     };
   };
 }
