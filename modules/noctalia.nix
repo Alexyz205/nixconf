@@ -1,4 +1,8 @@
-{inputs, ...}: {
+{
+  inputs,
+  self,
+  ...
+}: {
   perSystem = {pkgs, ...}: {
     packages.noctalia-shell = inputs.wrapper-modules.wrappers.noctalia-shell.wrap {
       inherit pkgs;
@@ -87,6 +91,18 @@
 
         settingsVersion = 32;
       };
+    };
+  };
+
+  flake.modules.nixos.noctalia = {
+    config,
+    lib,
+    pkgs,
+    ...
+  }: {
+    options.modules.noctalia.enable = lib.mkEnableOption "Noctalia Shell bar";
+    config = lib.mkIf config.modules.noctalia.enable {
+      environment.systemPackages = [self.packages.${pkgs.system}.noctalia-shell];
     };
   };
 }

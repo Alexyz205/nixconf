@@ -1,5 +1,4 @@
 {
-  self,
   config,
   inputs,
   ...
@@ -27,6 +26,8 @@
     ghostty
     zoxide
     lazyvim
+    niri
+    noctalia
   ];
 in {
   flake.nixosConfigurations.workstation = inputs.nixpkgs.lib.nixosSystem {
@@ -54,6 +55,7 @@ in {
             packages = {
               basic = true;
               containers = true;
+              security = true;
               devTools = true;
             };
             shell.enable = true;
@@ -67,10 +69,9 @@ in {
             zoxide.enable = true;
             lazyvim.enable = true;
             ghostty.enable = true;
+            niri.enable = true;
+            noctalia.enable = true;
           };
-
-          programs.niri.enable = true;
-          programs.niri.package = self.packages.${system}.niri;
 
           home-manager = {
             useGlobalPkgs = true;

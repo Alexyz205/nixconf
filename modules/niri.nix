@@ -97,4 +97,17 @@
       };
     };
   };
+
+  flake.modules.nixos.niri = {
+    config,
+    lib,
+    pkgs,
+    ...
+  }: {
+    options.modules.niri.enable = lib.mkEnableOption "Niri scrollable-tiling WM";
+    config = lib.mkIf config.modules.niri.enable {
+      programs.niri.enable = true;
+      programs.niri.package = self.packages.${pkgs.system}.niri;
+    };
+  };
 }
