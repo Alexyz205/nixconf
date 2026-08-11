@@ -72,7 +72,7 @@
           opts.colorscheme = "catppuccin-mocha";
         }
       ];
-      configFiles = toString ./home/lazyvim;
+      configFiles = toString ./config/lazyvim;
       extraPackages = with pkgs; [marksman yaml-language-server];
     };
   };

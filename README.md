@@ -91,8 +91,8 @@ Each feature module exports **two** submodule types:
 │   │   ├── git/
 │   │   ├── ghostty/
 │   │   ├── opencode/
+│   │   ├── lazyvim/
 │   │   └── television/
-│   ├── home/                 # Home-manager data (lazyvim plugin configs)
 │   ├── hosts/
 │   │   ├── server.nix        # Headless server definition
 │   │   ├── workstation.nix   # GUI desktop definition
