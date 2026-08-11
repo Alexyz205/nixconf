@@ -51,7 +51,11 @@
       set -g @continuum-restore 'on'
       set -g @continuum-boot 'off'
       set -g @catppuccin_flavor "mocha"
+      set -g set-titles on
+      set -g set-titles-string "#S - #W"
       set -g @catppuccin_window_status_style "rounded"
+      set -g @catppuccin_window_default_text "#W"
+      set -g @catppuccin_window_current_text "#W"
       set -g @catppuccin_status_left_separator ""
       set -g @catppuccin_status_right_separator ""
       set -g @catppuccin_status_connect_separator "no"
