@@ -38,6 +38,14 @@ nix run .#niri
 nix run .#noctalia-shell
 ```
 
+### Validate the flake
+
+```sh
+nix flake check
+```
+
+Validates all flake outputs (NixOS configs, home-manager, packages) for evaluation errors.
+
 ## Project structure
 
 Uses the **Dendritic Pattern** with `flake-parts` + `import-tree`.

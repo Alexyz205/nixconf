@@ -13,6 +13,7 @@
         environment.systemPackages =
           (import ../../packages.nix {inherit pkgs lib;}).home.packages;
 
+        boot.zfs.forceImportRoot = false;
         system.stateVersion = "24.11";
       })
     ];

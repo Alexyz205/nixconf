@@ -23,6 +23,7 @@
           nix-output-monitor
         ];
 
+        boot.zfs.forceImportRoot = false;
         system.stateVersion = "24.11";
       })
     ];
