@@ -24,6 +24,7 @@
     lazygit
     yazi
     zoxide
+    lazyvim
   ];
 in {
   flake.nixosConfigurations.server = inputs.nixpkgs.lib.nixosSystem {
@@ -62,6 +63,7 @@ in {
             lazygit.enable = true;
             yazi.enable = true;
             zoxide.enable = true;
+            lazyvim.enable = true;
           };
 
           home-manager = {
