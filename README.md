@@ -1,38 +1,155 @@
 # NixOS Config
 
-Project memory for learning NixOS by building a **custom bootable ISO image** (live + installer) with our own packages and configuration.
+Dendritic-pattern NixOS configuration with `flake-parts` + `import-tree` + `wrapper-modules`.
+Dual-purpose: runs as **NixOS system config** (on NixOS) or **standalone home-manager** (on any Linux).
 
-## Objective
+## Quick Start
 
-Learn NixOS the practical way: build our own ISO that boots into a live environment containing our packages, and installs a **hardened** NixOS system with declarative partitioning.
+### On any Linux with Nix installed (standalone home-manager)
 
-## Status & Log
+```sh
+# Enable flakes first
+mkdir -p ~/.config/nix
+echo "experimental-features = nix-command flakes" >> ~/.config/nix/nix.conf
 
-- [x] Read <https://nix.dev/tutorials/nixos/building-bootable-iso-image>
-- [x] Chose **Flakes** (modern, reproducible) instead of the tutorial's classic `NIX_PATH` + `nixos-generators`
-- [x] Created `flake.nix` (nixpkgs pinned via flake.lock) + `iso.nix` (ISO customizations)
-- [x] Designed the **secure target system**: LUKS2 encryption, Btrfs subvolumes, systemd-boot, hardened SSH
-- [x] Added **disko** for declarative partitioning (`disko-config.nix`) + secure base system (`system.nix`)
-- [x] Added **sops-nix + age** scaffolding for a GitHub deploy key (`secrets.nix`, `.sops.yaml`) — encrypted private-repo access
-- [ ] Install Nix on host machine
-- [ ] Build the ISO (first build downloads the whole world, takes a while)
-- [ ] Test ISO in a VM (e.g. QEMU)
-- [ ] Install the secure system on real hardware via `disko-install`
-- [ ] (Later) Extract config from an installed machine → manage everything from this repo
+# Apply packages, shell, tmux, starship, yazi, git, neovim config
+nix run home-manager --extra-experimental-features 'nix-command flakes' -- switch --flake .#"alexis.pigeon"
+```
 
-## Design decisions (security-focused)
+### On NixOS
+
+```sh
+# Build & apply full system config
+sudo nixos-rebuild switch --flake .#workstation   # GUI desktop (Niri + Noctalia)
+sudo nixos-rebuild switch --flake .#server        # Headless server
+
+# Build ISO
+nix build .#nixosConfigurations.iso-proxmox.config.system.build.isoImage
+nix build .#nixosConfigurations.iso-server.config.system.build.isoImage
+
+# Test ISO in QEMU
+qemu-system-x86_64 -m 2G -cdrom result/iso/*.iso -boot d
+```
+
+### Standalone packages (no home-manager)
+
+```sh
+nix run .#niri
+nix run .#noctalia-shell
+```
+
+## Project structure
+
+Uses the **Dendritic Pattern** with `flake-parts` + `import-tree`.
+Every `.nix` file under `modules/` is auto-loaded as a flake-parts module.
+Each feature module exports **two** submodule types:
+
+- `flake.modules.nixos.<name>` — NixOS module with `options.modules.<name>.enable`
+- `flake.modules.homeManager.<name>` — standalone home-manager module
+
+```
+.
+├── flake.nix                 # flake-parts + import-tree (auto-loads everything)
+├── packages.nix              # Shared home-manager packages list
+├── modules/
+│   ├── boot.nix              # systemd-boot (UEFI)
+│   ├── disko.nix             # LUKS2 + Btrfs subvolumes
+│   ├── network.nix           # Hostname, NetworkManager, firewall
+│   ├── security.nix          # Kernel/runtime hardening
+│   ├── ssh.nix               # Hardened OpenSSH + fail2ban
+│   ├── podman.nix            # Rootless podman + docker socket
+│   ├── nix.nix               # Nix daemon hardening
+│   ├── users.nix             # User account + sudo policy
+│   ├── secrets.nix           # sops-nix: encrypted deploy key
+│   ├── shell.nix             # Zsh + Bash + aliases + env vars + symlinks
+│   ├── packages.nix          # Package groups (basic, containers, security, dev)
+│   ├── git.nix               # Git config + delta + gh/glab credentials
+│   ├── starship.nix          # Starship prompt (Catppuccin Mocha)
+│   ├── tmux.nix              # Tmux + TPM plugins + Catppuccin theme
+│   ├── bat.nix               # Bat with Catppuccin theme
+│   ├── eza.nix               # Eza (modern ls)
+│   ├── zoxide.nix            # Zoxide (smart cd)
+│   ├── lazygit.nix           # Lazygit (Catppuccin theme)
+│   ├── yazi.nix              # Yazi file manager (Catppuccin theme)
+│   ├── ghostty.nix           # Ghostty terminal (Catppuccin Mocha)
+│   ├── lazyvim.nix           # Neovim + LazyVim + extras + override keymaps
+│   ├── niri.nix              # Niri scrollable-tiling WM (wrapped via wrapper-modules)
+│   ├── noctalia.nix          # Noctalia Shell bar (wrapped via wrapper-modules)
+│   ├── config/               # Config files (bat themes, shell scripts, git, etc.)
+│   │   ├── shell/
+│   │   ├── bat/themes/
+│   │   ├── delta/
+│   │   ├── eza/
+│   │   ├── git/
+│   │   ├── ghostty/
+│   │   ├── opencode/
+│   │   └── television/
+│   ├── home/                 # Home-manager data (lazyvim plugin configs)
+│   ├── hosts/
+│   │   ├── server.nix        # Headless server definition
+│   │   ├── workstation.nix   # GUI desktop definition
+│   │   ├── iso-proxmox.nix   # Proxmox VM ISO builder
+│   │   └── iso-server.nix    # Server ISO builder
+│   └── flake/
+│       ├── options.nix       # Registers flake.modules.{nixos,homeManager} options
+│       └── home-manager.nix  # Standalone home-manager entrypoint
+├── secrets/
+│   └── secrets.yaml          # Encrypted with sops-nix
+├── .sops.yaml                # sops rules: which age keys can decrypt
+└── flake.lock
+```
+
+**How it works:** each feature module exports two submodules. A NixOS host
+imports `config.flake.modules.nixos` and toggles via `modules.<name>.enable`.
+The standalone home-manager entry imports `config.flake.modules.homeManager` directly.
+
+```nix
+# modules/hosts/server.nix (simplified)
+let
+  features = with config.flake.modules.nixos; [
+    boot network security ssh podman nix users shell packages disko secrets
+    git starship tmux bat eza lazygit yazi zoxide
+  ];
+in {
+  flake.nixosConfigurations.server = inputs.nixpkgs.lib.nixosSystem {
+    modules = [ inputs.disko.nixosModules.disko
+                inputs.sops-nix.nixosModules.sops
+                inputs.home-manager.nixosModules.home-manager ] ++ features ++ [{
+      networking.hostName = "server";
+      modules = {
+        users.userName = "alexis.pigeon";
+        packages = { basic = true; containers = true; devTools = true; };
+        shell.enable = true; git.enable = true; starship.enable = true;
+      };
+    }];
+  };
+}
+```
+
+## Available hosts
+
+| Host             | Type       | Description                              |
+|------------------|------------|------------------------------------------|
+| `workstation`    | NixOS      | GUI desktop with Niri + Noctalia         |
+| `server`         | NixOS      | Headless server (SSH, CLI, security)     |
+| `iso-proxmox`    | ISO        | Proxmox VM installer + rescue ISO        |
+| `iso-server`     | ISO        | Minimal server installer ISO             |
+| `"alexis.pigeon"`| home-manager | Standalone config (any Linux w/ Nix)   |
+
+## Design decisions
 
 | Topic        | Choice                                                | Why                                             |
 | ------------ | ----------------------------------------------------- | ----------------------------------------------- |
-| Flakes       | `nixpkgs` + `disko` inputs, pinned via `flake.lock`   | Reproducible builds                             |
-| Partitioning | **disko** (declarative)                               | Partitioning as code, reproducible, re-runnable |
-| Encryption   | **LUKS2**, interactive passphrase                     | Full-disk encryption at rest                    |
-| Filesystem   | **Btrfs** subvolumes (`/`, `/home`, `/nix`, swapfile) | Compression (zstd), snapshots/rollback later    |
-| Bootloader   | **systemd-boot** (UEFI)                               | Simple, secure; TPM2 auto-unlock possible later |
-| SSH          | keys-only, no root login, **fail2ban**                | No password brute-forcing                       |
+| Flakes       | nixpkgs + disko inputs, pinned via flake.lock         | Reproducible builds                             |
+| Partitioning | disko (declarative)                                   | Partitioning as code, reproducible              |
+| Encryption   | LUKS2, interactive passphrase                         | Full-disk encryption at rest                    |
+| Filesystem   | Btrfs subvolumes (/, /home, /nix, swapfile)           | Compression (zstd), snapshots/rollback          |
+| Bootloader   | systemd-boot (UEFI)                                   | Simple, secure; TPM2 auto-unlock possible later |
+| SSH          | keys-only, no root login, fail2ban                    | No password brute-forcing                       |
 | Firewall     | Default deny, only SSH open                           | Minimal attack surface                          |
+| Architecture | Dendritic: flake-parts + import-tree + wrapper-modules | No flake.nix edits per new host or module      |
 
-### Partition layout (from nixos-modules/disko.nix)
+### Partition layout (from disko.nix)
 
 ```
 GPT
@@ -44,117 +161,6 @@ GPT
     └─ /swap  -> 8G swapfile   (encrypted, inside LUKS)
 ```
 
-## Requirements (install Nix on your host)
-
-On any Linux machine, from <https://nixos.org/download> :
-
-```sh
-# Multi-user install, then enable flakes.
-curl -L https://nixos.org/nix/install -o /tmp/install-nix.sh
-sh /tmp/install-nix.sh
-```
-
-(Download the script instead of `curl | sh` so you can review it first.)
-
-Then enable the flake feature:
-
-```sh
-mkdir -p ~/.config/nix
-echo "experimental-features = nix-command flakes" >> ~/.config/nix/nix.conf
-```
-
-Check: `nix --version` and `nix flake show` (must not complain about flakes being disabled).
-
-## Project structure
-
-Uses the **Dendritic Pattern** (Vimjoyer, 2026) with `flake-parts` + `import-tree`
-+ `wrapper-modules`. Every `.nix` file (except `flake.nix`) is auto-loaded as a
-flake-parts module. Features are toggleable via `modules.<name>.enable`.
-
-```
-.
-├── flake.nix             # Root: flake-parts + import-tree (auto-loads everything)
-├── parts.nix             # Registers wrapper-modules + supported architectures
-├── features/             # Toggleable feature modules (inert by default)
-│   ├── boot.nix          # systemd-boot (UEFI)
-│   ├── disko.nix         # LUKS2 + Btrfs subvolumes (declarative partitioning)
-│   ├── network.nix       # hostname, NetworkManager, firewall
-│   ├── security.nix      # kernel/runtime hardening
-│   ├── ssh.nix           # hardened OpenSSH + fail2ban
-│   ├── podman.nix        # rootless podman + docker socket
-│   ├── nix.nix           # nix daemon hardening
-│   ├── users.nix         # user account + sudo policy
-│   ├── shell.nix         # zsh + git + bootstrap essentials
-│   ├── packages.nix      # Nix-managed package groups (containers, security)
-│   ├── dotfiles.nix      # auto-clone + install dotfiles on first login
-│   ├── secrets.nix       # sops-nix: encrypted GitHub deploy key
-│   ├── niri.nix          # Niri scrollable-tiling WM (wrapped package + NixOS module)
-│   └── noctalia.nix      # Noctalia Shell bar (wrapped package, portable)
-├── hosts/                # Machine definitions + their NixOS configs
-│   ├── default/          # Headless server (CLI, dev/remote work via SSH)
-│   │   └── configuration.nix   # machine def + nixosModule with feature toggles
-│   ├── workstation/      # GUI desktop (Niri + Noctalia + PipeWire + Firefox)
-│   │   └── configuration.nix   # machine def + nixosModule with GUI toggles
-│   └── iso/              # Bootable ISO builder
-│       └── proxmox.nix   # Proxmox VM ISO (minimal installer + rescue tools)
-├── secrets/              # Encrypted with sops-nix
-│   └── secrets.yaml
-├── .sops.yaml            # sops rules: which age keys can decrypt
-└── flake.lock            # Pinned nixpkgs/disko/sops-nix revisions
-```
-
-**How it works:** every feature in `features/` declares `options.modules.<name>.enable`
-and wraps its config in `lib.mkIf` — inert until a host flips it on. A host
-configuration imports features via `self.nixosModules.<name>` and enables them
-under the `modules` block:
-
-```nix
-# hosts/workstation/configuration.nix
-{
-  imports = [
-    self.nixosModules.boot
-    self.nixosModules.network
-    self.nixosModules.niri   # <-- GUI: Niri + Noctalia
-  ];
-
-  modules = {
-    boot.enable = true;
-    network = { enable = true; hostName = "workstation"; };
-    niri.enable = true;       # enables Niri + spawns Noctalia at startup
-  };
-}
-```
-
-Add a machine = new `hosts/<name>/configuration.nix` (no `flake.nix` edits
-needed — import-tree picks it up automatically). Disable a feature = flip one
-boolean. Niri and Noctalia are also runnable standalone via `nix run .#niri`
-without booting the full desktop.
-
-## Build the ISO
-
-```sh
-# Build the ISO
-nix build .#nixosConfigurations.iso-proxmox.config.system.build.isoImage
-
-# Result symlink points to result/iso/nixos-proxmox-<version>-x86_64-linux.iso
-ls -la result/iso/
-
-# Test in a VM without flashing anything (QEMU)
-qemu-system-x86_64 -m 2G -cdrom result/iso/*.iso -boot d
-```
-
-The standard NixOS ISO is hybrid: it boots on both **BIOS and UEFI** machines.
-
-**CI**: a GitHub Actions workflow (`.github/workflows/build-iso.yml`) builds this
-ISO on every push to `main` and on manual dispatch, then uploads it as an
-artifact (`Actions` → **build-iso** → workflow summary → Artifacts). All inputs
-(nixpkgs, disko, sops-nix) are public, so no secrets are needed.
-
-Add another ISO for a different purpose: copy `hosts/iso/proxmox.nix`, change
-its `isoImage.edition`, and register it as a new nixosConfiguration, e.g.
-`iso-rescue`. Each purpose builds to its own
-`nixos-<edition>-<version>-x86_64-linux.iso`.
-
 ## Install the secure system from the ISO
 
 Boot the ISO, connect to the network, then:
@@ -164,140 +170,58 @@ Boot the ISO, connect to the network, then:
 git clone <this-repo-url> && cd nixOS_config
 
 # 2. Set your real disk (check `lsblk`; use /dev/disk/by-id/... if possible)
-#    and edit hosts/<host>/configuration.nix (disko device) + the
-#    host's modules.* settings (hostname, user, SSH keys, packages)
+#    and edit modules/hosts/<host>.nix (disko device + modules.* settings)
 
 # 3. Partition, format, mount and install in ONE step
 sudo nix run github:nix-community/disko/latest#disko-install -- \
-  --flake .#default --disk main /dev/disk/by-id/YOUR-DISK
+  --flake .#workstation --disk main /dev/disk/by-id/YOUR-DISK
 
 # 4. Reboot, remove the USB stick, unlock with your LUKS passphrase
 reboot
 ```
 
-`disko-install` uses the **exact** partitioning declared in `nixos-modules/disko.nix` — no manual `fdisk`. It does NOT write UEFI boot entries to the host NVRAM by default (safe for test disks); add `--write-efi-boot-entries` to register the boot entry on the real machine.
-
-### After first boot (account is locked on purpose)
-
-```sh
-sudo passwd alexis   # set a real password (change username in hosts/<host>/configuration.nix)
-# or drop your public key into modules.users.authorizedKeys in the host config and rebuild
-```
-
 ## What's in the ISO
 
-Inherited from the official minimal installer (`installation-cd-minimal.nix`):
+Inherited from the official minimal installer:
 
 - Live environment, auto-login as `nixos` (empty password), passwordless `sudo`
-- `sshd` running, console installer (`nixos-install`) for fresh installs
+- sshd running, console installer (nixos-install) for fresh installs
 - NetworkManager, git, all-hardware enablement
 - Memtest86+, USB + EFI boot support
 
-Added by us in `hosts/iso/proxmox.nix`:
+Added by us:
 
-- Latest Linux kernel (`linuxPackages_latest`)
-- Extra filesystems for rescue work (btrfs, xfs, ntfs, cifs, ...)
-- QEMU guest agent (shows IP / graceful shutdown in Proxmox)
-- Packages: `curl wget htop tmux ripgrep fd vim nix-tree nix-output-monitor`
+- **proxmox**: Latest kernel + extra filesystems (btrfs, xfs, ntfs, cifs) + QEMU guest agent + rescue tools
+- **server**: Same base + server-oriented package set
 
-## Security measures in the installed system (modules)
+## Security measures
 
-- **LUKS2 full-disk encryption** (passphrase at boot) — `features/disko.nix`
+- **LUKS2 full-disk encryption** (passphrase at boot) — `disko.nix`
 - **Firewall**: default deny, only port 22 open
 - **SSH**: password auth disabled, root login disabled, fail2ban enabled
 - **GitHub deploy key** encrypted with sops-nix (never committed in plaintext)
-- **Kernel hardening**: `lockKernelModules`, `dmesg_restrict`, `kptr_restrict`, rp_filter
+- **Kernel hardening**: lockKernelModules, dmesg_restrict, kptr_restrict, rp_filter
 - **Core dumps disabled**
-- `nix` restricted to `wheel` group
+- nix restricted to wheel group
 - sudo requires password
 
 ## Private repos via encrypted deploy key (sops-nix + age)
 
-The machine clones private repos using a **dedicated GitHub deploy key** stored **encrypted** in this repo with `sops-nix` + `age`. The raw private key is never committed.
-
-### One-time bootstrap (do this before enabling sops in the config)
+See the [secrets module](modules/secrets.nix). Summary:
 
 ```sh
-# 1. Create the machine's age keypair (root-only on the machine).
-#    Do this once the machine is installed and you can SSH in.
-ssh alexis@nixos
+# On the installed machine, generate age key
 sudo mkdir -p /var/lib/sops-nix
-sudo age-keygen -o /var/lib/sops-nix/key.txt   # public key printed
-sudo chmod 600 /var/lib/sops-nix/key.txt
-exit
+sudo age-keygen -o /var/lib/sops-nix/key.txt
 
-# 2. Put the printed public key into .sops.yaml (replace AGE-PUBLIC-KEY).
-#    You can read it anytime on the machine with:
-#      sudo age-keygen -y /var/lib/sops-nix/key.txt
+# On workstation, add the public key to .sops.yaml, then:
+sops secrets/secrets.yaml   # add key "github-deploy-key"
 
-# 3. Generate a dedicated GitHub deploy key on your workstation
-#    (never reuse your SSH login key):
-ssh-keygen -t ed25519 -f github-deploy-key -C "nixos@github"
-#    Add github-deploy-key.pub at github.com -> Settings -> SSH and GPG keys.
-
-# 4. Create the encrypted secrets file. Needs sops CLI on your workstation:
-#      nix shell nixpkgs#sops nixpkgs#age
-sops secrets/secrets.yaml
-#    Add key "github-deploy-key" = <content of github-deploy-key (private half)>, save.
-#    The file is now encrypted - commit it as-is. Keep github-deploy-key (raw) private.
+# The secrets module is enabled by importing it in the host config
+# (no modules.secrets.enable toggle — it's always active when included)
 ```
 
-### Enable sops in the config
-
-In `hosts/<host>/configuration.nix` set `modules.secrets.enable = true` (the
-sops module is already imported for every host), then:
-
-```sh
-nixos-rebuild switch --flake .#default   # on the machine
-git clone git@github.com:you/private-repo.git   # now works
-```
-
-`sops-nix` decrypts `secrets/secrets.yaml` during activation using the age key at `/var/lib/sops-nix/key.txt` and writes `~/.ssh/github-deploy-key` (mode 0600). SSH is pinned to use only that key for `github.com`.
-
-## Toolchain bootstrap: dotfiles in any container
-
-The dev environment (shell, nvim, tmux, mise + language runtimes, ...) lives in the **dotfiles repo**
-(`git@github.com:Alexyz205/dotfiles.git`, public). `install` runs `setup_dotfiles` (symlinks + submodules) then
-`scripts/install_packages.sh` (installs `mise` via `curl -fsSL https://mise.run | sh` and installs the tools from
-`config/mise/config.toml`). The shell module installs only the `mise` binary + bootstrap essentials declaratively; runtimes come from
-mise per-user so versions can switch per project.
-
-### In any devcontainer (devpod / podman / VS Code)
-
-`dotfiles/.devcontainer/devcontainer.json` has **no `features`**. `postCreateCommand` bootstraps everything:
-
-1. `git config --global url."https://github.com/".insteadOf "git@github.com:"` — rewrites the SSH-URLed submodules
-   (`nvim`, `tmux`, `scripts`) so they clone over HTTPS too.
-2. `git clone --recursive https://github.com/Alexyz205/dotfiles.git "$HOME/dotfiles"`
-3. `bash "$HOME/dotfiles/install"`
-
-All repos are public today, so **no auth is needed** — the same `postCreateCommand` works in any container. If a repo
-goes private, either switch to the SSH URL (DevPod forwards the host SSH agent automatically) or use a GitHub token via a
-git credentials helper.
-
-### On the NixOS machine (after first boot)
-
-If `modules.dotfiles.enable = true` (set on both hosts), a systemd user unit
-clones the dotfiles repo and runs `install` automatically on your first login
-(try `systemctl --user status dotfiles-bootstrap`). Manually, it's the same as:
-
-```sh
-git clone git@github.com:Alexyz205/dotfiles.git ~/dotfiles
-bash ~/dotfiles/install
-```
-
-Once sops is enabled, `~/.ssh/github-deploy-key` exists and SSH is pinned to it for `github.com`. Note: a deploy key
-authorizes **one repo only** — for private submodules you'd need per-repo deploy keys or a user key in `ssh-agent`.
-
-### Containers on the machine (podman, rootless)
-
-- `modules.podman` is enabled per-host (dockerCompat + `/run/docker.sock` for the `podman` group, weekly
-  auto-prune). Rootless podman uses a per-user socket automatically.
-- Background rootless containers need the user session to keep running after logout:
-  `sudo loginctl enable-linger alexis`
-- `devpod` is installed via `modules.packages.containers`; workspaces run against the user's rootless podman socket.
-
-## Concepts to learn along the way
+## Concepts
 
 | Concept                          | Where to look                                                              |
 | -------------------------------- | -------------------------------------------------------------------------- |
@@ -305,28 +229,14 @@ authorizes **one repo only** — for private submodules you'd need per-repo depl
 | NixOS module system              | <https://nix.dev/tutorials/module-system/>                                 |
 | disko (declarative partitioning) | <https://github.com/nix-community/disko>                                   |
 | disko-install docs               | <https://github.com/nix-community/disko/blob/master/docs/disko-install.md> |
-| Building images cross-platform   | <https://github.com/nix-community/nixos-generators>                        |
-| Alternative live CD guide        | <https://wiki.nixos.org/wiki/Creating_a_NixOS_live_CD>                     |
-| Installing NixOS from the ISO    | <https://nixos.org/manual/nixos/stable/#sec-installation>                  |
-| systemd-boot / bootloader        | <https://wiki.nixos.org/wiki/Bootloader>                                   |
+| Dendritic pattern                | <https://github.com/denful/import-tree>                                    |
+| wrapper-modules                  | <https://github.com/BirdeeHub/nix-wrapper-modules>                         |
+| home-manager                     | <https://github.com/nix-community/home-manager>                            |
+| sops-nix                         | <https://github.com/Mic92/sops-nix>                                        |
 
 ## Troubleshooting
 
-- **`flake` attribute not recognized** → flakes not enabled, see Requirements.
-- **Build too slow** → normal on first run; later builds are cached/incremental.
-- **ISO doesn't boot on old hardware** → check if the target is BIOS vs UEFI; our ISO covers both, but the installed system targets UEFI only (systemd-boot).
-- **LUKS passphrase forgotten** → keep a printed backup; there is no backdoor.
-- **nixos user password on ISO** → `passwd nixos` in the live env (empty by default).
-
-## Next steps / roadmap
-
-- [x] Restructure to dendritic pattern: flake-parts + import-tree + wrapper-modules
-- [x] Add Niri scrollable-tiling WM + Noctalia Shell to workstation (GUI desktop)
-- [ ] Install Nix on host, build + test ISO in QEMU
-- [ ] Set real disk device, hostname, username, SSH key; install on hardware
-- [ ] Set up GitHub deploy key + enable sops-nix (README "Private repos")
-- [ ] After first boot: clone dotfiles + run `./install`, `sudo loginctl enable-linger alexis`
-- [ ] Pin to a stable nixpkgs release for reproducibility (edit `flake.nix`)
-- [ ] Add CPU microcode + GPU drivers (hardware-specific, in hosts/<machine>/configuration.nix)
-- [ ] Optional security upgrades: TPM2 auto-unlock, Secure Boot (lanzaboote), AppArmor, Btrfs snapshots
-- [x] Automate the build with CI (build ISO on every push)
+- **`flake` attribute not recognized** → flakes not enabled (see Requirements).
+- **`The option .. does not exist`** → import-tree found a data file as a module; prefix with `_` or move out of `modules/`.
+- **ISO doesn't boot on old hardware** → check BIOS vs UEFI target.
+- **LUKS passphrase forgotten** → keep a printed backup; no backdoor.
