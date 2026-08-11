@@ -141,7 +141,7 @@ in {
     config = lib.mkIf config.modules.shell.enable {
       programs.zsh.enable = true;
       programs.git.enable = true;
-      environment.systemPackages = with pkgs; [git curl wget openssl mise ripgrep fd fastfetch jq television];
+      environment.systemPackages = with pkgs; [git];
       home-manager.users."alexis.pigeon" = shellHm;
     };
   };
