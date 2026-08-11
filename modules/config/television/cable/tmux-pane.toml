@@ -1,0 +1,12 @@
+[metadata]
+name = "tmux-pane"
+description = "Search through the current tmux pane scrollback buffer"
+requirements = ["tmux"]
+
+[source]
+command = "tmux capture-pane -pS - 2>/dev/null | cat -s"
+
+[actions.copy]
+description = "Copy selected line to clipboard"
+command = "echo -n '{}' | tmux load-buffer -"
+mode = "fork"

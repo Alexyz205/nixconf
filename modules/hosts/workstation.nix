@@ -1,27 +1,16 @@
 {
+  self,
   config,
   inputs,
   ...
 }:
 let
   system = "x86_64-linux";
-  devtools = config.flake.modules.homeManager.devtools;
   features = with config.flake.modules.nixos; [
-    boot
-    network
-    security
-    ssh
-    podman
-    nix
-    users
-    shell
-    packages
-    disko
-    secrets
-    niri
+    boot network security ssh podman nix users shell packages disko secrets
+    git starship tmux bat eza lazygit yazi ghostty zoxide lazyvim
   ];
-in
-{
+in {
   flake.nixosConfigurations.workstation = inputs.nixpkgs.lib.nixosSystem {
     inherit system;
     modules =
@@ -34,60 +23,34 @@ in
       ++ [
         ({ pkgs, lib, ... }: {
           system.stateVersion = "24.11";
-
           networking.hostName = "workstation";
           networking.firewall.allowedTCPPorts = [ ];
-
           disko.devices.disk.main.device = "/dev/sda";
 
           modules = {
             users.userName = "alexis.pigeon";
-            packages = {
-              basic = true;
-              containers = true;
-            };
+            packages = { basic = true; containers = true; devTools = true; };
+            shell.enable = true; git.enable = true; starship.enable = true;
+            tmux.enable = true; bat.enable = true; eza.enable = true;
+            lazygit.enable = true; yazi.enable = true; zoxide.enable = true;
+            lazyvim.enable = true; ghostty.enable = true;
           };
+
+          programs.niri.enable = true;
+          programs.niri.package = self.packages.${system}.niri;
 
           home-manager = {
             useGlobalPkgs = true;
-            extraSpecialArgs = {
-              lazyvim = inputs.lazyvim;
-            };
-            users."alexis.pigeon" = {
-              home.stateVersion = "24.11";
-              imports = [ devtools ];
-            };
+            extraSpecialArgs = { lazyvim = inputs.lazyvim; };
           };
 
-          environment.systemPackages = with pkgs; [
-            firefox
-            ghostty
-          ];
-
-          services.pipewire = {
-            enable = true;
-            alsa.enable = true;
-            alsa.support32Bit = true;
-            pulse.enable = true;
-            jack.enable = true;
-          };
-
-          hardware = {
-            enableRedistributableFirmware = true;
-            bluetooth.enable = true;
-            bluetooth.powerOnBoot = true;
-            graphics.enable = true;
-          };
-
+          environment.systemPackages = with pkgs; [ firefox ghostty ];
+          services.pipewire = { enable = true; alsa.enable = true; pulse.enable = true; };
+          hardware = { enableRedistributableFirmware = true; bluetooth.enable = true; graphics.enable = true; };
           security.rtkit.enable = true;
-
-          fonts.packages = with pkgs; [
-            nerd-fonts.jetbrains-mono
-          ];
-
+          fonts.packages = with pkgs; [ nerd-fonts.jetbrains-mono ];
           time.timeZone = "Europe/Paris";
           i18n.defaultLocale = "en_US.UTF-8";
-
           xdg.portal.enable = true;
           xdg.portal.extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
         })

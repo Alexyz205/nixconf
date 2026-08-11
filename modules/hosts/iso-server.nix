@@ -11,7 +11,7 @@
         isoImage.edition = "server";
 
         environment.systemPackages =
-          (import ../_home/packages.nix { inherit pkgs lib; }).home.packages;
+          (import ../home/packages.nix { inherit pkgs lib; }).home.packages;
 
         system.stateVersion = "24.11";
       })

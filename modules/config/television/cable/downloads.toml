@@ -1,0 +1,37 @@
+[metadata]
+name = "downloads"
+description = "Browse recent files in Downloads folder"
+requirements = ["fd", "bat"]
+
+[source]
+command = "fd -t f . ~/Downloads --max-results 200 2>/dev/null"
+
+[preview]
+command = "bat -n --color=always '{}' 2>/dev/null || file '{}'"
+env = { BAT_THEME = "Catppuccin Mocha" }
+
+[keybindings]
+enter = "actions:edit"
+ctrl-o = "actions:open"
+ctrl-d = "actions:delete"
+ctrl-m = "actions:move"
+
+[actions.edit]
+description = "Open the selected file in Neovim"
+command = "nvim '{}'"
+mode = "execute"
+
+[actions.open]
+description = "Open the selected file with default application"
+command = "xdg-open '{}' 2>/dev/null || open '{}'"
+mode = "fork"
+
+[actions.delete]
+description = "Delete the selected file"
+command = "rm -i '{}'"
+mode = "execute"
+
+[actions.move]
+description = "Move the selected file to current directory"
+command = "mv '{}' ."
+mode = "fork"

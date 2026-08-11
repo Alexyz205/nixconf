@@ -1,0 +1,212 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "autoupdate": true,
+  "lsp": true,
+  "share": "disabled",
+  // --- Model Configuration ---
+  "model": "opencode/deepseek-v4-flash-free",
+  "small_model": "opencode/big-pickle",
+  "agent": {
+    "explore": {
+      "model": "opencode/deepseek-v4-flash-free",
+      "steps": 20
+    },
+    "general": {
+      "model": "opencode/deepseek-v4-flash-free",
+      "steps": 30
+    },
+    "task": {
+      "model": "opencode/deepseek-v4-flash-free",
+      "steps": 30
+    },
+    "compaction": {
+      "model": "opencode/big-pickle"
+    }
+  },
+  // --- LLM Providers ---
+  "provider": {
+    "ollama": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Ollama (local)",
+      "options": {
+        "baseURL": "http://localhost:11434/v1"
+      },
+      "models": {
+        "qwen3-coder-next:q4_K_M": {
+          "name": "Qwen3 Coder Next",
+          "limit": {
+            "context": 64000,
+            "output": 32768
+          }
+        },
+        "gemma4:26b": {
+          "name": "Gemma 4 26B MoE",
+          "tools": true,
+          "options": {
+            "reasoning_effort": "none"
+          },
+          "limit": {
+            "context": 128000,
+            "output": 32768
+          }
+        },
+        "gemma4:e4b": {
+          "name": "Gemma 4 E4B (fast)",
+          "tools": true,
+          "options": {
+            "reasoning_effort": "none"
+          },
+          "limit": {
+            "context": 65536,
+            "output": 16384
+          }
+        },
+      }
+    }
+  },
+  // --- Global Permissions ---
+  "permission": {
+    "read": "allow",
+    "edit": "allow",
+    "glob": "allow",
+    "grep": "allow",
+    "list": "allow",
+    "task": "allow",
+    "skill": "allow",
+    "lsp": "allow",
+    "question": "allow",
+    "webfetch": "allow",
+    "websearch": "allow",
+    "todowrite": "allow",
+    "external_directory": {
+      "*": "ask",
+      "~/Documents/**": "deny",
+      "~/repos/work/**": "deny"
+    },
+    "doom_loop": "ask",
+    "bash": {
+      "*": "allow",
+      "git checkout": "deny",
+      "git commit": "deny",
+      "git push": "deny",
+      "git push --force": "deny",
+      "git push -f": "deny",
+      "git rebase": "deny",
+      "git merge": "deny",
+      "git reset": "deny",
+      "gh pr create": "deny",
+      "gh pr merge": "deny",
+      "gh": "deny",
+      "curl * | sh": "deny",
+      "wget * | sh": "deny",
+      "sudo": "ask",
+      "shutdown": "deny",
+      "reboot": "deny",
+      "rm -rf /": "deny",
+      "chmod -R 777 *": "deny",
+      "rm *": "ask",
+      "rm -f *": "ask",
+      "rm -rf *": "ask",
+      "sudo rm -rf *": "deny",
+      "docker system prune -a": "ask",
+      "terraform destroy *": "ask",
+      "kubectl delete *": "ask"
+    }
+  },
+  // --- Context Management ---
+  "compaction": {
+    "auto": true,
+    "prune": true,
+    "reserved": 8000
+  },
+  // --- Instructions ---
+  "instructions": [
+    "~/.config/opencode/AGENTS.md",
+    "README.md",
+    "CONTRIBUTING.md"
+  ],
+  // --- Watcher (ignore noisy dirs) ---
+  "watcher": {
+    "ignore": [
+      "node_modules/**",
+      ".git/**",
+      ".terraform/**",
+      "vendor/**",
+      "__pycache__/**",
+      ".venv/**",
+      "dist/**",
+      "build/**",
+      ".cache/**",
+      "coverage/**"
+    ]
+  },
+  // --- Custom Commands ---
+  "command": {
+    "review": {
+      "description": "Code review the current changes",
+      "template": "Review the staged and unstaged git changes. Focus on: security issues, error handling, best practices violations, and potential bugs. Provide actionable feedback."
+    },
+    "tf-plan": {
+      "description": "Run and analyze terraform plan",
+      "template": "Run `terraform plan` in the current directory, analyze the output for: resource changes, potential issues, cost implications, and security concerns. Summarize findings."
+    },
+    "test": {
+      "description": "Run tests and fix failures",
+      "template": "Identify the test framework in use, run the test suite, analyze any failures, and fix them. Run tests again to confirm fixes. $ARGUMENTS"
+    },
+    "explain": {
+      "description": "Explain a file or concept in detail",
+      "template": "Provide a thorough explanation of $ARGUMENTS including: purpose, how it works, key design decisions, and potential improvements."
+    },
+    "security": {
+      "description": "Security audit of the codebase",
+      "template": "Perform a security audit: check for hardcoded secrets, insecure permissions, vulnerable dependencies, and configuration issues. Provide severity-ranked findings."
+    },
+    "refactor": {
+      "description": "Refactor code following best practices",
+      "template": "Analyze $ARGUMENTS for code quality issues and refactor following best practices. Explain each change and why it improves the code."
+    },
+    "optimize": {
+      "description": "Analyze code for performance, security, and issues",
+      "template": "Analyze $ARGUMENTS comprehensively across three dimensions:\n\n**Performance**: Algorithmic complexity, memory usage, I/O patterns, caching opportunities, unnecessary allocations, N+1 queries, framework-specific optimizations.\n\n**Security**: Input validation, authentication/authorization gaps, data exposure, injection vectors, dependency vulnerabilities, insecure defaults, secrets handling.\n\n**Potential Issues**: Error handling gaps, edge cases, race conditions, scalability bottlenecks, maintainability concerns, missing observability.\n\nFor each finding, provide: severity (critical/high/medium/low), location (file:line), description, and a concrete fix. Rank findings by severity. End with a summary table."
+    },
+    "clean": {
+      "description": "Clean up code: formatting, imports, debug removal, linting",
+      "template": "Run a cleanup pipeline on $ARGUMENTS in this order:\n\n1. **Debug removal** - Remove console.log, print(), debugger statements, TODO/FIXME comments that are resolved, commented-out code blocks\n2. **Import optimization** - Sort imports, remove unused imports, group by stdlib/external/internal\n3. **Formatting** - Apply project formatter (prettier, black, gofmt, etc.) or consistent style\n4. **Lint fixes** - Fix linter warnings (eslint, pylint, shellcheck, etc.)\n5. **Type safety** - Fix type errors if TypeScript/mypy/type hints are in use\n\nAfter cleanup, run the project linter/formatter to verify. Show a summary of changes made in each category."
+    }
+  },
+  // --- MCP Servers ---
+  "mcp": {
+    "context7": {
+      "type": "local",
+      "command": [
+        "npx",
+        "-y",
+        "@upstash/context7-mcp@latest"
+      ]
+    },
+    "fetch": {
+      "type": "local",
+      "command": [
+        "uvx",
+        "--with",
+        "mcp<2.0.0",
+        "mcp-server-fetch"
+      ]
+    }
+  },
+  // --- Plugins ---
+  "plugin": [
+    "opencode-shell-strategy",
+    "opencode-vibeguard",
+    "opencode-skillful",
+    "opencode-supermemory",
+    "opencode-dynamic-context-pruning",
+    "opencode-background-agents",
+    "opencode-conductor",
+    "opencode.nvim",
+    "opencode-md-table-formatter",
+    "opencode-websearch-cited",
+    "opencode-gemini-auth"
+  ]
+}

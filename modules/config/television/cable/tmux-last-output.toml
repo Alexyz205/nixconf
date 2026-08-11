@@ -1,0 +1,19 @@
+[metadata]
+name = "tmux-last-output"
+description = "Search through the last command output in the current tmux pane"
+requirements = ["tmux"]
+
+[source]
+# Captures the full pane, then extracts only the last command output block:
+# - reverses the buffer
+# - skips the current prompt line (first line after reverse)
+# - prints everything until hitting the previous prompt (line starting with a
+#   non-whitespace char followed by common prompt markers like $, >, %, #, or ◆)
+# - reverses again to restore original order
+# - squeezes consecutive blank lines
+command = "tmux capture-pane -pS - 2>/dev/null | tac | awk 'NR==1{next} /^[^[:space:]].*[$>%#◆]/{exit} {print}' | tac | cat -s"
+
+[actions.copy]
+description = "Copy selected line to clipboard"
+command = "echo -n '{}' | tmux load-buffer -"
+mode = "fork"

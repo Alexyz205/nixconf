@@ -2,9 +2,7 @@
   inputs,
   ...
 }: {
-  imports = [
-    inputs.wrapper-modules.flakeModules.wrappers
-  ];
+  config.systems = [ "x86_64-linux" ];
 
   options.flake.modules = {
     nixos = inputs.nixpkgs.lib.mkOption {
@@ -16,6 +14,4 @@
       default = { };
     };
   };
-
-  config.systems = [ "x86_64-linux" ];
 }

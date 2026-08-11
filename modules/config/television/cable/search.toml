@@ -1,0 +1,31 @@
+[metadata]
+name = "search"
+description = "Ripgrep content search across the codebase, opened in nvim"
+requirements = ["rg", "bat"]
+
+[source]
+command = [
+  "rg . --no-heading --line-number --colors 'match:fg:white' --colors 'path:fg:blue' --color=always",
+  "rg . --no-heading --line-number --hidden --colors 'match:fg:white' --colors 'path:fg:blue' --color=always",
+  "rg . --no-heading --line-number --hidden -uu --colors 'match:fg:white' --colors 'path:fg:blue' --color=always",
+]
+ansi = true
+output = "{strip_ansi|split:\\::..2}"
+
+[preview]
+command = "bat -n --color=always '{strip_ansi|split:\\::0}'"
+env = { BAT_THEME = "Catppuccin Mocha" }
+offset = "{strip_ansi|split:\\::1}"
+
+[ui]
+preview_panel = { header = "{strip_ansi|split:\\::..2}" }
+
+[keybindings]
+shortcut = "f2"
+enter = "actions:edit"
+
+[actions.edit]
+description = "Open file in nvim at the matched line"
+command = "nvim '+{strip_ansi|split:\\::1}' '{strip_ansi|split:\\::0}'"
+shell = "bash"
+mode = "execute"

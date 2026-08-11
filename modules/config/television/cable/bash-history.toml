@@ -1,0 +1,14 @@
+[metadata]
+name = "bash-history"
+description = "A channel to select from your bash history"
+requirements = ["bash"]
+
+[source]
+command = "tac ${HISTFILE:-${HOME}/.bash_history} | awk '!seen[$0]++'"
+no_sort = true
+frecency = false
+
+[actions.execute]
+description = "Execute the selected command"
+command = "bash -c '{}'"
+mode = "execute"

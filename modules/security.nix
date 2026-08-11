@@ -2,7 +2,6 @@
   flake.modules.nixos.security = { ... }: {
     security.lockKernelModules = true;
     systemd.coredump.enable = false;
-
     boot.kernel.sysctl = {
       "kernel.dmesg_restrict" = 1;
       "kernel.kptr_restrict" = 2;

@@ -1,0 +1,39 @@
+[metadata]
+name = "devenv-tasks"
+description = "A channel to find, inspect and run devenv tasks"
+requirements = ["devenv"]
+
+[source]
+command = "devenv tasks list"
+display = "{0}"
+output = "{0}"
+
+[preview]
+command = "rg -n -A 6 '\"{0}\"' devenv.nix devenv.*.nix 2>/dev/null | sed 's/^/  /' || echo 'No devenv.nix task definition found'"
+
+[ui]
+layout = "portrait"
+[ui.preview_panel]
+size = 50
+header = "Task: {0}"
+
+[keybindings]
+shortcut = "f7"
+enter = "actions:run"
+ctrl-e = "actions:edit"
+ctrl-i = "actions:info"
+
+[actions.run]
+description = "Run the selected task"
+command = "devenv tasks run '{}'"
+mode = "execute"
+
+[actions.edit]
+description = "Open devenv.nix"
+command = "nvim \"$(git rev-parse --show-toplevel 2>/dev/null || echo .)/devenv.nix\""
+mode = "fork"
+
+[actions.info]
+description = "Show task dependencies"
+command = "devenv tasks run '{}' --mode all"
+mode = "fork"
