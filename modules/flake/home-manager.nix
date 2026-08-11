@@ -11,7 +11,6 @@
     };
     modules =
       [
-        ./../../packages.nix
         {
           home = {
             username = "alexis.pigeon";
@@ -21,6 +20,7 @@
         }
       ]
       ++ (with config.flake.modules.homeManager; [
+        packages
         shell
         git
         bat
@@ -32,6 +32,13 @@
         lazygit
         ghostty
         lazyvim
-      ]);
+      ])
+      ++ [{
+        modules.packages = {
+          basic = true;
+          containers = true;
+          devTools = true;
+        };
+      }];
   };
 }

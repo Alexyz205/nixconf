@@ -10,8 +10,11 @@
       ({pkgs, ...}: {
         isoImage.edition = "server";
 
-        environment.systemPackages =
-          (import ../../packages.nix {inherit pkgs lib;}).home.packages;
+        environment.systemPackages = with pkgs; [
+          ripgrep fd bat eza television fastfetch dust duf yq dasel jq tree-sitter
+          delta diff-so-fancy glab gh devpod docker-compose podman-compose
+          opencode fabric-ai pass age sops gnupg lazydocker lazyssh devenv
+        ];
 
         boot.zfs.forceImportRoot = false;
         system.stateVersion = "24.11";

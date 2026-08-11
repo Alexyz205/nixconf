@@ -58,7 +58,6 @@ Each feature module exports **two** submodule types:
 ```
 .
 ├── flake.nix                 # flake-parts + import-tree (auto-loads everything)
-├── packages.nix              # Shared home-manager packages list
 ├── modules/
 │   ├── boot.nix              # systemd-boot (UEFI)
 │   ├── disko.nix             # LUKS2 + Btrfs subvolumes
@@ -70,7 +69,7 @@ Each feature module exports **two** submodule types:
 │   ├── users.nix             # User account + sudo policy
 │   ├── secrets.nix           # sops-nix: encrypted deploy key
 │   ├── shell.nix             # Zsh + Bash + aliases + env vars + symlinks
-│   ├── packages.nix          # Package groups (basic, containers, security, dev)
+│   ├── packages.nix          # Package groups (basic, containers, security, dev) for NixOS + home-manager
 │   ├── git.nix               # Git config + delta + gh/glab credentials
 │   ├── starship.nix          # Starship prompt (Catppuccin Mocha)
 │   ├── tmux.nix              # Tmux + TPM plugins + Catppuccin theme
