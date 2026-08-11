@@ -8,13 +8,15 @@ Dual-purpose: runs as **NixOS system config** (on NixOS) or **standalone home-ma
 ### On any Linux with Nix installed (standalone home-manager)
 
 ```sh
-# Enable flakes first
+# Enable flakes first (nix needs this before home-manager's internal nix calls work)
 mkdir -p ~/.config/nix
-echo "experimental-features = nix-command flakes" >> ~/.config/nix/nix.conf
+echo "experimental-features = nix-command flakes" > ~/.config/nix/nix.conf
 
 # Apply packages, shell, tmux, starship, yazi, git, neovim config
-nix run home-manager --extra-experimental-features 'nix-command flakes' -- switch --flake .#"alexis@macos"   # macOS
-nix run home-manager --extra-experimental-features 'nix-command flakes' -- switch --flake .#"alexis@linux"   # Linux
+# -b backup: on first switch home-manager takes over nix.conf itself, so the
+#   manual file is moved to *.backup instead of failing on the clobber check.
+nix run --extra-experimental-features 'nix-command flakes' home-manager -- switch --flake .#"alexis@macos" -b backup
+nix run --extra-experimental-features 'nix-command flakes' home-manager -- switch --flake .#"alexis@linux" -b backup
 ```
 
 ### On NixOS

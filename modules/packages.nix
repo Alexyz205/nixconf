@@ -1,9 +1,5 @@
-{
-  lib,
-  pkgs,
-  ...
-}: let
-  basicPkgs = with pkgs; [
+{lib, ...}: let
+  basicPkgs = {pkgs}: with pkgs; [
     curl
     wget
     openssl
@@ -19,17 +15,17 @@
     jq
     tree-sitter
   ];
-  containerPkgs = with pkgs; [
+  containerPkgs = {pkgs}: with pkgs; [
     devpod
     docker-compose
   ];
-  securityPkgs = with pkgs; [
+  securityPkgs = {pkgs}: with pkgs; [
     pass
     age
     sops
     gnupg
   ];
-  devToolsPkgs = with pkgs; [
+  devToolsPkgs = {pkgs}: with pkgs; [
     delta
     diff-so-fancy
     gh
@@ -68,10 +64,10 @@ in {
 
       config = lib.mkIf (config.modules.packages.basic || config.modules.packages.containers || config.modules.packages.security || config.modules.packages.devTools) {
         environment.systemPackages =
-          (lib.optionals config.modules.packages.basic basicPkgs)
-          ++ (lib.optionals config.modules.packages.containers containerPkgs)
-          ++ (lib.optionals config.modules.packages.security securityPkgs)
-          ++ (lib.optionals config.modules.packages.devTools devToolsPkgs);
+          (lib.optionals config.modules.packages.basic (basicPkgs {inherit pkgs;}))
+          ++ (lib.optionals config.modules.packages.containers (containerPkgs {inherit pkgs;}))
+          ++ (lib.optionals config.modules.packages.security (securityPkgs {inherit pkgs;}))
+          ++ (lib.optionals config.modules.packages.devTools (devToolsPkgs {inherit pkgs;}));
       };
     };
 
@@ -102,10 +98,10 @@ in {
 
       config = lib.mkIf (config.modules.packages.basic || config.modules.packages.containers || config.modules.packages.security || config.modules.packages.devTools) {
         home.packages =
-          (lib.optionals config.modules.packages.basic basicPkgs)
-          ++ (lib.optionals config.modules.packages.containers containerPkgs)
-          ++ (lib.optionals config.modules.packages.security securityPkgs)
-          ++ (lib.optionals config.modules.packages.devTools devToolsPkgs);
+          (lib.optionals config.modules.packages.basic (basicPkgs {inherit pkgs;}))
+          ++ (lib.optionals config.modules.packages.containers (containerPkgs {inherit pkgs;}))
+          ++ (lib.optionals config.modules.packages.security (securityPkgs {inherit pkgs;}))
+          ++ (lib.optionals config.modules.packages.devTools (devToolsPkgs {inherit pkgs;}));
       };
     };
   };

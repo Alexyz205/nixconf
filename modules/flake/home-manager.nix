@@ -6,6 +6,7 @@
 }: let
   hmModules = with config.flake.modules.homeManager; [
     packages
+    nix
     shell
     git
     bat
@@ -32,16 +33,14 @@
             inherit homeDirectory;
             stateVersion = "24.11";
           };
+          modules.packages = {
+            basic = true;
+            containers = true;
+            devTools = true;
+          };
         }
       ]
-      ++ hmModules
-      ++ [{
-        modules.packages = {
-          basic = true;
-          containers = true;
-          devTools = true;
-        };
-      }];
+      ++ hmModules;
   };
 in {
   flake.homeConfigurations = {

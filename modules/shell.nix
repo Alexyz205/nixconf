@@ -85,19 +85,6 @@
       GIT_PAGER = "bat";
       LANG = "en_US.UTF-8";
     };
-    nix = {
-      package = pkgs.nix;
-      settings = {
-        experimental-features = ["nix-command" "flakes"];
-        substituters = ["https://cache.nixos.org"];
-        max-jobs = 8;
-        cores = 0;
-        connect-timeout = 0;
-        keep-going = true;
-        fallback = true;
-        warn-dirty = false;
-      };
-    };
     home.file = {
       ".config/opencode".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/repos/personal/nixconf/modules/config/opencode";
       ".config/television".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/repos/personal/nixconf/modules/config/television";
