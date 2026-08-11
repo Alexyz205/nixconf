@@ -95,6 +95,7 @@ Each feature module exports **two** submodule types:
 │   ├── hosts/
 │   │   ├── server.nix        # Headless server definition
 │   │   ├── workstation.nix   # GUI desktop definition
+│   ├── iso/
 │   │   ├── iso-proxmox.nix   # Proxmox VM ISO builder
 │   │   └── iso-server.nix    # Server ISO builder
 │   └── flake/
