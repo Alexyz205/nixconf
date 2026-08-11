@@ -1,10 +1,6 @@
-{
-  config,
-  lib,
-  pkgs,
-  ...
-}: {
-  programs.yazi = {
+{ lib, ... }:
+let
+  yaziCfg = {
     enable = true;
     shellWrapperName = "y";
     enableBashIntegration = true;
@@ -25,12 +21,10 @@
         border_symbol = "│";
         border_style = { fg = "#7f849c"; };
       };
-
       tabs = {
         active = { fg = "#1e1e2e"; bg = "#89b4fa"; bold = true; };
         inactive = { fg = "#89b4fa"; bg = "#313244"; };
       };
-
       mode = {
         normal_main = { fg = "#1e1e2e"; bg = "#89b4fa"; bold = true; };
         normal_alt = { fg = "#89b4fa"; bg = "#313244"; };
@@ -39,7 +33,6 @@
         unset_main = { fg = "#1e1e2e"; bg = "#f2cdcd"; bold = true; };
         unset_alt = { fg = "#f2cdcd"; bg = "#313244"; };
       };
-
       status = {
         perm_sep = { fg = "#7f849c"; };
         perm_type = { fg = "#89b4fa"; };
@@ -50,55 +43,26 @@
         progress_normal = { fg = "#a6e3a1"; bg = "#45475a"; };
         progress_error = { fg = "#f9e2af"; bg = "#f38ba8"; };
       };
-
-      pick = {
-        border = { fg = "#89b4fa"; };
-        active = { fg = "#f5c2e7"; bold = true; };
-        inactive = { };
-      };
-
-      input = {
-        border = { fg = "#89b4fa"; };
-        title = { }; value = { }; selected = { reversed = true; };
-      };
-
+      pick = { border = { fg = "#89b4fa"; }; active = { fg = "#f5c2e7"; bold = true; }; inactive = { }; };
+      input = { border = { fg = "#89b4fa"; }; title = { }; value = { }; selected = { reversed = true; }; };
       cmp.border = { fg = "#89b4fa"; };
-
-      tasks = {
-        border = { fg = "#89b4fa"; };
-        title = { };
-        hovered = { fg = "#f5c2e7"; bold = true; };
-      };
-
+      tasks = { border = { fg = "#89b4fa"; }; title = { }; hovered = { fg = "#f5c2e7"; bold = true; }; };
       which = {
-        mask = { bg = "#313244"; };
-        cand = { fg = "#94e2d5"; };
-        rest = { fg = "#9399b2"; };
-        desc = { fg = "#f5c2e7"; };
-        separator = "  ";
-        separator_style = { fg = "#585b70"; };
+        mask = { bg = "#313244"; }; cand = { fg = "#94e2d5"; }; rest = { fg = "#9399b2"; };
+        desc = { fg = "#f5c2e7"; }; separator = "  "; separator_style = { fg = "#585b70"; };
       };
-
       help = {
-        on = { fg = "#94e2d5"; };
-        run = { fg = "#f5c2e7"; };
+        on = { fg = "#94e2d5"; }; run = { fg = "#f5c2e7"; };
         hovered = { reversed = true; bold = true; };
         footer = { fg = "#313244"; bg = "#cdd6f4"; };
       };
-
       spot = {
-        border = { fg = "#89b4fa"; };
-        title = { fg = "#89b4fa"; };
-        tbl_col = { fg = "#94e2d5"; };
-        tbl_cell = { fg = "#f5c2e7"; bg = "#45475a"; };
+        border = { fg = "#89b4fa"; }; title = { fg = "#89b4fa"; };
+        tbl_col = { fg = "#94e2d5"; }; tbl_cell = { fg = "#f5c2e7"; bg = "#45475a"; };
       };
-
       notify = {
-        title_info = { fg = "#a6e3a1"; };
-        title_warn = { fg = "#f9e2af"; };
-        title_error = { fg = "#f38ba8"; };
+        title_info = { fg = "#a6e3a1"; }; title_warn = { fg = "#f9e2af"; }; title_error = { fg = "#f38ba8"; };
       };
-
       filetype.rules = [
         { mime = "image/*"; fg = "#94e2d5"; }
         { mime = "{audio,video}/*"; fg = "#f9e2af"; }
@@ -108,7 +72,6 @@
         { url = "*"; fg = "#cdd6f4"; }
         { url = "*/"; fg = "#89b4fa"; }
       ];
-
       icon.dirs = [
         { name = ".config"; text = ""; fg = "#f5c2e7"; }
         { name = ".git"; text = ""; fg = "#94e2d5"; }
@@ -125,7 +88,6 @@
         { name = "Public"; text = ""; fg = "#94e2d5"; }
         { name = "Videos"; text = ""; fg = "#94e2d5"; }
       ];
-
       icon.conds = [
         { "if" = "orphan"; text = ""; fg = "#cdd6f4"; }
         { "if" = "link"; text = ""; fg = "#7f849c"; }
@@ -141,5 +103,16 @@
         { "if" = "!dir"; text = ""; fg = "#cdd6f4"; }
       ];
     };
+  };
+in {
+  flake.modules.nixos.yazi = { config, lib, pkgs, ... }: {
+    options.modules.yazi.enable = lib.mkEnableOption "Yazi (terminal file manager)";
+    config = lib.mkIf config.modules.yazi.enable {
+      home-manager.users."alexis.pigeon".programs.yazi = yaziCfg;
+    };
+  };
+
+  flake.modules.homeManager.yazi = { ... }: {
+    programs.yazi = yaziCfg;
   };
 }

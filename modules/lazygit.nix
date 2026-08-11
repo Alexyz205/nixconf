@@ -1,12 +1,7 @@
-{
-  config,
-  lib,
-  pkgs,
-  ...
-}: {
-  programs.lazygit = {
+{ lib, ... }:
+let
+  lazygitCfg = {
     enable = true;
-
     settings = {
       gui.theme = {
         activeBorderColor = [ "#89b4fa" "bold" ];
@@ -22,19 +17,26 @@
         unstagedChangesColor = [ "#f38ba8" ];
         defaultFgColor = [ "#cdd6f4" ];
       };
-
       gui.authorColors = {
         "*" = "#b4befe";
         Alexyz205 = "#74c7ec";
         "Alexis Pigeon" = "#74c7ec";
       };
-
-      git.diffRenderers = [
-        {
-          colorArg = "always";
-          command = "delta --paging=never";
-        }
-      ];
+      git.diffRenderers = [{
+        colorArg = "always";
+        command = "delta --paging=never";
+      }];
     };
+  };
+in {
+  flake.modules.nixos.lazygit = { config, lib, pkgs, ... }: {
+    options.modules.lazygit.enable = lib.mkEnableOption "Lazygit";
+    config = lib.mkIf config.modules.lazygit.enable {
+      home-manager.users."alexis.pigeon".programs.lazygit = lazygitCfg;
+    };
+  };
+
+  flake.modules.homeManager.lazygit = { ... }: {
+    programs.lazygit = lazygitCfg;
   };
 }

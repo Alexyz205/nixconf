@@ -1,12 +1,7 @@
-{
-  config,
-  lib,
-  pkgs,
-  ...
-}: {
-  programs.ghostty = {
+{ lib, ... }:
+let
+  ghosttyCfg = {
     enable = true;
-
     settings = {
       theme = "catppuccin-mocha";
       "font-family" = "JetBrains Mono";
@@ -16,7 +11,6 @@
       "copy-on-select" = true;
       fullscreen = true;
     };
-
     themes."catppuccin-mocha" = {
       palette = [
         "0=#45475a" "1=#f38ba8" "2=#a6e3a1" "3=#f9e2af"
@@ -31,5 +25,16 @@
       selection-background = "353749";
       selection-foreground = "cdd6f4";
     };
+  };
+in {
+  flake.modules.nixos.ghostty = { config, lib, pkgs, ... }: {
+    options.modules.ghostty.enable = lib.mkEnableOption "Ghostty terminal";
+    config = lib.mkIf config.modules.ghostty.enable {
+      home-manager.users."alexis.pigeon".programs.ghostty = ghosttyCfg;
+    };
+  };
+
+  flake.modules.homeManager.ghostty = { ... }: {
+    programs.ghostty = ghosttyCfg;
   };
 }

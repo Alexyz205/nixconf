@@ -11,7 +11,16 @@
         lazyvim = inputs.lazyvim;
       };
       modules = [
-        ./../home/packages.nix
-      ];
+        ./../../packages.nix
+        {
+          home = {
+            username = "alexis.pigeon";
+            homeDirectory = "/home/alexis.pigeon";
+            stateVersion = "24.11";
+          };
+        }
+      ] ++ (with config.flake.modules.homeManager; [
+        shell git bat eza zoxide starship tmux yazi lazygit ghostty lazyvim
+      ]);
     };
 }
