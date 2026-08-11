@@ -2,7 +2,44 @@
   lib,
   pkgs,
   ...
-}: {
+}: let
+  basicPkgs = with pkgs; [
+    curl
+    wget
+    openssl
+    ripgrep
+    fd
+    bat
+    eza
+    television
+    fastfetch
+    dust
+    duf
+    yq
+    jq
+    tree-sitter
+  ];
+  containerPkgs = with pkgs; [
+    devpod
+    docker-compose
+  ];
+  securityPkgs = with pkgs; [
+    pass
+    age
+    sops
+    gnupg
+  ];
+  devToolsPkgs = with pkgs; [
+    delta
+    diff-so-fancy
+    gh
+    glab
+    opencode
+    fabric-ai
+    lazydocker
+    devenv
+  ];
+in {
   flake.modules = {
     nixos.packages = {
       config,
@@ -31,46 +68,10 @@
 
       config = lib.mkIf (config.modules.packages.basic || config.modules.packages.containers || config.modules.packages.security || config.modules.packages.devTools) {
         environment.systemPackages =
-          (lib.optionals config.modules.packages.basic (with pkgs; [
-            curl
-            wget
-            openssl
-            ripgrep
-            fd
-            bat
-            eza
-            television
-            fastfetch
-            dust
-            duf
-            yq
-            dasel
-            jq
-            tree-sitter
-          ]))
-          ++ (lib.optionals config.modules.packages.containers (with pkgs; [
-            devpod
-            docker-compose
-            podman-compose
-            lazydocker
-          ]))
-          ++ (lib.optionals config.modules.packages.security (with pkgs; [
-            pass
-            age
-            sops
-            gnupg
-          ]))
-          ++ (lib.optionals config.modules.packages.devTools (with pkgs; [
-            delta
-            diff-so-fancy
-            gh
-            glab
-            opencode
-            fabric-ai
-            lazydocker
-            lazyssh
-            devenv
-          ]));
+          (lib.optionals config.modules.packages.basic basicPkgs)
+          ++ (lib.optionals config.modules.packages.containers containerPkgs)
+          ++ (lib.optionals config.modules.packages.security securityPkgs)
+          ++ (lib.optionals config.modules.packages.devTools devToolsPkgs);
       };
     };
 
@@ -101,46 +102,10 @@
 
       config = lib.mkIf (config.modules.packages.basic || config.modules.packages.containers || config.modules.packages.security || config.modules.packages.devTools) {
         home.packages =
-          (lib.optionals config.modules.packages.basic (with pkgs; [
-            curl
-            wget
-            openssl
-            ripgrep
-            fd
-            bat
-            eza
-            television
-            fastfetch
-            dust
-            duf
-            yq
-            dasel
-            jq
-            tree-sitter
-          ]))
-          ++ (lib.optionals config.modules.packages.containers (with pkgs; [
-            devpod
-            docker-compose
-            podman-compose
-            lazydocker
-          ]))
-          ++ (lib.optionals config.modules.packages.security (with pkgs; [
-            pass
-            age
-            sops
-            gnupg
-          ]))
-          ++ (lib.optionals config.modules.packages.devTools (with pkgs; [
-            delta
-            diff-so-fancy
-            gh
-            glab
-            opencode
-            fabric-ai
-            lazydocker
-            lazyssh
-            devenv
-          ]));
+          (lib.optionals config.modules.packages.basic basicPkgs)
+          ++ (lib.optionals config.modules.packages.containers containerPkgs)
+          ++ (lib.optionals config.modules.packages.security securityPkgs)
+          ++ (lib.optionals config.modules.packages.devTools devToolsPkgs);
       };
     };
   };
