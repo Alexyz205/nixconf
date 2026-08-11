@@ -1,5 +1,5 @@
-{ lib, ... }: {
-  flake.modules.nixos.security = { ... }: {
+{lib, ...}: {
+  flake.modules.nixos.security = {...}: {
     security.lockKernelModules = true;
     systemd.coredump.enable = false;
     boot.kernel.sysctl = {

@@ -3,8 +3,12 @@
   lib,
   ...
 }: let
-  lazyvimCfg = { lazyvim, pkgs, ... }: {
-    imports = [ lazyvim.homeManagerModules.default ];
+  lazyvimCfg = {
+    lazyvim,
+    pkgs,
+    ...
+  }: {
+    imports = [lazyvim.homeManagerModules.default];
     programs.lazyvim = {
       enable = true;
       ignoreBuildNotifications = true;
@@ -14,8 +18,12 @@
         dap.core.enable = true;
         editor.mini-files.enable = true;
         lang = {
-          helm.enable = true; json.enable = true; markdown.enable = true;
-          python.enable = true; toml.enable = true; yaml.enable = true;
+          helm.enable = true;
+          json.enable = true;
+          markdown.enable = true;
+          python.enable = true;
+          toml.enable = true;
+          yaml.enable = true;
         };
       };
       config = {
@@ -53,19 +61,35 @@
         '';
       };
       plugins.colorscheme = lazyvim.lib.lazyConfig [
-        { plugin = "catppuccin/nvim"; lazy = true; name = "catppuccin"; opts.flavour = "mocha"; }
-        { plugin = "LazyVim/LazyVim"; opts.colorscheme = "catppuccin-mocha"; }
+        {
+          plugin = "catppuccin/nvim";
+          lazy = true;
+          name = "catppuccin";
+          opts.flavour = "mocha";
+        }
+        {
+          plugin = "LazyVim/LazyVim";
+          opts.colorscheme = "catppuccin-mocha";
+        }
       ];
       configFiles = toString ./home/lazyvim;
-      extraPackages = with pkgs; [ marksman yaml-language-server ];
+      extraPackages = with pkgs; [marksman yaml-language-server];
     };
   };
 in {
-  flake.modules.nixos.lazyvim = { config, lib, pkgs, ... }: {
+  flake.modules.nixos.lazyvim = {
+    config,
+    lib,
+    pkgs,
+    ...
+  }: {
     options.modules.lazyvim.enable = lib.mkEnableOption "LazyVim";
     config = lib.mkIf config.modules.lazyvim.enable {
-      environment.systemPackages = with pkgs; [ neovim marksman yaml-language-server ];
-      home-manager.users."alexis.pigeon" = lazyvimCfg { inherit (inputs) lazyvim; inherit pkgs; };
+      environment.systemPackages = with pkgs; [neovim marksman yaml-language-server];
+      home-manager.users."alexis.pigeon" = lazyvimCfg {
+        inherit (inputs) lazyvim;
+        inherit pkgs;
+      };
     };
   };
 

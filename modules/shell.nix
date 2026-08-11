@@ -1,5 +1,4 @@
-{ lib, ... }:
-let
+{lib, ...}: let
   commonAliases = {
     dot = "cd $DOTFILES";
     repos = "cd $REPOS";
@@ -59,15 +58,22 @@ let
   zshExtra = builtins.readFile ./config/shell/zsh-extra.zsh;
   bashExtra = builtins.readFile ./config/shell/bash-extra.sh;
 
-  shellHm = { pkgs, config, lib, ... }: {
+  shellHm = {
+    pkgs,
+    config,
+    lib,
+    ...
+  }: {
     programs.home-manager.enable = true;
     home = {
-      sessionPath = [ "${config.home.homeDirectory}/bin" "${config.home.homeDirectory}/.local/bin" ];
+      sessionPath = ["${config.home.homeDirectory}/bin" "${config.home.homeDirectory}/.local/bin"];
     };
     home.sessionVariables = {
       SHELL = "${pkgs.zsh}/bin/zsh";
-      VISUAL = "nvim"; EDITOR = "nvim";
-      REPOS = "$HOME/repos"; GITUSER = "alexyz205";
+      VISUAL = "nvim";
+      EDITOR = "nvim";
+      REPOS = "$HOME/repos";
+      GITUSER = "alexyz205";
       GHREPOS = "$HOME/repos/github.com/alexyz205";
       NICONF = "$HOME/repos/personal/nixconf";
       XDG_CONFIG_HOME = "$HOME/.config";
@@ -75,16 +81,21 @@ let
       TMUX_AUTO_START = "1";
       PASSWORD_STORE_DIR = "$HOME/.password-store";
       BAT_THEME = "Catppuccin Mocha";
-      PAGER = "bat"; GIT_PAGER = "bat";
+      PAGER = "bat";
+      GIT_PAGER = "bat";
       LANG = "en_US.UTF-8";
     };
     nix = {
       package = pkgs.nix;
       settings = {
-        experimental-features = [ "nix-command" "flakes" ];
-        substituters = [ "https://cache.nixos.org" ];
-        max-jobs = 8; cores = 0; connect-timeout = 0;
-        keep-going = true; fallback = true; warn-dirty = false;
+        experimental-features = ["nix-command" "flakes"];
+        substituters = ["https://cache.nixos.org"];
+        max-jobs = 8;
+        cores = 0;
+        connect-timeout = 0;
+        keep-going = true;
+        fallback = true;
+        warn-dirty = false;
       };
     };
     home.file = {
@@ -95,29 +106,43 @@ let
       ".config/eza/theme.yml".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/repos/personal/nixconf/modules/config/eza/theme.yml";
     };
     programs.zsh = {
-      enable = true; enableCompletion = true; defaultKeymap = "viins";
-      autosuggestion.enable = true; syntaxHighlighting.enable = true;
-      history = { size = 100000; save = 100000; share = true; };
-      shellAliases = commonAliases // { reload = "source ~/.zshrc"; };
+      enable = true;
+      enableCompletion = true;
+      defaultKeymap = "viins";
+      autosuggestion.enable = true;
+      syntaxHighlighting.enable = true;
+      history = {
+        size = 100000;
+        save = 100000;
+        share = true;
+      };
+      shellAliases = commonAliases // {reload = "source ~/.zshrc";};
       initContent = lib.mkMerge [
-        (lib.mkOrder 600 sharedFunctions) (lib.mkOrder 900 zshExtra)
+        (lib.mkOrder 600 sharedFunctions)
+        (lib.mkOrder 900 zshExtra)
       ];
     };
     programs.bash = {
-      enable = true; enableCompletion = true;
+      enable = true;
+      enableCompletion = true;
       historySize = 100000;
-      shellAliases = commonAliases // { reload = "source ~/.bashrc"; };
+      shellAliases = commonAliases // {reload = "source ~/.bashrc";};
       initExtra = sharedFunctions + "\n" + bashExtra;
     };
   };
 in {
-  flake.modules.nixos.shell = { config, lib, pkgs, ... }: {
+  flake.modules.nixos.shell = {
+    config,
+    lib,
+    pkgs,
+    ...
+  }: {
     options.modules.shell.enable = lib.mkEnableOption "Shell (Zsh + Bash + env)";
     config = lib.mkIf config.modules.shell.enable {
       programs.zsh.enable = true;
       programs.git.enable = true;
-      environment.systemPackages = with pkgs; [ git curl wget openssl mise ripgrep fd fastfetch jq television ];
-      home-manager.users."alexis.pigeon" = shellHm { inherit pkgs config lib; };
+      environment.systemPackages = with pkgs; [git curl wget openssl mise ripgrep fd fastfetch jq television];
+      home-manager.users."alexis.pigeon" = shellHm;
     };
   };
 

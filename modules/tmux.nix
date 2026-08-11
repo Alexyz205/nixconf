@@ -1,5 +1,4 @@
-{ lib, ... }:
-let
+{lib, ...}: let
   tmuxCfg = {
     enable = true;
     extraConfig = ''
@@ -65,14 +64,19 @@ let
     '';
   };
 in {
-  flake.modules.nixos.tmux = { config, lib, pkgs, ... }: {
+  flake.modules.nixos.tmux = {
+    config,
+    lib,
+    pkgs,
+    ...
+  }: {
     options.modules.tmux.enable = lib.mkEnableOption "Tmux";
     config = lib.mkIf config.modules.tmux.enable {
       home-manager.users."alexis.pigeon".programs.tmux = tmuxCfg;
     };
   };
 
-  flake.modules.homeManager.tmux = { ... }: {
+  flake.modules.homeManager.tmux = {...}: {
     programs.tmux = tmuxCfg;
   };
 }

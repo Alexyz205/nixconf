@@ -1,16 +1,13 @@
-{
-  inputs,
-  ...
-}: {
+{inputs, ...}: {
   flake.nixosConfigurations.iso-proxmox = inputs.nixpkgs.lib.nixosSystem {
     system = "x86_64-linux";
     modules = [
       "${inputs.nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix"
-      ({ pkgs, ... }: {
+      ({pkgs, ...}: {
         isoImage.edition = "proxmox";
 
         boot.kernelPackages = pkgs.linuxPackages_latest;
-        boot.supportedFilesystems = [ "btrfs" "xfs" "ntfs" "cifs" ];
+        boot.supportedFilesystems = ["btrfs" "xfs" "ntfs" "cifs"];
 
         services.qemuGuest.enable = true;
 

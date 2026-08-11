@@ -4,13 +4,13 @@
   lib,
   ...
 }: {
-  flake.homeConfigurations."alexis.pigeon" =
-    inputs.home-manager.lib.homeManagerConfiguration {
-      pkgs = inputs.nixpkgs.legacyPackages.x86_64-linux;
-      extraSpecialArgs = {
-        lazyvim = inputs.lazyvim;
-      };
-      modules = [
+  flake.homeConfigurations."alexis.pigeon" = inputs.home-manager.lib.homeManagerConfiguration {
+    pkgs = inputs.nixpkgs.legacyPackages.x86_64-linux;
+    extraSpecialArgs = {
+      lazyvim = inputs.lazyvim;
+    };
+    modules =
+      [
         ./../../packages.nix
         {
           home = {
@@ -19,8 +19,19 @@
             stateVersion = "24.11";
           };
         }
-      ] ++ (with config.flake.modules.homeManager; [
-        shell git bat eza zoxide starship tmux yazi lazygit ghostty lazyvim
+      ]
+      ++ (with config.flake.modules.homeManager; [
+        shell
+        git
+        bat
+        eza
+        zoxide
+        starship
+        tmux
+        yazi
+        lazygit
+        ghostty
+        lazyvim
       ]);
-    };
+  };
 }

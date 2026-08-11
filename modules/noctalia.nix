@@ -1,8 +1,5 @@
-{
-  inputs,
-  ...
-}: {
-  perSystem = { pkgs, ... }: {
+{inputs, ...}: {
+  perSystem = {pkgs, ...}: {
     packages.noctalia-shell = inputs.wrapper-modules.wrappers.noctalia-shell.wrap {
       inherit pkgs;
 
@@ -15,14 +12,14 @@
           marginHorizontal = 0;
           marginVertical = 0;
           widgets = {
-            left = [ { id = "Workspace"; } ];
-            center = [ ];
+            left = [{id = "Workspace";}];
+            center = [];
             right = [
-              { id = "Volume"; }
-              { id = "Network"; }
-              { id = "Battery"; }
-              { id = "Clock"; }
-              { id = "Tray"; }
+              {id = "Volume";}
+              {id = "Network";}
+              {id = "Battery";}
+              {id = "Clock";}
+              {id = "Tray";}
             ];
           };
         };
@@ -36,11 +33,26 @@
         controlCenter = {
           position = "close_to_bar_button";
           cards = [
-            { id = "profile-card"; enabled = true; }
-            { id = "shortcuts-card"; enabled = true; }
-            { id = "audio-card"; enabled = true; }
-            { id = "brightness-card"; enabled = true; }
-            { id = "weather-card"; enabled = true; }
+            {
+              id = "profile-card";
+              enabled = true;
+            }
+            {
+              id = "shortcuts-card";
+              enabled = true;
+            }
+            {
+              id = "audio-card";
+              enabled = true;
+            }
+            {
+              id = "brightness-card";
+              enabled = true;
+            }
+            {
+              id = "weather-card";
+              enabled = true;
+            }
           ];
         };
 

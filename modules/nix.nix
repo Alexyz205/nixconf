@@ -1,5 +1,5 @@
-{ lib, ... }: {
-  flake.modules.nixos.nix = { ... }: {
-    nix.settings.allowed-users = [ "@wheel" ];
+{lib, ...}: {
+  flake.modules.nixos.nix = {...}: {
+    nix.settings.allowed-users = ["@wheel"];
   };
 }
