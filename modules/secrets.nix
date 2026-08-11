@@ -7,7 +7,7 @@
     options.modules.secrets = {
       userName = lib.mkOption {
         type = lib.types.str;
-        default = "alexis.pigeon";
+        default = "alexis";
       };
       gitEmail = lib.mkOption {
         type = lib.types.str;

@@ -6,7 +6,6 @@
       set -ag terminal-overrides ",xterm-256color:RGB,xterm-ghostty:RGB"
       set -g pane-border-lines simple
       set -g renumber-windows on
-      set-option -g default-shell /usr/bin/zsh
       set -sg escape-time 0
       set -g history-limit 50000
       set -g display-time 4000
@@ -76,7 +75,7 @@ in {
   }: {
     options.modules.tmux.enable = lib.mkEnableOption "Tmux";
     config = lib.mkIf config.modules.tmux.enable {
-      home-manager.users."alexis.pigeon".programs.tmux = tmuxCfg;
+      home-manager.users."alexis".programs.tmux = tmuxCfg;
     };
   };
 

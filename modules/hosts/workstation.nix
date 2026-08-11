@@ -51,7 +51,7 @@ in {
           disko.devices.disk.main.device = "/dev/sda";
 
           modules = {
-            users.userName = "alexis.pigeon";
+            users.userName = "alexis";
             packages = {
               basic = true;
               containers = true;
@@ -76,7 +76,7 @@ in {
           home-manager = {
             useGlobalPkgs = true;
             extraSpecialArgs = {lazyvim = inputs.lazyvim;};
-            users."alexis.pigeon" = {
+            users."alexis" = {
               home.stateVersion = "24.11";
               nix.package = lib.mkForce pkgs.nix;
             };

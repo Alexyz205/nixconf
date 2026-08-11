@@ -13,8 +13,8 @@
       [
         {
           home = {
-            username = "alexis.pigeon";
-            homeDirectory = "/home/alexis.pigeon";
+            username = "alexis";
+            inherit homeDirectory;
             stateVersion = "24.11";
           };
         }

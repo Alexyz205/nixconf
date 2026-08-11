@@ -3,8 +3,8 @@
     enable = true;
     settings = {
       user = {
-        name = "Alexis Pigeon";
-        email = "alexis.pigeon@take2games.com";
+        name = "Alexyz205";
+        email = "anathos205@gmail.com";
       };
       commit.verbose = true;
       core = {
@@ -90,7 +90,7 @@ in {
         enable = true;
         config.init.defaultBranch = "main";
       };
-      home-manager.users."alexis.pigeon".programs.git = gitConfig {inherit pkgs;};
+      home-manager.users."alexis".programs.git = gitConfig {inherit pkgs;};
     };
   };
 

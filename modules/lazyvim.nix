@@ -86,7 +86,7 @@ in {
     options.modules.lazyvim.enable = lib.mkEnableOption "LazyVim";
     config = lib.mkIf config.modules.lazyvim.enable {
       environment.systemPackages = with pkgs; [neovim marksman yaml-language-server];
-      home-manager.users."alexis.pigeon" = lazyvimCfg {
+      home-manager.users."alexis" = lazyvimCfg {
         inherit (inputs) lazyvim;
         inherit pkgs;
       };

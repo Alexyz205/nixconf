@@ -7,7 +7,7 @@
     options.modules.users = {
       userName = lib.mkOption {
         type = lib.types.str;
-        default = "alexis.pigeon";
+        default = "alexis";
       };
       extraGroups = lib.mkOption {
         type = lib.types.listOf lib.types.str;

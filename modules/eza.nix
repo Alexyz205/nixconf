@@ -15,7 +15,7 @@ in
       options.modules.eza.enable = lib.mkEnableOption "Eza";
       config = lib.mkIf config.modules.eza.enable {
         environment.systemPackages = [pkgs.eza];
-        home-manager.users."alexis.pigeon".programs.eza = progCfg;
+        home-manager.users."alexis".programs.eza = progCfg;
       };
     };
 

@@ -46,11 +46,11 @@ in {
   }: {
     options.modules.ghostty.enable = lib.mkEnableOption "Ghostty terminal";
     config = lib.mkIf config.modules.ghostty.enable {
-      home-manager.users."alexis.pigeon".programs.ghostty = ghosttyCfg;
+      home-manager.users."alexis".programs.ghostty = ghosttyCfg;
     };
   };
 
-  flake.modules.homeManager.ghostty = {...}: {
+  flake.modules.homeManager.ghostty = {pkgs, ...}: lib.mkIf pkgs.stdenv.isLinux {
     programs.ghostty = ghosttyCfg;
   };
 }

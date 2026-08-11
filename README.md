@@ -13,7 +13,8 @@ mkdir -p ~/.config/nix
 echo "experimental-features = nix-command flakes" >> ~/.config/nix/nix.conf
 
 # Apply packages, shell, tmux, starship, yazi, git, neovim config
-nix run home-manager --extra-experimental-features 'nix-command flakes' -- switch --flake .#"alexis.pigeon"
+nix run home-manager --extra-experimental-features 'nix-command flakes' -- switch --flake .#"alexis@macos"   # macOS
+nix run home-manager --extra-experimental-features 'nix-command flakes' -- switch --flake .#"alexis@linux"   # Linux
 ```
 
 ### On NixOS
@@ -125,7 +126,7 @@ in {
                 inputs.home-manager.nixosModules.home-manager ] ++ features ++ [{
       networking.hostName = "server";
       modules = {
-        users.userName = "alexis.pigeon";
+        users.userName = "alexis";
         packages = { basic = true; containers = true; devTools = true; };
         shell.enable = true; git.enable = true; starship.enable = true;
       };
@@ -142,7 +143,8 @@ in {
 | `server`         | NixOS      | Headless server (SSH, CLI, security)     |
 | `iso-proxmox`    | ISO        | Proxmox VM installer + rescue ISO        |
 | `iso-server`     | ISO        | Minimal server installer ISO             |
-| `"alexis.pigeon"`| home-manager | Standalone config (any Linux w/ Nix)   |
+| `"alexis@macos"`| home-manager | Standalone config (macOS)                |
+| `"alexis@linux"`| home-manager | Standalone config (any Linux w/ Nix)   |
 
 ## Design decisions
 

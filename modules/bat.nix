@@ -15,7 +15,7 @@ in {
     options.modules.bat.enable = lib.mkEnableOption "Bat";
     config = lib.mkIf config.modules.bat.enable {
       environment.systemPackages = [pkgs.bat];
-      home-manager.users."alexis.pigeon".programs.bat = progCfg;
+      home-manager.users."alexis".programs.bat = progCfg;
     };
   };
 

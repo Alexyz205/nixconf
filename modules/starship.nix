@@ -228,7 +228,7 @@ in {
   }: {
     options.modules.starship.enable = lib.mkEnableOption "Starship prompt";
     config = lib.mkIf config.modules.starship.enable {
-      home-manager.users."alexis.pigeon".programs.starship = starshipCfg;
+      home-manager.users."alexis".programs.starship = starshipCfg;
     };
   };
 
