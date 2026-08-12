@@ -21,6 +21,7 @@
       settings."*" = {
         IdentityFile = "~/.ssh/yubi_ed25519";
         IdentitiesOnly = "yes";
+        SecurityKeyProvider = "internal";
       };
     };
   } // lib.optionalAttrs (builtins.pathExists handle) {
@@ -90,6 +91,7 @@ in {
         extraConfig = ''
           IdentityFile ~/.ssh/yubi_ed25519
           IdentitiesOnly yes
+          SecurityKeyProvider internal
         '';
       };
       users.users.${config.modules.users.userName}.openssh.authorizedKeys.keys =
