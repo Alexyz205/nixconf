@@ -17,10 +17,11 @@
     home.file.".ssh/yubi_ed25519.pub".source = yubiPub;
     programs.ssh = {
       enable = true;
-      extraConfig = ''
-        IdentityFile ~/.ssh/yubi_ed25519
-        IdentitiesOnly yes
-      '';
+      enableDefaultConfig = false;
+      settings."*" = {
+        IdentityFile = "~/.ssh/yubi_ed25519";
+        IdentitiesOnly = "yes";
+      };
     };
   } // lib.optionalAttrs (builtins.pathExists handle) {
     home.file.".ssh/yubi_ed25519".source = handle;
