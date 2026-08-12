@@ -33,7 +33,7 @@
 
   mkWorkstation = {
     hostName,
-    diskDevice,
+    diskDevice ? "/dev/sda",
   }:
     inputs.nixpkgs.lib.nixosSystem {
       modules =
@@ -174,11 +174,5 @@
 in {
   flake.nixosConfigurations.workstation = mkWorkstation {
     hostName = "workstation";
-    diskDevice = "/dev/disk/by-id/nvme-KBG40ZNS256G_NVMe_KIOXIA_256GB_Y1TPHIJFQXA3";
-  };
-
-  flake.nixosConfigurations.workstation-laptop = mkWorkstation {
-    hostName = "laptop";
-    diskDevice = "/dev/disk/by-id/REPLACE_WITH_THIS_MACHINE_DISK";
   };
 }
