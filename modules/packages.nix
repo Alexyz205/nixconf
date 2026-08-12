@@ -30,7 +30,7 @@
     diff-so-fancy
     gh
     glab
-    opencode
+    # opencode
     fabric-ai
     lazydocker
     devenv

@@ -50,7 +50,17 @@ in {
     };
   };
 
-  flake.modules.homeManager.ghostty = {pkgs, ...}: lib.mkIf pkgs.stdenv.isLinux {
-    programs.ghostty = ghosttyCfg;
-  };
+  flake.modules.homeManager.ghostty = {
+    pkgs,
+    lib,
+    ...
+  }: let
+    macos = pkgs.stdenv.isDarwin;
+  in
+    lib.mkIf (pkgs.stdenv.isLinux || macos) {
+      programs.ghostty = ghosttyCfg
+        // lib.optionalAttrs macos {
+          package = lib.mkForce null;
+        };
+    };
 }
