@@ -1,6 +1,6 @@
 {lib, ...}: let
   commonAliases = {
-    dot = "cd $DOTFILES";
+    nf = "cd $NIXCONF";
     repos = "cd $REPOS";
     ".." = "cd ..";
     "..." = "cd ../..";
@@ -53,6 +53,21 @@
     pwls = "pass ls";
     pwgen = "pass generate";
     pwcp = "pass show -c";
+
+    nr = "nixos-rebuild switch --flake \"$NIXCONF\"";
+    nrb = "nixos-rebuild build --flake \"$NIXCONF\"";
+    nrt = "nixos-rebuild test --flake \"$NIXCONF\"";
+    dr = "sudo darwin-rebuild switch --flake \"$NIXCONF\"";
+    drb = "sudo darwin-rebuild build --flake \"$NIXCONF\"";
+    drc = "sudo darwin-rebuild check --flake \"$NIXCONF\"";
+    hm = "home-manager switch --flake \"$NIXCONF\"";
+    hmb = "home-manager build --flake \"$NIXCONF\"";
+    hmc = "home-manager build --flake \"$NIXCONF\" --check";
+    nc = "nix flake check \"$NIXCONF\"";
+    ngc = "nix store gc";
+    ngo = "nix store optimise";
+    nu = "nix flake update \"$NIXCONF\"";
+    nl = "nix flake lock \"$NIXCONF\"";
   };
   sharedFunctions = builtins.readFile ./config/shell/functions.sh;
   zshExtra = builtins.readFile ./config/shell/zsh-extra.zsh;

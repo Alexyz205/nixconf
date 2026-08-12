@@ -31,11 +31,10 @@
       bind - split-window -v
       bind -n C-Tab next-window
       bind -n C-S-Tab previous-window
-      bind C-l display-popup -d "#{pane_current_path}" -w 80% -h 80% -E "lazygit"
+      bind C-g display-popup -d "#{pane_current_path}" -w 80% -h 80% -E "lazygit"
       bind C-n display-popup -E 'bash -i -c "read -p \"Session name: \" name; tmux new-session -d -s $name && tmux switch-client -t $name"'
       bind C-j display-popup -E "tmux choose-session"
       bind C-y display-popup -d "#{pane_current_path}" -w 90% -h 90% -E "yazi"
-      bind C-z display-popup -w 80% -h 80% -E 'nvim ~/.zshrc'
       bind C-t display-popup -d "#{pane_current_path}" -w 75% -h 75% -E "zsh"
       bind d display-menu -T "#[align=centre]Dotfiles" -x C -y C \
         ".zshrc"      z  "display-popup -E 'nvim ~/.zshrc'" \
