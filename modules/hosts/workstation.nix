@@ -17,6 +17,7 @@
     disko
     secrets
     git
+    yubikey
     starship
     tmux
     bat
@@ -35,9 +36,9 @@
     diskDevice,
   }:
     inputs.nixpkgs.lib.nixosSystem {
-      inherit system;
       modules =
         [
+          { nixpkgs.hostPlatform = system; }
           inputs.disko.nixosModules.disko
           inputs.sops-nix.nixosModules.sops
           inputs.home-manager.nixosModules.home-manager
@@ -103,6 +104,9 @@
               };
               shell.enable = true;
               git.enable = true;
+              yubikey.enable = true;
+              yubikey.luksUnlock = true;
+              yubikey.sudoAuth = true;
               starship.enable = true;
               tmux.enable = true;
               bat.enable = true;
@@ -116,30 +120,34 @@
               noctalia.enable = true;
             };
 
-            home-manager = {
-              useGlobalPkgs = true;
-              extraSpecialArgs = {lazyvim = inputs.lazyvim;};
-              users."alexis" = {
-                home.stateVersion = "24.11";
-                nix.package = lib.mkForce pkgs.nix;
-                gtk = {
-                  enable = true;
-                  cursorTheme = {
-                    name = "catppuccin-mocha-mauve-cursors";
-                    package = catppuccin.cursorTheme;
-                    size = 24;
-                  };
-                  iconTheme = {
-                    name = "Papirus-Dark";
-                    package = catppuccin.iconTheme;
-                  };
-                  theme = {
-                    name = "catppuccin-mocha-mauve-standard";
-                    package = catppuccin.gtkTheme;
+              home-manager = {
+                useGlobalPkgs = true;
+                extraSpecialArgs = {lazyvim = inputs.lazyvim;};
+                users."alexis" = {
+                  home.stateVersion = "24.11";
+                  nix.package = lib.mkForce pkgs.nix;
+                  gtk = {
+                    enable = true;
+                    cursorTheme = {
+                      name = "catppuccin-mocha-mauve-cursors";
+                      package = catppuccin.cursorTheme;
+                      size = 24;
+                    };
+                    iconTheme = {
+                      name = "Papirus-Dark";
+                      package = catppuccin.iconTheme;
+                    };
+                    theme = {
+                      name = "catppuccin-mocha-mauve-standard";
+                      package = catppuccin.gtkTheme;
+                    };
+                    gtk4.theme = {
+                      name = "catppuccin-mocha-mauve-standard";
+                      package = catppuccin.gtkTheme;
+                    };
                   };
                 };
               };
-            };
 
             programs.firefox.enable = true;
             services.pipewire = {

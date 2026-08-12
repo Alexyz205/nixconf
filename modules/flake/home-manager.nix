@@ -18,9 +18,10 @@
     lazygit
     ghostty
     lazyvim
+    yubikey
   ];
 
-  mkHome = system: homeDirectory: inputs.home-manager.lib.homeManagerConfiguration {
+  mkHome = system: username: homeDirectory: inputs.home-manager.lib.homeManagerConfiguration {
     pkgs = inputs.nixpkgs.legacyPackages.${system};
     extraSpecialArgs = {
       lazyvim = inputs.lazyvim;
@@ -29,8 +30,7 @@
       [
         {
           home = {
-            username = "alexis";
-            inherit homeDirectory;
+            inherit username homeDirectory;
             stateVersion = "24.11";
           };
           modules.packages = {
@@ -38,13 +38,15 @@
             containers = true;
             devTools = true;
           };
+          gtk.gtk4.theme = null;
         }
       ]
       ++ hmModules;
   };
 in {
   flake.homeConfigurations = {
-    "alexis@macos" = mkHome "aarch64-darwin" "/Users/alexis";
-    "alexis@linux" = mkHome "x86_64-linux" "/home/alexis";
+    "alexis@macos" = mkHome "aarch64-darwin" "alexis" "/Users/alexis";
+    "alexis@linux" = mkHome "x86_64-linux" "alexis" "/home/alexis";
+    "alexis.pigeon@linux" = mkHome "x86_64-linux" "alexis.pigeon" "/home/alexis.pigeon";
   };
 }

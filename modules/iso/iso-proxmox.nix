@@ -1,7 +1,7 @@
 {inputs, ...}: {
   flake.nixosConfigurations.iso-proxmox = inputs.nixpkgs.lib.nixosSystem {
-    system = "x86_64-linux";
     modules = [
+      { nixpkgs.hostPlatform = "x86_64-linux"; }
       "${inputs.nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix"
       ({pkgs, ...}: {
         isoImage.edition = "proxmox";

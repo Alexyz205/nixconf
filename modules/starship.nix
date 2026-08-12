@@ -110,7 +110,7 @@
       };
       nix_shell = {
         heuristic = true;
-        symbol = "❄️";
+        symbol = "";
         style = "bg:color_sapphire fg:color_fg1";
         format = "[ $symbol$state( \($name\)) ]($style)";
         impure_msg = "[impure](bold red)";

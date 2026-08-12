@@ -9,7 +9,7 @@
     wrapper-modules.url = "github:BirdeeHub/nix-wrapper-modules";
 
     disko = {
-      url = "github:nix-community/disko/latest";
+      url = "github:nix-community/disko/master";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 

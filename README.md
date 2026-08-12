@@ -29,6 +29,7 @@ sudo nixos-rebuild switch --flake .#server        # Headless server
 # Build ISO
 nix build .#nixosConfigurations.iso-proxmox.config.system.build.isoImage
 nix build .#nixosConfigurations.iso-server.config.system.build.isoImage
+nix build .#nixosConfigurations.iso-workstation.config.system.build.isoImage
 
 # Test ISO in QEMU
 qemu-system-x86_64 -m 2G -cdrom result/iso/*.iso -boot d
@@ -99,8 +100,9 @@ Each feature module exports **two** submodule types:
 │   │   ├── server.nix        # Headless server definition
 │   │   ├── workstation.nix   # GUI desktop definition
 │   ├── iso/
-│   │   ├── iso-proxmox.nix   # Proxmox VM ISO builder
-│   │   └── iso-server.nix    # Server ISO builder
+│   │   ├── iso-proxmox.nix    # Proxmox VM ISO builder
+│   │   ├── iso-server.nix     # Server ISO builder
+│   │   └── iso-workstation.nix # Workstation installer ISO
 │   └── flake/
 │       ├── options.nix       # Registers flake.modules.{nixos,homeManager} options
 │       └── home-manager.nix  # Standalone home-manager entrypoint
@@ -145,6 +147,7 @@ in {
 | `server`         | NixOS      | Headless server (SSH, CLI, security)     |
 | `iso-proxmox`    | ISO        | Proxmox VM installer + rescue ISO        |
 | `iso-server`     | ISO        | Minimal server installer ISO             |
+| `iso-workstation`| ISO        | Workstation installer + rescue ISO       |
 | `"alexis@macos"`| home-manager | Standalone config (macOS)                |
 | `"alexis@linux"`| home-manager | Standalone config (any Linux w/ Nix)   |
 
@@ -173,24 +176,23 @@ GPT
     └─ /swap  -> 8G swapfile   (encrypted, inside LUKS)
 ```
 
-## Install the secure system from the ISO
+## Install from the workstation ISO
 
-Boot the ISO, connect to the network, then:
+The ISO embeds the full flake at `/etc/nixos/flake` — no internet needed, no cloning.
+Boot the USB, then run a single interactive command:
 
 ```sh
-# 1. Get this repo on the live system
-git clone <this-repo-url> && cd nixOS_config
-
-# 2. Set your real disk (check `lsblk`; use /dev/disk/by-id/... if possible)
-#    and edit modules/hosts/<host>.nix (disko device + modules.* settings)
-
-# 3. Partition, format, mount and install in ONE step
-sudo nix run github:nix-community/disko/latest#disko-install -- \
-  --flake .#workstation --disk main /dev/disk/by-id/YOUR-DISK
-
-# 4. Reboot, remove the USB stick, unlock with your LUKS passphrase
-reboot
+install-workstation
 ```
+
+It will:
+1. List all available disks (with sizes) and ask which one to install on
+2. Ask for confirmation (type `yes` to erase)
+3. Run `disko-install` — partition, format, install, configure boot, and enroll your YubiKey
+4. When disko prompts, touch the YubiKey → the token is enrolled automatically (keep the recovery QR it prints)
+5. After completion: `sudo reboot`, remove the USB, touch the YubiKey to unlock
+
+One command, one touch, done.
 
 ## What's in the ISO
 
@@ -205,33 +207,68 @@ Added by us:
 
 - **proxmox**: Latest kernel + extra filesystems (btrfs, xfs, ntfs, cifs) + QEMU guest agent + rescue tools
 - **server**: Same base + server-oriented package set
+- **workstation**: Same base + YubiKey tools + the flake itself at `/etc/nixos/flake` (no cloning needed)
 
 ## Security measures
 
-- **LUKS2 full-disk encryption** (passphrase at boot) — `disko.nix`
+- **LUKS2 full-disk encryption**, unlockable with the FIDO2 YubiKey (touch) or the passphrase — `disko.nix` + `yubikey.nix`
 - **Firewall**: default deny, only port 22 open
 - **SSH**: password auth disabled, root login disabled, fail2ban enabled
-- **GitHub deploy key** encrypted with sops-nix (never committed in plaintext)
+- **SSH client**: FIDO2 resident YubiKey (`sk-ssh-ed25519@openssh.com`) for `git clone` and `ssh` to machines
+- **sudo/login**: touch the YubiKey instead of typing the password (password stays as fallback)
+- **sops-nix** for secrets (age keys, never plaintext)
 - **Kernel hardening**: lockKernelModules, dmesg_restrict, kptr_restrict, rp_filter
 - **Core dumps disabled**
 - nix restricted to wheel group
 - sudo requires password
 
-## Private repos via encrypted deploy key (sops-nix + age)
+## YubiKey (workstation)
 
-See the [secrets module](modules/secrets.nix). Summary:
+Applied by `modules/yubikey.nix` when `modules.yubikey.*` are enabled (workstation:
+`luksUnlock` + `sudoAuth` + `sshKey`). The config is the *runtime* half; the tokens
+below are one-time enrollments that poke the disk/`/etc/pam.d`/credential databases
+and therefore cannot be declarative.
 
 ```sh
-# On the installed machine, generate age key
-sudo mkdir -p /var/lib/sops-nix
-sudo age-keygen -o /var/lib/sops-nix/key.txt
+# 1. LUKS unlock at boot: on a NEW install this is done by disko automatically
+#    (see luksUnlock): just insert the YubiKey when it prompts, and keep the QR
+#    recovery passphrase it prints. On an already-installed disk, run it once:
+sudo cryptsetup luksDump /dev/disk/by-partlabel/disk-main-luks | head   # must say "LUKS 2"
+sudo systemd-cryptenroll --fido2-device=auto /dev/disk/by-partlabel/disk-main-luks
+#    defaults = touch only. For touch + PIN use:
+#      --fido2-with-client-pin=yes --fido2-with-user-presence=yes
 
-# On workstation, add the public key to .sops.yaml, then:
-sops secrets/secrets.yaml   # add key "github-deploy-key"
+# 2. Touch for sudo / login (pam_u2f, origin pam://<hostname> — re-run on each machine):
+pamu2fcfg > ~/.config/Yubico/u2f_keys       # extra keys: pamu2fcfg -n >> ...
 
-# The secrets module is enabled by importing it in the host config
-# (no modules.secrets.enable toggle — it's always active when included)
+# 3. SSH: the key is resident on the YubiKey. Recover its (non-secret) handle ONCE
+#    and commit it so every machine deployed from this flake picks it up:
+ssh-keygen -K && mv ~/id_ed25519_sk modules/config/ssh/yubi_ed25519
+#    The matching public half lives in modules/config/ssh/yubi_ed25519.pub — add it
+#    to GitHub (Settings > SSH keys) and to ~/.ssh/authorized_keys on servers.
 ```
+
+## Secrets with sops-nix
+
+See the [secrets module](modules/secrets.nix). `sops.age.generateKey = true`
+auto-creates `/var/lib/sops-nix/key.txt` on first activation. `secrets/secrets.yaml`
+is a plaintext template (guarded so rebuilds never break); it contains a
+`sample-secret` to test the pipeline end-to-end before adding your own.
+
+```sh
+# 1. Rebuild once so the host age key is generated (or create it manually):
+sudo nixos-rebuild switch --flake .#workstation
+
+# 2. Point sops at that host key and register it in .sops.yaml:
+sudo age-keygen -y /var/lib/sops-nix/key.txt    # replace AGE-PUBLIC-KEY in .sops.yaml
+
+# 3. Encrypt the template, then inspect the decrypted value on the machine:
+sops updatekeys secrets/secrets.yaml
+nixos-rebuild switch --flake .#workstation      # once sample-secret is referenced in the module
+```
+
+To deploy your own secret: add it to `secrets/secrets.yaml` with `sops` and declare
+it under `sops.secrets.<name>` in `modules/secrets.nix` (uncomment the example).
 
 ## Concepts
 

@@ -17,6 +17,7 @@
     disko
     secrets
     git
+    yubikey
     starship
     tmux
     bat
@@ -28,9 +29,9 @@
   ];
 in {
   flake.nixosConfigurations.server = inputs.nixpkgs.lib.nixosSystem {
-    inherit system;
     modules =
       [
+        { nixpkgs.hostPlatform = system; }
         inputs.disko.nixosModules.disko
         inputs.sops-nix.nixosModules.sops
         inputs.home-manager.nixosModules.home-manager
@@ -56,6 +57,7 @@ in {
             };
             shell.enable = true;
             git.enable = true;
+            yubikey.enable = true;
             starship.enable = true;
             tmux.enable = true;
             bat.enable = true;
@@ -72,6 +74,7 @@ in {
             users."alexis" = {
               home.stateVersion = "24.11";
               nix.package = lib.mkForce pkgs.nix;
+              gtk.gtk4.theme = null;
             };
           };
         })

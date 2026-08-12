@@ -1,4 +1,6 @@
-{lib, ...}: {
+{lib, ...}: let
+  secretsYaml = ./../secrets/secrets.yaml;
+in {
   flake.modules.nixos.secrets = {
     config,
     lib,
@@ -11,22 +13,26 @@
       };
       gitEmail = lib.mkOption {
         type = lib.types.str;
-        default = "you@example.com";
+        default = "anathos205@gmail.com";
       };
     };
     config = {
       sops = {
-        defaultSopsFile = ./../secrets/secrets.yaml;
+        defaultSopsFile = secretsYaml;
         age.keyFile = "/var/lib/sops-nix/key.txt";
         age.sshKeyPaths = [];
-        secrets."github-deploy-key" = {
-          path = "/home/${config.modules.secrets.userName}/.ssh/github-deploy-key";
-          owner = config.modules.secrets.userName;
-          group = "users";
-          mode = "0600";
-        };
+        # Auto-generate the host age key on first activation; secrets/secrets.yaml
+        # stays a plaintext template until it is sops-encrypted (see README).
+        age.generateKey = true;
       };
-      programs.ssh.extraConfig = "Host github.com\n  IdentityFile ~/.ssh/github-deploy-key\n  IdentitiesOnly yes\n";
+      # Deploy a secret by adding its key to secrets/secrets.yaml (via sops), then
+      # declaring it here, e.g.:
+      #   sops.secrets.sample-secret = {
+      #     path = "/home/${config.modules.secrets.userName}/.config/sample-secret";
+      #     owner = config.modules.secrets.userName;
+      #     group = "users";
+      #     mode = "0600";
+      #   };
       programs.git = {
         enable = true;
         config = {

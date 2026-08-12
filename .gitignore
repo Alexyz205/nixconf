@@ -1,4 +1,3 @@
 /result
 # Private keys that must never be committed. Encrypted secrets go in secrets/.
 age-keys.txt
-github-deploy-key
