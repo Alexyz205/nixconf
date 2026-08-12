@@ -25,7 +25,20 @@ in {
     modules = [
       {nixpkgs.hostPlatform = "aarch64-darwin";}
       inputs.home-manager.darwinModules.home-manager
-      ({pkgs, lib, ...}: {
+      ({pkgs, lib, ...}: let
+        opencode-bin = pkgs.stdenv.mkDerivation {
+          pname = "opencode";
+          version = "1.18.17";
+          src = pkgs.fetchzip {
+            url = "https://github.com/anomalyco/opencode/releases/download/v1.18.17/opencode-darwin-arm64.zip";
+            hash = "sha256-MiXUTAfmdmwGxd7ND+0A+f9XTFFMB8V+w1cO3/vcjEs=";
+          };
+          installPhase = ''
+            mkdir -p $out/bin
+            cp -r * $out/bin/
+          '';
+        };
+      in {
         system.stateVersion = 5;
         system.primaryUser = "alexis";
         networking.hostName = "macbook";
@@ -45,6 +58,8 @@ in {
           fallback = true;
           warn-dirty = false;
         };
+
+        environment.systemPackages = [opencode-bin];
 
         homebrew = {
           enable = true;
