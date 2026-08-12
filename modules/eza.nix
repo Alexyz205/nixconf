@@ -1,5 +1,5 @@
 let
-  progCfg = {
+  ezaCfg = {
     enable = true;
     icons = "auto";
     git = true;
@@ -15,11 +15,11 @@ in
       options.modules.eza.enable = lib.mkEnableOption "Eza";
       config = lib.mkIf config.modules.eza.enable {
         environment.systemPackages = [pkgs.eza];
-        home-manager.users."alexis".programs.eza = progCfg;
+        home-manager.users."alexis".programs.eza = ezaCfg;
       };
     };
 
     flake.modules.homeManager.eza = {...}: {
-      programs.eza = progCfg;
+      programs.eza = ezaCfg;
     };
   }

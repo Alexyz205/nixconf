@@ -1,5 +1,5 @@
 {lib, ...}: let
-  gitConfig = {pkgs, ...}: {
+  gitCfg = {pkgs, ...}: {
     enable = true;
     settings = {
       user = {
@@ -90,11 +90,11 @@ in {
         enable = true;
         config.init.defaultBranch = "main";
       };
-      home-manager.users."alexis".programs.git = gitConfig {inherit pkgs;};
+      home-manager.users."alexis".programs.git = gitCfg {inherit pkgs;};
     };
   };
 
   flake.modules.homeManager.git = {pkgs, ...}: {
-    programs.git = gitConfig {inherit pkgs;};
+    programs.git = gitCfg {inherit pkgs;};
   };
 }

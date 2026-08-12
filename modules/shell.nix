@@ -58,7 +58,7 @@
   zshExtra = builtins.readFile ./config/shell/zsh-extra.zsh;
   bashExtra = builtins.readFile ./config/shell/bash-extra.sh;
 
-  shellHm = {
+  shellCfg = {
     pkgs,
     config,
     lib,
@@ -133,9 +133,9 @@ in {
       programs.zsh.enable = true;
       programs.git.enable = true;
       environment.systemPackages = with pkgs; [git];
-      home-manager.users."alexis" = shellHm;
+      home-manager.users."alexis" = shellCfg;
     };
   };
 
-  flake.modules.homeManager.shell = shellHm;
+  flake.modules.homeManager.shell = shellCfg;
 }

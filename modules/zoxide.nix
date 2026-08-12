@@ -1,5 +1,5 @@
 let
-  progCfg = {
+  zoxideCfg = {
     enable = true;
     enableBashIntegration = true;
     enableZshIntegration = true;
@@ -15,11 +15,11 @@ in
       options.modules.zoxide.enable = lib.mkEnableOption "Zoxide";
       config = lib.mkIf config.modules.zoxide.enable {
         environment.systemPackages = [pkgs.zoxide];
-        home-manager.users."alexis".programs.zoxide = progCfg;
+        home-manager.users."alexis".programs.zoxide = zoxideCfg;
       };
     };
 
     flake.modules.homeManager.zoxide = {...}: {
-      programs.zoxide = progCfg;
+      programs.zoxide = zoxideCfg;
     };
   }

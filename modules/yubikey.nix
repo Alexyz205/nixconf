@@ -5,7 +5,7 @@
   yubiPub = ./config/ssh/yubi_ed25519.pub;
   handle = ./config/ssh/yubi_ed25519;
 
-  yubiHm = {
+  yubiCfg = {
     pkgs,
     ...
   }: {
@@ -94,9 +94,9 @@ in {
       users.users.${config.modules.users.userName}.openssh.authorizedKeys.keys =
         lib.mkIf config.modules.yubikey.sshKey [(lib.trim (builtins.readFile yubiPub))];
       home-manager.users.${config.modules.users.userName} =
-        lib.mkIf config.modules.yubikey.sshKey yubiHm;
+        lib.mkIf config.modules.yubikey.sshKey yubiCfg;
     };
   };
 
-  flake.modules.homeManager.yubikey = yubiHm;
+  flake.modules.homeManager.yubikey = yubiCfg;
 }

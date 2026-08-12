@@ -1,6 +1,6 @@
 {lib, ...}: let
   themeSrc = toString ./config/bat/themes;
-  progCfg = {
+  batCfg = {
     enable = true;
     config.theme = "Catppuccin Mocha";
     themes."Catppuccin Mocha".src = "${themeSrc}/Catppuccin Mocha.tmTheme";
@@ -15,11 +15,11 @@ in {
     options.modules.bat.enable = lib.mkEnableOption "Bat";
     config = lib.mkIf config.modules.bat.enable {
       environment.systemPackages = [pkgs.bat];
-      home-manager.users."alexis".programs.bat = progCfg;
+      home-manager.users."alexis".programs.bat = batCfg;
     };
   };
 
   flake.modules.homeManager.bat = {...}: {
-    programs.bat = progCfg;
+    programs.bat = batCfg;
   };
 }
