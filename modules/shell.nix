@@ -86,7 +86,11 @@
       LANG = "en_US.UTF-8";
     };
     home.file = {
-      ".config/opencode".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/repos/personal/nixconf/modules/config/opencode";
+      ".config/opencode/opencode.json".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/repos/personal/nixconf/modules/config/opencode/opencode.json";
+      ".config/opencode/tui.json".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/repos/personal/nixconf/modules/config/opencode/tui.json";
+      ".config/opencode/AGENTS.md".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/repos/personal/nixconf/modules/config/opencode/AGENTS.md";
+      ".config/opencode/agents".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/repos/personal/nixconf/modules/config/opencode/agents";
+      ".config/opencode/skills".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/repos/personal/nixconf/modules/config/opencode/skills";
       ".config/television".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/repos/personal/nixconf/modules/config/television";
       ".config/delta/catppuccin.gitconfig".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/repos/personal/nixconf/modules/config/delta/catppuccin.gitconfig";
       ".config/git/config-personal".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/repos/personal/nixconf/modules/config/git/config-personal";
