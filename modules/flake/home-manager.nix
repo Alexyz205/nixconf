@@ -19,6 +19,7 @@
     ghostty
     lazyvim
     yubikey
+    opencode
   ];
 
   mkHome = system: username: homeDirectory: inputs.home-manager.lib.homeManagerConfiguration {

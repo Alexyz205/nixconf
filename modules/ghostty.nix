@@ -54,13 +54,18 @@ in {
     pkgs,
     lib,
     ...
-  }: let
-    macos = pkgs.stdenv.isDarwin;
-  in
-    lib.mkIf (pkgs.stdenv.isLinux || macos) {
-      programs.ghostty = ghosttyCfg
-        // lib.optionalAttrs macos {
-          package = lib.mkForce null;
-        };
+  }: {
+    home.file = lib.mkIf pkgs.stdenv.isDarwin {
+      ".config/ghostty/config".text = ''
+        theme = catppuccin-mocha
+        font-family = JetBrains Mono
+        mouse-hide-while-typing = true
+        font-size = 14
+        clipboard-paste-protection = false
+        copy-on-select = true
+        fullscreen = true
+      '';
     };
+    programs.ghostty = lib.mkIf (!pkgs.stdenv.isDarwin) ghosttyCfg;
+  };
 }

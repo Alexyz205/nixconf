@@ -25,6 +25,7 @@
     lazygit
     yazi
     ghostty
+    opencode
     zoxide
     lazyvim
     niri
@@ -118,6 +119,7 @@
               zoxide.enable = true;
               lazyvim.enable = true;
               ghostty.enable = true;
+              opencode.enable = true;
               niri.enable = true;
               noctalia.enable = true;
             };

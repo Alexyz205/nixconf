@@ -5,8 +5,6 @@
     openssl
     ripgrep
     fd
-    bat
-    eza
     television
     fastfetch
     dust
@@ -30,7 +28,6 @@
     diff-so-fancy
     gh
     glab
-    # opencode
     fabric-ai
     lazydocker
     devenv
