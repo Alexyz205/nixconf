@@ -95,6 +95,8 @@ Each feature module exports **two** submodule types:
 │   │   ├── ghostty/
 │   │   ├── opencode/
 │   │   ├── lazyvim/
+│   │   ├── sops/
+│   │   │   └── yubi-age-identity   # YubiKey PIV age identity (not a secret)
 │   │   └── television/
 │   ├── hosts/
 │   │   ├── server.nix        # Headless server definition
@@ -192,6 +194,10 @@ It will:
 4. When disko prompts, touch the YubiKey → the token is enrolled automatically (keep the recovery QR it prints)
 5. After completion: `sudo reboot`, remove the USB, touch the YubiKey to unlock
 
+On first boot, the system activates sops-nix and decrypts the user password
+using your YubiKey PIV slot (touch + PIN). SDDM then shows the `alexis` user.
+Log in with the default password `changeme`.
+
 One command, one touch, done.
 
 ## What's in the ISO
@@ -246,6 +252,18 @@ pamu2fcfg > ~/.config/Yubico/u2f_keys       # extra keys: pamu2fcfg -n >> ...
 ssh-keygen -K && mv ~/id_ed25519_sk modules/config/ssh/yubi_ed25519
 #    The matching public half lives in modules/config/ssh/yubi_ed25519.pub — add it
 #    to GitHub (Settings > SSH keys) and to ~/.ssh/authorized_keys on servers.
+
+# 4. sops decryption (age-plugin-yubikey): generate a YubiKey PIV age identity
+#    once per YubiKey. The identity file (not a secret) is committed; the private
+#    key lives in the PIV slot and can never be extracted.
+nix shell nixpkgs#age-plugin-yubikey --command age-plugin-yubikey --generate
+#    Then copy the identity (AGE-PLUGIN-YUBIKEY-...) and public key
+#    (age1yubikey...) to the repo:
+#      - Identity  → modules/config/sops/yubi-age-identity
+#      - Public key → .sops.yaml (as the age recipient)
+#    (Already done for this flake — re-run only for a new YubiKey.)
+#    Note: needs pcscd running. On NixOS it's automatic; on other distros:
+#      sudo systemctl start pcscd
 ```
 
 ## Secrets with sops-nix

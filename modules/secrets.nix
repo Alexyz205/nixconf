@@ -1,5 +1,6 @@
 {lib, ...}: let
   secretsYaml = ./../secrets/secrets.yaml;
+  yubiIdentity = ./config/sops/yubi-age-identity;
 in {
   flake.modules.nixos.secrets = {
     config,
@@ -19,20 +20,17 @@ in {
     config = {
       sops = {
         defaultSopsFile = secretsYaml;
-        age.keyFile = "/var/lib/sops-nix/key.txt";
+        age.keyFile = "/etc/yubi-age-identity";
         age.sshKeyPaths = [];
-        # Auto-generate the host age key on first activation; secrets/secrets.yaml
-        # stays a plaintext template until it is sops-encrypted (see README).
-        age.generateKey = true;
+        age.generateKey = false;
       };
-      # Deploy a secret by adding its key to secrets/secrets.yaml (via sops), then
-      # declaring it here, e.g.:
-      #   sops.secrets.sample-secret = {
-      #     path = "/home/${config.modules.secrets.userName}/.config/sample-secret";
-      #     owner = config.modules.secrets.userName;
-      #     group = "users";
-      #     mode = "0600";
-      #   };
+      environment.etc."yubi-age-identity".source = yubiIdentity;
+      sops.secrets.userPasswordHash = {
+        path = "/etc/ssh/user-password-hash";
+        owner = config.modules.secrets.userName;
+        group = "users";
+        mode = "0400";
+      };
       programs.git = {
         enable = true;
         config = {

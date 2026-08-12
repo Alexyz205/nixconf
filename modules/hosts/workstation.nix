@@ -46,6 +46,7 @@
         ++ features
         ++ [
           ({
+            config,
             pkgs,
             lib,
             ...
@@ -95,6 +96,7 @@
 
             modules = {
               users.userName = "alexis";
+              users.hashedPasswordFile = config.sops.secrets.userPasswordHash.path;
               users.extraGroups = ["wheel" "networkmanager" "podman" "video"];
               packages = {
                 basic = true;
