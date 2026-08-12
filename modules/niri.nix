@@ -8,7 +8,13 @@
     lib,
     self',
     ...
-  }: {
+  }: let
+    catppuccin = {
+      surface0 = "#313244";
+      mauve = "#cba6f7";
+    };
+    wallpaper = pkgs.nixos-artwork.wallpapers.catppuccin-mocha;
+  in {
     packages.niri = inputs.wrapper-modules.wrappers.niri.wrap {
       inherit pkgs;
 
@@ -87,13 +93,34 @@
 
         layout = {
           gaps = 5;
+          background-color = "transparent";
           focus-ring = {
             width = 2;
-            active-color = "#b8bb26";
+            active-color = catppuccin.mauve;
+            inactive-color = catppuccin.surface0;
           };
         };
+        cursor = {
+          xcursor-theme = "catppuccin-mocha-mauve-cursors";
+          xcursor-size = 24;
+        };
+        layer-rules = [
+          {
+            matches = [{namespace = "^swaybg$";}];
+            place-within-backdrop = true;
+          }
+        ];
         xwayland-satellite.path = lib.getExe pkgs.xwayland-satellite;
-        spawn-at-startup = [(lib.getExe self'.packages.noctalia-shell)];
+        spawn-at-startup = [
+          (lib.getExe self'.packages.noctalia-shell)
+          [
+            (lib.getExe pkgs.swaybg)
+            "-i"
+            "${wallpaper}/share/backgrounds/nixos/nixos-wallpaper-catppuccin-mocha.png"
+            "-m"
+            "fill"
+          ]
+        ];
       };
     };
   };

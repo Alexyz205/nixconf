@@ -91,6 +91,23 @@
 
         settingsVersion = 32;
       };
+
+      colors = {
+        mError = "#f38ba8";
+        mOnError = "#1e1e2e";
+        mOnPrimary = "#1e1e2e";
+        mOnSecondary = "#1e1e2e";
+        mOnSurface = "#cdd6f4";
+        mOnSurfaceVariant = "#a6adc8";
+        mOnTertiary = "#1e1e2e";
+        mOutline = "#7f849c";
+        mPrimary = "#cba6f7";
+        mSecondary = "#a6adc8";
+        mShadow = "#000000";
+        mSurface = "#1e1e2e";
+        mSurfaceVariant = "#313244";
+        mTertiary = "#b4befe";
+      };
     };
   };
 
