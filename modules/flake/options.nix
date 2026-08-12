@@ -1,5 +1,5 @@
 {inputs, ...}: {
-  config.systems = ["x86_64-linux"];
+  config.systems = ["x86_64-linux" "aarch64-darwin"];
 
   options.flake.modules = {
     nixos = inputs.nixpkgs.lib.mkOption {
