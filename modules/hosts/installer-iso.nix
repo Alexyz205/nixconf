@@ -25,7 +25,7 @@ in {
 
           echo
 
-          HOST=$(gum choose --header "Which host to install?" workstation workstation-laptop)
+           HOST=$(gum choose --header "Which host to install?" headless-worker workstation)
           gum log --structured --level info "Selected host: $HOST"
 
           echo
