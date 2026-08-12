@@ -50,6 +50,11 @@ in {
           networking.firewall.allowedTCPPorts = [];
           disko.devices.disk.main.device = "/dev/sda";
 
+          services.displayManager.sddm = {
+            enable = true;
+            wayland.enable = true;
+          };
+
           modules = {
             users.userName = "alexis";
             packages = {
@@ -82,7 +87,7 @@ in {
             };
           };
 
-          environment.systemPackages = with pkgs; [firefox ghostty];
+          programs.firefox.enable = true;
           services.pipewire = {
             enable = true;
             alsa.enable = true;
