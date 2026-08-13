@@ -342,7 +342,10 @@ in {
   }: {
     options.modules.yazi.enable = lib.mkEnableOption "Yazi (terminal file manager)";
     config = lib.mkIf config.modules.yazi.enable {
-      home-manager.users."alexis".programs.yazi = yaziCfg;
+      home-manager.users."alexis" = {
+        programs.yazi = yaziCfg;
+        stylix.targets.yazi.enable = false;
+      };
     };
   };
 

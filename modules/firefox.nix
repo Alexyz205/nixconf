@@ -1,9 +1,11 @@
 {
   lib,
-  pkgs,
+  inputs,
   ...
 }: let
-  firefoxCfg = {
+  firefoxOverlay = inputs.firefox-addons.overlays.default;
+
+  firefoxCfg = {pkgs, ...}: {
     enable = true;
 
     profiles.alexis = {
@@ -145,18 +147,24 @@ in {
   }: {
     options.modules.firefox.enable = lib.mkEnableOption "Firefox with Catppuccin theme";
     config = lib.mkIf config.modules.firefox.enable {
+      nixpkgs.overlays = [firefoxOverlay];
+      nixpkgs.config.allowUnfreePredicate = pkg: lib.getName pkg == "onepassword-password-manager";
       programs.firefox.enable = true;
-      home-manager.users."alexis".programs.firefox = firefoxCfg;
-      stylix.targets.firefox.profileNames = ["alexis"];
+      home-manager.users."alexis" = {
+        programs.firefox = firefoxCfg {inherit pkgs;};
+        stylix.targets.firefox.profileNames = ["alexis"];
+      };
     };
   };
 
   flake.modules.homeManager.firefox = {
     config,
     lib,
+    pkgs,
     ...
   }: {
-    programs.firefox = firefoxCfg;
+    nixpkgs.overlays = [firefoxOverlay];
+    programs.firefox = firefoxCfg {inherit pkgs;};
     stylix.targets.firefox.profileNames = ["alexis"];
   };
 }

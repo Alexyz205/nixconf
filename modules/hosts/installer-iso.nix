@@ -60,6 +60,22 @@ in {
           ok "Selected host: $HOST"
 
           echo
+          step "Insert YubiKey"
+          gum log --structured --level warn "Plug in your YubiKey now (needed for LUKS enrollment)"
+          gum log --structured --level info "Waiting for YubiKey..."
+          for i in $(seq 1 30); do
+            if lsusb 2>/dev/null | grep -qi yubico || compgen -G '/dev/hidraw*' >/dev/null; then
+              gum log --structured --level debug "YubiKey detected after ''${i}s"
+              break
+            fi
+            if [[ "$i" -ge 30 ]]; then
+              gum log --structured --level warn "YubiKey not detected — LUKS will prompt for password"
+            fi
+            sleep 1
+          done
+          ok "Proceeding with disk setup"
+
+          echo
           step "Listing disks"
           DISK_INFO=$(lsblk -d -n -o NAME,SIZE,TYPE,MODEL 2>/dev/null | grep -v loop | grep -v ram || true)
           gum log --structured --level debug "lsblk output: [$DISK_INFO]"
@@ -150,8 +166,12 @@ in {
           password = "nixos";
         };
 
+        services.udev.packages = [pkgs.yubikey-personalization];
+
         environment.systemPackages = [
           pkgs.gum
+          pkgs.libfido2
+          pkgs.usbutils
           diskoPkg
           installerScript
         ];

@@ -15,7 +15,10 @@ in {
     options.modules.bat.enable = lib.mkEnableOption "Bat";
     config = lib.mkIf config.modules.bat.enable {
       environment.systemPackages = [pkgs.bat];
-      home-manager.users."alexis".programs.bat = batCfg;
+      home-manager.users."alexis" = {
+        programs.bat = batCfg;
+        stylix.targets.bat.enable = false;
+      };
     };
   };
 

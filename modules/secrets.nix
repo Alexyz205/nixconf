@@ -5,6 +5,7 @@ in {
   flake.modules.nixos.secrets = {
     config,
     lib,
+    pkgs,
     ...
   }: {
     options.modules.secrets = {
@@ -23,12 +24,11 @@ in {
         age.keyFile = "/etc/yubi-age-identity";
         age.sshKeyPaths = [];
         age.generateKey = false;
+        age.plugins = [pkgs.age-plugin-yubikey];
       };
       environment.etc."yubi-age-identity".source = yubiIdentity;
       sops.secrets.userPasswordHash = {
-        path = "/etc/ssh/user-password-hash";
-        owner = config.modules.secrets.userName;
-        group = "users";
+        neededForUsers = true;
         mode = "0400";
       };
       programs.git = {
