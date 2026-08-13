@@ -137,6 +137,31 @@ in {
           ok "disko-install completed"
 
           echo
+          step "Setting password for alexis"
+          gum log --structured --level info "Setting password for user 'alexis'"
+          if ! mountpoint -q /mnt 2>/dev/null; then
+            fail "Target root (/mnt) not found after disko-install"
+          fi
+          for i in 1 2 3; do
+            PASSWD=$(gum input --password --placeholder "Enter password for alexis")
+            PASSWD_CONFIRM=$(gum input --password --placeholder "Confirm password")
+            if [[ "$PASSWD" == "$PASSWD_CONFIRM" && -n "$PASSWD" ]]; then
+              echo "alexis:$PASSWD" | chpasswd -R /mnt
+              ok "Password set for alexis"
+              break
+            fi
+            gum log --structured --level error "Passwords do not match or empty (attempt $i/3)"
+            [[ "$i" -ge 3 ]] && fail "Failed to set password after 3 attempts"
+          done
+
+          echo
+          step "Enrolling YubiKey for login/sudo"
+          gum log --structured --level info "Touch your YubiKey when it flashes..."
+          mkdir -p /mnt/home/alexis/.config/Yubico
+          pamu2fcfg -o /mnt/home/alexis/.config/Yubico/u2f_keys
+          ok "YubiKey enrolled for PAM authentication"
+
+          echo
           gum style \
             --foreground 2 --border-foreground 2 --border double \
             --align center --width 60 \
@@ -144,7 +169,7 @@ in {
 
           echo
           gum log --structured --level info "Remove the USB drive and reboot."
-          gum log --structured --level info "Login as 'alexis' with your sops-managed password."
+          gum log --structured --level info "Login as 'alexis' with the password you just set."
         '';
       in {
         nixpkgs.hostPlatform = "x86_64-linux";
@@ -166,11 +191,14 @@ in {
           password = "nixos";
         };
 
+        environment.etc."yubi-age-identity".source = ../config/sops/yubi-age-identity;
+
         services.udev.packages = [pkgs.yubikey-personalization];
 
         environment.systemPackages = [
           pkgs.gum
           pkgs.libfido2
+          pkgs.pam_u2f
           pkgs.usbutils
           diskoPkg
           installerScript

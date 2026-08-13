@@ -55,17 +55,14 @@ in {
       };
     };
 
-    # One-time enrollments (they touch the disk/credential databases and cannot
-    # be scripted from here):
+    # One-time enrollments:
     #
-    # LUKS: on a NEW install disko enrolls automatically (see luksUnlock).
-    #       On an already-installed disk this ever happens once, manually:
-    #         sudo systemd-cryptenroll --fido2-device=auto <luks-device>   # LUKS2
-    # Sudo: pamu2fcfg > ~/.config/Yubico/u2f_keys
-    # SSH : recover the resident key handle ONCE into the repo (it is not a secret):
-    #         ssh-keygen -K
-    #         mv ~/id_ed25519_sk_rk_alexis-perso modules/config/ssh/${yubiKey}
-    #         mv ~/id_ed25519_sk_rk_alexis-perso.pub modules/config/ssh/${yubiKey}.pub
+    # LUKS:     disko enrolls automatically during disko-install
+    # Sudo/PAM: installer script runs pamu2fcfg during install
+    # SSH:      recover the resident key handle ONCE into the repo:
+    #             ssh-keygen -K
+    #             mv ~/id_ed25519_sk_rk_alexis-perso modules/config/ssh/${yubiKey}
+    #             mv ~/id_ed25519_sk_rk_alexis-perso.pub modules/config/ssh/${yubiKey}.pub
     config = lib.mkIf config.modules.yubikey.enable {
       environment.systemPackages = with pkgs; [
         yubikey-manager

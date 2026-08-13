@@ -35,9 +35,6 @@
         }
         // lib.optionalAttrs (config.modules.users.hashedPasswordFile != null) {
           hashedPasswordFile = config.modules.users.hashedPasswordFile;
-        }
-        // lib.optionalAttrs (config.modules.users.hashedPasswordFile == null) {
-          initialHashedPassword = "!";
         };
       security.sudo.wheelNeedsPassword = true;
     };

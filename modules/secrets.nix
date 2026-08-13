@@ -25,12 +25,9 @@ in {
         age.sshKeyPaths = [];
         age.generateKey = false;
         age.plugins = [pkgs.age-plugin-yubikey];
+        gnupg.sshKeyPaths = [];
       };
       environment.etc."yubi-age-identity".source = yubiIdentity;
-      sops.secrets.userPasswordHash = {
-        neededForUsers = true;
-        mode = "0400";
-      };
       programs.git = {
         enable = true;
         config = {

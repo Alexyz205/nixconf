@@ -107,7 +107,6 @@
 
             # SSH key from existing YubiKey pub (no hardware needed at runtime)
             modules.users.userName = "alexis";
-            modules.users.hashedPasswordFile = config.sops.secrets.userPasswordHash.path;
             modules.users.extraGroups = ["wheel" "podman"];
             users.users.alexis.openssh.authorizedKeys.keys = [
               (lib.trim (builtins.readFile yubiPub))

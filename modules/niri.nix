@@ -105,10 +105,7 @@
             inactive-color = catppuccin.surface0;
           };
         };
-        cursor = {
-          xcursor-theme = "catppuccin-mocha-mauve-cursors";
-          xcursor-size = 24;
-        };
+        cursor.xcursor-size = 24;
         layer-rules = [
           {
             matches = [{namespace = "^swaybg$";}];

@@ -84,6 +84,9 @@
               autoEnable = true;
               base16Scheme = "${pkgs.base16-schemes}/share/themes/catppuccin-mocha.yaml";
               polarity = "dark";
+              # Disabled to avoid pulling inkscape as a build dependency (stylix uses it for icon recoloring)
+              overlays.enable = false;
+              icons.enable = false;
               cursor = {
                 package = pkgs.catppuccin-cursors.mochaMauve;
                 name = "catppuccin-mocha-mauve-cursors";
@@ -105,7 +108,6 @@
 
             modules = {
               users.userName = "alexis";
-              users.hashedPasswordFile = config.sops.secrets.userPasswordHash.path;
               users.extraGroups = ["wheel" "networkmanager" "podman" "video"];
               packages = {
                 basic = true;
