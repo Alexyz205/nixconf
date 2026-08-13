@@ -66,8 +66,6 @@ in {
 
           echo
           gum log --structured --level info "YubiKey detected."
-          gum log --structured --level info "Initial password fallback 'changeme' set in case sops fails during install."
-          EXTRA_CONFIG='{"modules.users.initialPassword":"changeme"}'
 
           echo
           gum style --foreground 212 --bold "Installation Summary"
@@ -86,7 +84,6 @@ in {
               --flake "/root/nixconf#$HOST" \
               --disk main "$DISK" \
               --write-efi-boot-entries \
-              --system-config "$EXTRA_CONFIG" \
               --extra-files /root/nixconf /etc/nixos
 
           echo
@@ -97,7 +94,7 @@ in {
 
           echo
           gum log --structured --level info "Remove the USB drive and reboot."
-          gum log --structured --level info "Login as 'alexis'. Password: changeme (or as set by sops)."
+          gum log --structured --level info "Login as 'alexis' with your sops-managed password."
         '';
       in {
         nixpkgs.hostPlatform = "x86_64-linux";

@@ -20,11 +20,6 @@
         type = lib.types.listOf lib.types.str;
         default = [];
       };
-      initialPassword = lib.mkOption {
-        type = lib.types.nullOr lib.types.str;
-        default = null;
-        description = "Plaintext password for initial login. Set to null to keep account locked.";
-      };
       hashedPasswordFile = lib.mkOption {
         type = lib.types.nullOr lib.types.str;
         default = null;
@@ -41,10 +36,7 @@
         // lib.optionalAttrs (config.modules.users.hashedPasswordFile != null) {
           hashedPasswordFile = config.modules.users.hashedPasswordFile;
         }
-        // lib.optionalAttrs (config.modules.users.initialPassword != null) {
-          initialPassword = config.modules.users.initialPassword;
-        }
-        // lib.optionalAttrs (config.modules.users.hashedPasswordFile == null && config.modules.users.initialPassword == null) {
+        // lib.optionalAttrs (config.modules.users.hashedPasswordFile == null) {
           initialHashedPassword = "!";
         };
       security.sudo.wheelNeedsPassword = true;
