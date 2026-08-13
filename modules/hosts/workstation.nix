@@ -30,6 +30,7 @@
     lazyvim
     niri
     noctalia
+    firefox
   ];
 
   mkWorkstation = {
@@ -42,6 +43,7 @@
           { nixpkgs.hostPlatform = system; }
           inputs.disko.nixosModules.disko
           inputs.sops-nix.nixosModules.sops
+          inputs.stylix.nixosModules.stylix
           inputs.home-manager.nixosModules.home-manager
         ]
         ++ features
@@ -51,48 +53,54 @@
             pkgs,
             lib,
             ...
-          }: let
-            catppuccin = {
-              accent = "mauve";
-              cursorTheme = pkgs.catppuccin-cursors.mochaMauve;
-              gtkTheme = pkgs.catppuccin-gtk.override {
-                variant = "mocha";
-                accents = ["mauve"];
-                size = "standard";
-              };
-              iconTheme = pkgs.catppuccin-papirus-folders.override {
-                flavor = "mocha";
-                accent = "mauve";
-              };
-              sddmTheme = pkgs.catppuccin-sddm.override {
-                flavor = "mocha";
-                accent = "mauve";
-              };
-            };
-          in {
+          }: {
             system.stateVersion = "24.11";
             networking.hostName = hostName;
             networking.firewall.allowedTCPPorts = [];
             disko.devices.disk.main.device = diskDevice;
 
             services.xserver.enable = true;
-            services.displayManager.sddm = {
+            services.greetd = {
               enable = true;
-              wayland.enable = true;
-              theme = "catppuccin-mocha-mauve";
-              extraPackages = [
-                catppuccin.sddmTheme
-                catppuccin.cursorTheme
-              ];
+              settings = {
+                default_session = {
+                  command = "niri-session";
+                  user = "alexis";
+                };
+              };
             };
-            services.displayManager.defaultSession = "niri";
+            systemd.services.greetd.serviceConfig = {
+              Type = "idle";
+              StandardInput = "tty";
+              StandardOutput = "tty";
+              StandardError = "journal";
+              TTYReset = true;
+              TTYVHangup = true;
+              TTYVTDisallocate = true;
+            };
+
+            stylix = {
+              enable = true;
+              autoEnable = true;
+              base16Scheme = "${pkgs.base16-schemes}/share/themes/catppuccin-mocha.yaml";
+              polarity = "dark";
+              cursor = {
+                package = pkgs.catppuccin-cursors.mochaMauve;
+                name = "catppuccin-mocha-mauve-cursors";
+                size = 24;
+              };
+              fonts = {
+                monospace = {
+                  package = pkgs.nerd-fonts.jetbrains-mono;
+                  name = "JetBrainsMono Nerd Font";
+                };
+              };
+            };
+
             services.upower.enable = true;
             environment.systemPackages = with pkgs; [
               polkit_gnome
-              catppuccin.gtkTheme
-              catppuccin.iconTheme
-              catppuccin.cursorTheme
-              catppuccin.sddmTheme
+              base16-schemes
             ];
 
             modules = {
@@ -122,6 +130,7 @@
               opencode.enable = true;
               niri.enable = true;
               noctalia.enable = true;
+              firefox.enable = true;
             };
 
               home-manager = {
@@ -130,30 +139,13 @@
                 users."alexis" = {
                   home.stateVersion = "24.11";
                   nix.package = lib.mkForce pkgs.nix;
-                  gtk = {
+                  services.cliphist = {
                     enable = true;
-                    cursorTheme = {
-                      name = "catppuccin-mocha-mauve-cursors";
-                      package = catppuccin.cursorTheme;
-                      size = 24;
-                    };
-                    iconTheme = {
-                      name = "Papirus-Dark";
-                      package = catppuccin.iconTheme;
-                    };
-                    theme = {
-                      name = "catppuccin-mocha-mauve-standard";
-                      package = catppuccin.gtkTheme;
-                    };
-                    gtk4.theme = {
-                      name = "catppuccin-mocha-mauve-standard";
-                      package = catppuccin.gtkTheme;
-                    };
+                    allowImages = true;
                   };
                 };
               };
 
-            programs.firefox.enable = true;
             services.pipewire = {
               enable = true;
               alsa.enable = true;

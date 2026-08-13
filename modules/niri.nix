@@ -21,6 +21,11 @@
       settings = {
         prefer-no-csd = _: {};
 
+        workspaces = {
+          "main" = {};
+          "browser" = {};
+        };
+
         input = {
           focus-follows-mouse = _: {};
           keyboard = {
@@ -55,8 +60,8 @@
           "Mod+Shift+L".move-column-right = _: {};
           "Mod+Shift+K".move-window-up = _: {};
           "Mod+Shift+J".move-window-down = _: {};
-          "Mod+1".focus-workspace = "1";
-          "Mod+2".focus-workspace = "2";
+          "Mod+1".focus-workspace = "main";
+          "Mod+2".focus-workspace = "browser";
           "Mod+3".focus-workspace = "3";
           "Mod+4".focus-workspace = "4";
           "Mod+5".focus-workspace = "5";
@@ -65,8 +70,8 @@
           "Mod+8".focus-workspace = "8";
           "Mod+9".focus-workspace = "9";
           "Mod+0".focus-workspace = "10";
-          "Mod+Shift+1".move-column-to-workspace = "1";
-          "Mod+Shift+2".move-column-to-workspace = "2";
+          "Mod+Shift+1".move-column-to-workspace = "main";
+          "Mod+Shift+2".move-column-to-workspace = "browser";
           "Mod+Shift+3".move-column-to-workspace = "3";
           "Mod+Shift+4".move-column-to-workspace = "4";
           "Mod+Shift+5".move-column-to-workspace = "5";
@@ -110,6 +115,23 @@
             place-within-backdrop = true;
           }
         ];
+        window-rules = [
+          {
+            matches = [{app-id = "^firefox$";}];
+            open-on-workspace = "browser";
+          }
+          {
+            matches = [{}];
+            geometry-corner-radius = {
+              top-left = 20.0;
+              top-right = 20.0;
+              bottom-left = 20.0;
+              bottom-right = 20.0;
+            };
+            clip-to-geometry = true;
+          }
+        ];
+
         xwayland-satellite.path = lib.getExe pkgs.xwayland-satellite;
         spawn-at-startup = [
           (lib.getExe self'.packages.noctalia-shell)

@@ -5,7 +5,7 @@
   ...
 }: let
   system = "x86_64-linux";
-  yubiPub = ../config/ssh/yubi_ed25519.pub;
+  yubiPub = ../config/ssh/id_ed25519_sk_rk_alexis-perso.pub;
   features = with config.flake.modules.nixos; [
     ssh
     users

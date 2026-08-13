@@ -2,8 +2,9 @@
   lib,
   ...
 }: let
-  yubiPub = ./config/ssh/yubi_ed25519.pub;
-  handle = ./config/ssh/yubi_ed25519;
+  yubiKey = "id_ed25519_sk_rk_alexis-perso";
+  yubiPub = "${./config/ssh}/${yubiKey}.pub";
+  handle = "${./config/ssh}/${yubiKey}";
 
   yubiCfg = {
     pkgs,
@@ -14,18 +15,18 @@
       libu2f-host
       pam_u2f
     ];
-    home.file.".ssh/yubi_ed25519.pub".source = yubiPub;
+    home.file.".ssh/${yubiKey}.pub".source = yubiPub;
     programs.ssh = {
       enable = true;
       enableDefaultConfig = false;
       settings."*" = {
-        IdentityFile = "~/.ssh/yubi_ed25519";
+        IdentityFile = "~/.ssh/${yubiKey}";
         IdentitiesOnly = "yes";
         SecurityKeyProvider = "internal";
       };
     };
   } // lib.optionalAttrs (builtins.pathExists handle) {
-    home.file.".ssh/yubi_ed25519".source = handle;
+    home.file.".ssh/${yubiKey}".source = handle;
   };
 in {
   flake.modules.nixos.yubikey = {
@@ -39,7 +40,7 @@ in {
       sshKey = lib.mkOption {
         type = lib.types.bool;
         default = true;
-        description = "Use the resident FIDO2 YubiKey SSH key (~/.ssh/yubi_ed25519) for git/ssh";
+        description = "Use the resident FIDO2 YubiKey SSH key (~/.ssh/${yubiKey}) for git/ssh";
       };
       luksUnlock = lib.mkOption {
         type = lib.types.bool;
@@ -62,7 +63,9 @@ in {
     #         sudo systemd-cryptenroll --fido2-device=auto <luks-device>   # LUKS2
     # Sudo: pamu2fcfg > ~/.config/Yubico/u2f_keys
     # SSH : recover the resident key handle ONCE into the repo (it is not a secret):
-    #         ssh-keygen -K && mv ~/id_ed25519_sk modules/config/ssh/yubi_ed25519
+    #         ssh-keygen -K
+    #         mv ~/id_ed25519_sk_rk_alexis-perso modules/config/ssh/${yubiKey}
+    #         mv ~/id_ed25519_sk_rk_alexis-perso.pub modules/config/ssh/${yubiKey}.pub
     config = lib.mkIf config.modules.yubikey.enable {
       environment.systemPackages = with pkgs; [
         yubikey-manager
@@ -89,7 +92,7 @@ in {
 
       programs.ssh = lib.mkIf config.modules.yubikey.sshKey {
         extraConfig = ''
-          IdentityFile ~/.ssh/yubi_ed25519
+          IdentityFile ~/.ssh/${yubiKey}
           IdentitiesOnly yes
           SecurityKeyProvider internal
         '';
