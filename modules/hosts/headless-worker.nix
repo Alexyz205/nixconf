@@ -106,9 +106,8 @@
             services.resolved.enable = true;
 
             # SSH key from existing YubiKey pub (no hardware needed at runtime)
-            modules.users.userName = "alexis";
             modules.users.extraGroups = ["wheel" "podman"];
-            users.users.alexis.openssh.authorizedKeys.keys = [
+            users.users.${config.modules.users.userName}.openssh.authorizedKeys.keys = [
               (lib.trim (builtins.readFile yubiPub))
             ];
 
@@ -134,7 +133,7 @@
             home-manager = {
               useGlobalPkgs = true;
               extraSpecialArgs = {lazyvim = inputs.lazyvim;};
-              users."alexis" = {
+              users.${config.modules.users.userName} = {
                 home.stateVersion = "24.11";
                 nix.package = lib.mkForce pkgs.nix;
               };

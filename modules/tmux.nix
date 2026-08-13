@@ -74,7 +74,7 @@ in {
   }: {
     options.modules.tmux.enable = lib.mkEnableOption "Tmux";
     config = lib.mkIf config.modules.tmux.enable {
-      home-manager.users."alexis".programs.tmux = tmuxCfg;
+      home-manager.users.${config.modules.users.userName}.programs.tmux = tmuxCfg;
     };
   };
 

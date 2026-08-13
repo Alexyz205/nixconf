@@ -150,9 +150,10 @@ in {
       nixpkgs.overlays = [firefoxOverlay];
       nixpkgs.config.allowUnfreePredicate = pkg: lib.getName pkg == "onepassword-password-manager";
       programs.firefox.enable = true;
-      home-manager.users."alexis" = {
+      home-manager.users.${config.modules.users.userName} = {
         programs.firefox = firefoxCfg {inherit pkgs;};
-        stylix.targets.firefox.profileNames = ["alexis"];
+      } // lib.optionalAttrs (config ? stylix) {
+        stylix.targets.firefox.profileNames = [config.modules.users.userName];
       };
     };
   };
@@ -165,6 +166,6 @@ in {
   }: {
     nixpkgs.overlays = [firefoxOverlay];
     programs.firefox = firefoxCfg {inherit pkgs;};
-    stylix.targets.firefox.profileNames = ["alexis"];
+    stylix.targets.firefox.profileNames = [config.modules.users.userName];
   };
 }

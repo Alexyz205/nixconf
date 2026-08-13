@@ -46,7 +46,7 @@ in {
   }: {
     options.modules.ghostty.enable = lib.mkEnableOption "Ghostty terminal";
     config = lib.mkIf config.modules.ghostty.enable {
-      home-manager.users."alexis".programs.ghostty = ghosttyCfg;
+      home-manager.users.${config.modules.users.userName}.programs.ghostty = ghosttyCfg;
     };
   };
 

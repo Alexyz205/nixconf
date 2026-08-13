@@ -15,7 +15,7 @@ in
       options.modules.zoxide.enable = lib.mkEnableOption "Zoxide";
       config = lib.mkIf config.modules.zoxide.enable {
         environment.systemPackages = [pkgs.zoxide];
-        home-manager.users."alexis".programs.zoxide = zoxideCfg;
+        home-manager.users.${config.modules.users.userName}.programs.zoxide = zoxideCfg;
       };
     };
 

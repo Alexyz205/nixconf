@@ -98,7 +98,7 @@ in {
         enable = true;
         config.init.defaultBranch = "main";
       };
-      home-manager.users."alexis" = gitWorkConfig // {
+      home-manager.users.${config.modules.users.userName} = gitWorkConfig // {
         programs.git = gitCfg {inherit pkgs;};
       };
     };

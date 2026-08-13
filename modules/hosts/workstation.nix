@@ -65,7 +65,7 @@
               settings = {
                 default_session = {
                   command = "niri-session";
-                  user = "alexis";
+                  user = config.modules.users.userName;
                 };
               };
             };
@@ -107,7 +107,6 @@
             ];
 
             modules = {
-              users.userName = "alexis";
               users.extraGroups = ["wheel" "networkmanager" "podman" "video"];
               packages = {
                 basic = true;
@@ -138,7 +137,7 @@
               home-manager = {
                 useGlobalPkgs = true;
                 extraSpecialArgs = {lazyvim = inputs.lazyvim;};
-                users."alexis" = {
+                users.${config.modules.users.userName} = {
                   home.stateVersion = "24.11";
                   nix.package = lib.mkForce pkgs.nix;
                   services.cliphist = {

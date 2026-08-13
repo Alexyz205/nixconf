@@ -59,6 +59,9 @@ in {
           HOST=$(gum choose --header "Which host to install?" headless-worker workstation)
           ok "Selected host: $HOST"
 
+          USERNAME=$(nix eval "$FLAKE_DIR#$HOST.config.modules.users.userName" --raw 2>/dev/null || echo "alexis")
+          gum log --structured --level debug "Username: $USERNAME"
+
           echo
           step "Insert YubiKey"
           gum log --structured --level warn "Plug in your YubiKey now (needed for LUKS enrollment)"
@@ -137,17 +140,17 @@ in {
           ok "disko-install completed"
 
           echo
-          step "Setting password for alexis"
-          gum log --structured --level info "Setting password for user 'alexis'"
+          step "Setting password for $USERNAME"
+          gum log --structured --level info "Setting password for user '$USERNAME'"
           if ! mountpoint -q /mnt 2>/dev/null; then
             fail "Target root (/mnt) not found after disko-install"
           fi
           for i in 1 2 3; do
-            PASSWD=$(gum input --password --placeholder "Enter password for alexis")
+            PASSWD=$(gum input --password --placeholder "Enter password for $USERNAME")
             PASSWD_CONFIRM=$(gum input --password --placeholder "Confirm password")
             if [[ "$PASSWD" == "$PASSWD_CONFIRM" && -n "$PASSWD" ]]; then
-              echo "alexis:$PASSWD" | chpasswd -R /mnt
-              ok "Password set for alexis"
+              echo "$USERNAME:$PASSWD" | chpasswd -R /mnt
+              ok "Password set for $USERNAME"
               break
             fi
             gum log --structured --level error "Passwords do not match or empty (attempt $i/3)"
@@ -157,8 +160,8 @@ in {
           echo
           step "Enrolling YubiKey for login/sudo"
           gum log --structured --level info "Touch your YubiKey when it flashes..."
-          mkdir -p /mnt/home/alexis/.config/Yubico
-          pamu2fcfg -o /mnt/home/alexis/.config/Yubico/u2f_keys
+          mkdir -p /mnt/home/$USERNAME/.config/Yubico
+          pamu2fcfg -o /mnt/home/$USERNAME/.config/Yubico/u2f_keys
           ok "YubiKey enrolled for PAM authentication"
 
           echo
@@ -169,7 +172,7 @@ in {
 
           echo
           gum log --structured --level info "Remove the USB drive and reboot."
-          gum log --structured --level info "Login as 'alexis' with the password you just set."
+          gum log --structured --level info "Login as '$USERNAME' with the password you just set."
         '';
       in {
         nixpkgs.hostPlatform = "x86_64-linux";
