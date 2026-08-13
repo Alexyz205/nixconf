@@ -22,6 +22,11 @@ in {
           LOGFILE="''${LOGFILE:-/tmp/nixos-installer.log}"
           if [[ "$VERBOSE" = 1 ]]; then set -x; fi
 
+          if [[ "$(id -u)" -ne 0 ]]; then
+            echo "Error: nixos-installer must be run as root (try: sudo nixos-installer)" >&2
+            exit 1
+          fi
+
           FLAKE_DIR="/iso/nixconf"
 
           step() {
@@ -81,6 +86,22 @@ in {
           ok "Flake pre-baked in ISO"
 
           echo
+          step "Checking network"
+          gum log --structured --level info "Waiting for network..."
+          for i in $(seq 1 30); do
+            if ping -c 1 -W 1 github.com >/dev/null 2>&1; then
+              gum log --structured --level debug "Network up after ''${i}s"
+              break
+            fi
+            if [[ "$i" -ge 30 ]]; then
+              gum log --structured --level error "No network after 30s"
+              fail "No network. Connect Ethernet and retry."
+            fi
+            sleep 1
+          done
+          ok "Network reachable"
+
+          echo
           step "Confirming installation"
           gum style --foreground 212 --bold "Installation Summary"
           echo "  Host:   $HOST"
@@ -91,12 +112,12 @@ in {
           gum confirm "Begin installation?" || fail "Aborted by user"
 
           step "Running disko-install (long)"
-          gum spin --spinner globe --title "Installing NixOS... this will take a while" -- \
-            disko-install \
-              --flake "$FLAKE_DIR#$HOST" \
-              --disk main "$DISK" \
-              --write-efi-boot-entries \
-              --extra-files "$FLAKE_DIR" /etc/nixos
+          gum log --structured --level info "Starting disko-install (this will take a while)..."
+          disko-install \
+            --flake "$FLAKE_DIR#$HOST" \
+            --disk main "$DISK" \
+            --write-efi-boot-entries \
+            --extra-files "$FLAKE_DIR" /etc/nixos 2>&1 | tee -a "$LOGFILE"
           ok "disko-install completed"
 
           echo
@@ -120,6 +141,8 @@ in {
             }
           ];
         };
+
+        nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
         services.openssh.enable = true;
         users.users.root = {
