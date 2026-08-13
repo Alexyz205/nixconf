@@ -71,10 +71,18 @@
     };
     includes = [
       {
-        condition = "gitdir:~/repos/personal/";
-        path = "~/.config/git/config-personal";
+        condition = "gitdir:~/repos/work/";
+        path = "~/.config/git/config-work";
       }
     ];
+  };
+
+  gitWorkConfig = {
+    home.file.".config/git/config-work".text = ''
+      [user]
+        name = "Alexis Pigeon"
+        email = "alexis.pigeon@take2games.com"
+    '';
   };
 in {
   flake.modules.nixos.git = {
@@ -90,11 +98,14 @@ in {
         enable = true;
         config.init.defaultBranch = "main";
       };
-      home-manager.users."alexis".programs.git = gitCfg {inherit pkgs;};
+      home-manager.users."alexis" = gitWorkConfig // {
+        programs.git = gitCfg {inherit pkgs;};
+      };
     };
   };
 
-  flake.modules.homeManager.git = {pkgs, ...}: {
-    programs.git = gitCfg {inherit pkgs;};
-  };
+  flake.modules.homeManager.git = {pkgs, ...}:
+    gitWorkConfig // {
+      programs.git = gitCfg {inherit pkgs;};
+    };
 }

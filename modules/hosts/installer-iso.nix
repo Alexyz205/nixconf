@@ -1,5 +1,6 @@
 {
   inputs,
+  self,
   ...
 }: let
   diskoPkg = inputs.disko.packages.x86_64-linux.disko;
@@ -19,8 +20,9 @@ in {
           set -Eeuo pipefail
           export VERBOSE="''${VERBOSE:-0}"
           LOGFILE="''${LOGFILE:-/tmp/nixos-installer.log}"
-          export GIT_TERMINAL_PROMPT=0
           if [[ "$VERBOSE" = 1 ]]; then set -x; fi
+
+          FLAKE_DIR="/iso/nixconf"
 
           step() {
             gum log --structured --level info --time timeonly "  • $*"
@@ -34,9 +36,7 @@ in {
             exit 1
           }
 
-          # Every unexpected failure -> print the exact line + command, never silent.
           trap 'e=$?; gum log --structured --level error "Failed at line $LINENO: $BASH_COMMAND (exit $e)" >&2; echo "FAILED line $LINENO: $BASH_COMMAND (exit $e)" >>"$LOGFILE"; exit $e' ERR
-          trap '[[ -n "''${SCRATCH_DIR:-}" ]] && rm -rf "$SCRATCH_DIR"' EXIT
 
           echo
           echo "Installer log: $LOGFILE (verbatim command output below)." >&2
@@ -73,74 +73,19 @@ in {
           gum confirm "Are you sure?" || fail "Aborted by user"
 
           echo
-          step "Checking YubiKey"
-          gum log --structured --level debug "Running ykman info"
-          if ! ykman info 2>&1 | tee -a "$LOGFILE"; then
-            fail "YubiKey not detected. Plug it in and retry."
+          step "Checking flake"
+          if [[ ! -d "$FLAKE_DIR" ]]; then
+            fail "Flake directory $FLAKE_DIR not found. ISO may be misconfigured."
           fi
-          ok "YubiKey present"
-
-          step "Starting ssh-agent"
-          eval "$(ssh-agent -s)"
-          gum log --structured --level debug "SSH_AUTH_SOCK=$SSH_AUTH_SOCK SSH_AGENT_PID=$SSH_AGENT_PID"
-
-          echo
-          step "Recovering FIDO2 resident key"
-          mkdir -p ~/.ssh
-          SCRATCH_DIR="$(mktemp -d)"
-          gum log --structured --level info "Running ssh-keygen -K in $SCRATCH_DIR. Enter your PIN when prompted."
-          if ! (cd "$SCRATCH_DIR" && ssh-keygen -K) 2>&1 | tee -a "$LOGFILE"; then
-            gum log --structured --level error "ssh-keygen -K failed"
-            fail "Key recovery failed. Is this a discoverable (resident) FIDO2 key?"
-          fi
-
-          RECOVERED_KEYS="$(find "$SCRATCH_DIR" -maxdepth 1 -name 'id_*_sk*' -type f | sort)"
-          gum log --structured --level debug "Recovered files: $RECOVERED_KEYS"
-          if [[ -z "$RECOVERED_KEYS" ]]; then
-            gum log --structured --level error "No FIDO2 key recovered in $SCRATCH_DIR"
-            fail "Key recovery failed. No id_*_sk* file was produced."
-          fi
-
-          step "Normalizing key name to id_ed25519_sk_rk_alexis-perso (OpenSSH convention)"
-          FIRST_KEY="$(echo "$RECOVERED_KEYS" | head -1)"
-          cp -v "$FIRST_KEY" ~/.ssh/id_ed25519_sk_rk_alexis-perso 2>&1 | tee -a "$LOGFILE"
-          cp -v "$FIRST_KEY.pub" ~/.ssh/id_ed25519_sk_rk_alexis-perso.pub 2>&1 | tee -a "$LOGFILE"
-          chmod 600 ~/.ssh/id_ed25519_sk_rk_alexis-perso
-          gum log --structured --level debug "Copied $FIRST_KEY{,.pub} -> ~/.ssh/id_ed25519_sk_rk_alexis-perso{,.pub}"
-          rm -rf "$SCRATCH_DIR"
-          unset SCRATCH_DIR
-          ok "Key saved as ~/.ssh/id_ed25519_sk_rk_alexis-perso (credential: rk-alexis-perso)"
-
-          step "Adding key to agent"
-          gum log --structured --level info "Touch the YubiKey when prompted."
-          if ! ssh-add ~/.ssh/id_ed25519_sk_rk_alexis-perso 2>&1 | tee -a "$LOGFILE"; then
-            fail "ssh-add failed. Check key permissions (chmod 600)."
-          fi
-
-          if ! ssh-add -l 2>&1 | tee -a "$LOGFILE"; then
-            fail "SSH agent has no keys. Aborting."
-          fi
-
-          step "Cloning nixconf flake"
-          gum log --structured --level info "Cloning via $SSH_AUTH_SOCK"
-          if ! git clone git@github.com:Alexyz205/nixconf.git /root/nixconf 2>&1 | tee -a "$LOGFILE"; then
-            gum log --structured --level error "git clone failed"
-            gum log --structured --level debug "ssh-add -l output:"
-            ssh-add -l >&2 || true
-            fail "Could not clone nixconf. Auth failed (see logfile)."
-          fi
-          ok "Cloned to /root/nixconf"
-          ls -la /root/nixconf >&2 || true
-
-          ssh-agent -k
-          ok "ssh-agent stopped"
+          gum log --structured --level debug "Flake present at $FLAKE_DIR"
+          ok "Flake pre-baked in ISO"
 
           echo
           step "Confirming installation"
           gum style --foreground 212 --bold "Installation Summary"
           echo "  Host:   $HOST"
           echo "  Disk:   $DISK"
-          echo "  Source: /root/nixconf#$HOST"
+          echo "  Source: $FLAKE_DIR#$HOST"
           echo
 
           gum confirm "Begin installation?" || fail "Aborted by user"
@@ -148,10 +93,10 @@ in {
           step "Running disko-install (long)"
           gum spin --spinner globe --title "Installing NixOS... this will take a while" -- \
             disko-install \
-              --flake "/root/nixconf#$HOST" \
+              --flake "$FLAKE_DIR#$HOST" \
               --disk main "$DISK" \
               --write-efi-boot-entries \
-              --extra-files /root/nixconf /etc/nixos
+              --extra-files "$FLAKE_DIR" /etc/nixos
           ok "disko-install completed"
 
           echo
@@ -166,7 +111,15 @@ in {
         '';
       in {
         nixpkgs.hostPlatform = "x86_64-linux";
-        isoImage.edition = "custom-iso";
+        isoImage = {
+          edition = "custom-iso";
+          contents = [
+            {
+              source = self.sourceInfo.outPath;
+              target = "/nixconf";
+            }
+          ];
+        };
 
         services.openssh.enable = true;
         users.users.root = {
@@ -174,12 +127,8 @@ in {
           password = "nixos";
         };
 
-        programs.ssh.startAgent = true;
-
         environment.systemPackages = [
-          pkgs.git
           pkgs.gum
-          pkgs.yubikey-manager
           diskoPkg
           installerScript
         ];
