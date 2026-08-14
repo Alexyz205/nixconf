@@ -66,17 +66,18 @@
       bind -n C-S-Tab previous-window
       bind C-g display-popup -d "#{pane_current_path}" -w 80% -h 80% -E "lazygit"
       bind C-n display-popup -E 'bash -i -c "read -p \"Session name: \" name; tmux new-session -d -s $name && tmux switch-client -t $name"'
-      bind C-j display-popup -E "tmux choose-session"
       bind C-y display-popup -d "#{pane_current_path}" -w 90% -h 90% -E "yazi"
       bind C-t display-popup -d "#{pane_current_path}" -w 75% -h 75% -E "zsh"
       bind R display-popup -w 70% -h 60% -E "${pkgs.writeShellScript "repo-switcher" ''
         exec ${./config/tmux/repo-switcher.sh}
       ''}"
-      bind d display-menu -T "#[align=centre]Dotfiles" -x C -y C \
-        ".zshrc"      z  "display-popup -E 'nvim ~/.zshrc'" \
-        ".tmux.conf"  t  "display-popup -E 'nvim ~/.tmux.conf'" \
-        "yazi"        y  "display-popup -E 'yazi'" \
-        "Exit"        q  ""
+      bind d display-menu -T "#[align=centre]Nixconf" -x C -y C \
+        "New session" n "display-popup -d '#{pane_current_path}' -E 'exec bash ${./config/tmux/nixconf-menu.sh} new-session'" \
+        "Switch repo"  r "display-popup -w 70% -h 60% -E 'exec bash ${./config/tmux/nixconf-menu.sh} repo-switch'" \
+        "Sessions"     s "display-popup -d '#{pane_current_path}' -E 'exec bash ${./config/tmux/nixconf-menu.sh} sessions'" \
+        "Lazygit"      l "display-popup -d '#{pane_current_path}' -w 80% -h 60% -E 'exec bash ${./config/tmux/nixconf-menu.sh} lazygit'" \
+        "Yazi"         y "display-popup -d '#{pane_current_path}' -w 80% -h 60% -E 'exec bash ${./config/tmux/nixconf-menu.sh} yazi'" \
+        "Exit"         q ""
       set -g set-titles on
       set -g set-titles-string "#S - #W"
       set -g status-position top
