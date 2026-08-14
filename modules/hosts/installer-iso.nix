@@ -55,33 +55,43 @@ in {
           echo
 
           step "Selecting host"
-          gum log --structured --level debug "Running gum choose for host"
           HOST=$(gum choose --header "Which host to install?" headless-worker workstation)
           ok "Selected host: $HOST"
 
           USERNAME=$(nix eval "$FLAKE_DIR#$HOST.config.modules.users.userName" --raw 2>/dev/null || echo "alexis")
-          gum log --structured --level debug "Username: $USERNAME"
 
           echo
-          step "Insert YubiKey"
-          gum log --structured --level warn "Plug in your YubiKey now (needed for LUKS enrollment)"
-          gum log --structured --level info "Waiting for YubiKey..."
-          for i in $(seq 1 30); do
-            if lsusb 2>/dev/null | grep -qi yubico || compgen -G '/dev/hidraw*' >/dev/null; then
-              gum log --structured --level debug "YubiKey detected after ''${i}s"
-              break
+          if [[ "$HOST" == "workstation" ]]; then
+            step "YubiKey setup"
+            USE_YUBIKEY=$(gum choose --header "Use YubiKey for disk encryption and login?" "No" "Yes")
+            if [[ "$USE_YUBIKEY" == "Yes" ]]; then
+              gum log --structured --level warn "Plug in your YubiKey now"
+              gum log --structured --level info "Waiting for YubiKey..."
+              for i in $(seq 1 30); do
+                if lsusb 2>/dev/null | grep -qi yubico || compgen -G '/dev/hidraw*' >/dev/null; then
+                  gum log --structured --level info "YubiKey detected"
+                  break
+                fi
+                if [[ "$i" -ge 30 ]]; then
+                  fail "YubiKey not detected after 30s"
+                fi
+                sleep 1
+              done
+              ok "YubiKey detected"
+              ENROLL_FIDO2="true"
+            else
+              gum log --structured --level info "Skipping YubiKey — password-only LUKS and sudo"
+              ENROLL_FIDO2="false"
             fi
-            if [[ "$i" -ge 30 ]]; then
-              gum log --structured --level warn "YubiKey not detected — LUKS will prompt for password"
-            fi
-            sleep 1
-          done
-          ok "Proceeding with disk setup"
+          else
+            gum log --structured --level info "Skipping YubiKey — not used on headless servers"
+            USE_YUBIKEY="No"
+            ENROLL_FIDO2="false"
+          fi
 
           echo
           step "Listing disks"
           DISK_INFO=$(lsblk -d -n -o NAME,SIZE,TYPE,MODEL 2>/dev/null | grep -v loop | grep -v ram || true)
-          gum log --structured --level debug "lsblk output: [$DISK_INFO]"
           if [[ -z "$DISK_INFO" ]]; then
             fail "No disks found"
           fi
@@ -101,7 +111,6 @@ in {
           if [[ ! -d "$FLAKE_DIR" ]]; then
             fail "Flake directory $FLAKE_DIR not found. ISO may be misconfigured."
           fi
-          gum log --structured --level debug "Flake present at $FLAKE_DIR"
           ok "Flake pre-baked in ISO"
 
           echo
@@ -109,7 +118,6 @@ in {
           gum log --structured --level info "Waiting for network..."
           for i in $(seq 1 30); do
             if ping -c 1 -W 1 github.com >/dev/null 2>&1; then
-              gum log --structured --level debug "Network up after ''${i}s"
               break
             fi
             if [[ "$i" -ge 30 ]]; then
@@ -121,36 +129,14 @@ in {
           ok "Network reachable"
 
           echo
-          step "Confirming installation"
-          gum style --foreground 212 --bold "Installation Summary"
-          echo "  Host:   $HOST"
-          echo "  Disk:   $DISK"
-          echo "  Source: $FLAKE_DIR#$HOST"
-          echo
-
-          gum confirm "Begin installation?" || fail "Aborted by user"
-
-          step "Running disko-install (long)"
-          gum log --structured --level info "Starting disko-install (this will take a while)..."
-          disko-install \
-            --flake "$FLAKE_DIR#$HOST" \
-            --disk main "$DISK" \
-            --write-efi-boot-entries \
-            --extra-files "$FLAKE_DIR" /etc/nixos 2>&1 | tee -a "$LOGFILE"
-          ok "disko-install completed"
-
-          echo
-          step "Setting password for $USERNAME"
-          gum log --structured --level info "Setting password for user '$USERNAME'"
-          if ! mountpoint -q /mnt 2>/dev/null; then
-            fail "Target root (/mnt) not found after disko-install"
-          fi
+          step "User password"
+          PASSWD=""
           for i in 1 2 3; do
-            PASSWD=$(gum input --password --placeholder "Enter password for $USERNAME")
-            PASSWD_CONFIRM=$(gum input --password --placeholder "Confirm password")
-            if [[ "$PASSWD" == "$PASSWD_CONFIRM" && -n "$PASSWD" ]]; then
-              echo "$USERNAME:$PASSWD" | chpasswd -R /mnt
-              ok "Password set for $USERNAME"
+            P1=$(gum input --password --placeholder "Enter password for $USERNAME")
+            P2=$(gum input --password --placeholder "Confirm password")
+            if [[ "$P1" == "$P2" && -n "$P1" ]]; then
+              PASSWD="$P1"
+              ok "Password accepted"
               break
             fi
             gum log --structured --level error "Passwords do not match or empty (attempt $i/3)"
@@ -158,11 +144,111 @@ in {
           done
 
           echo
-          step "Enrolling YubiKey for login/sudo"
-          gum log --structured --level info "Touch your YubiKey when it flashes..."
-          mkdir -p /mnt/home/$USERNAME/.config/Yubico
-          pamu2fcfg -o /mnt/home/$USERNAME/.config/Yubico/u2f_keys
-          ok "YubiKey enrolled for PAM authentication"
+          step "Confirming installation"
+          gum style --foreground 212 --bold "Installation Summary"
+          echo "  Host:      $HOST"
+          echo "  Disk:      $DISK"
+          echo "  User:      $USERNAME"
+          echo "  YubiKey:   $USE_YUBIKEY"
+          echo "  Source:    $FLAKE_DIR#$HOST"
+          echo
+
+          gum confirm "Begin installation?" || fail "Aborted by user"
+
+          echo
+          step "Partitioning and formatting disk"
+          gum log --structured --level info "Generating disk layout for $DISK..."
+
+          cat > /tmp/disko-config.nix << 'NIXEOF'
+          { device, enrollFido2 ? false, lib, ... }:
+          let
+            flake = builtins.getFlake "/iso/nixconf";
+            cfg = flake.nixosConfigurations."__HOST__".config.disko;
+            main = lib.filterAttrsRecursive (n: _: !lib.hasPrefix "_" n && n != "device") cfg.devices.disk.main;
+            parts = main.content.partitions;
+            hasLuks = parts ? luks;
+            contentOverride = if hasLuks then main.content // {
+              partitions = parts // {
+                luks = parts.luks // {
+                  content = parts.luks.content // {
+                    inherit enrollFido2;
+                    enrollRecovery = enrollFido2;
+                  };
+                };
+              };
+            } else main.content;
+          in {
+            disko.devices.disk.main = {
+              inherit (main) type;
+              device = device;
+              content = contentOverride;
+            };
+          }
+        NIXEOF
+          sed -i "s/__HOST__/$HOST/" /tmp/disko-config.nix
+
+          gum log --structured --level info "Running disko (this will take a while)..."
+          disko --mode destroy,format,mount /tmp/disko-config.nix \
+            --argstr device "$DISK" \
+            --arg enrollFido2 "$ENROLL_FIDO2" \
+            --yes-wipe-all-disks \
+            2>&1 | tee -a "$LOGFILE"
+          ok "Disk partitioned and mounted"
+
+          echo
+          step "Installing NixOS"
+          gum log --structured --level info "Building system..."
+
+          cat > /tmp/build-system.nix << 'NIXEOF'
+          { device, withYubiKey ? true, ... }:
+          let
+            flake = builtins.getFlake "/iso/nixconf";
+            original = flake.nixosConfigurations."__HOST__";
+            hasYubiKey = original.options.modules ? yubikey;
+          in
+            (original.extendModules {
+              modules = [
+                ({ lib, ... }: {
+                  disko.devices.disk.main.device = lib.mkForce device;
+                  boot.loader.efi.canTouchEfiVariables = lib.mkForce true;
+                } // lib.optionalAttrs (!withYubiKey && hasYubiKey) {
+                  modules.yubikey.luksUnlock = lib.mkForce false;
+                  modules.yubikey.sudoAuth = lib.mkForce false;
+                })
+              ];
+            }).config.system.build.toplevel
+        NIXEOF
+          sed -i "s/__HOST__/$HOST/" /tmp/build-system.nix
+
+          YUBI_NIX_ARG=$([ "$USE_YUBIKEY" = "Yes" ] && echo "--arg withYubiKey true" || echo "--arg withYubiKey false")
+          SYSTEM=$(nix-build --extra-experimental-features 'nix-command flakes' \
+            /tmp/build-system.nix \
+            --argstr device "$DISK" \
+            $YUBI_NIX_ARG \
+            --no-out-link)
+
+          gum log --structured --level info "Running nixos-install..."
+          nixos-install --no-root-passwd --system "$SYSTEM" --root /mnt 2>&1 | tee -a "$LOGFILE"
+          ok "NixOS installed"
+
+          echo
+          step "Copying flake to installed system"
+          cp -a "$FLAKE_DIR" /mnt/etc/nixos
+          ok "Flake copied to /mnt/etc/nixos"
+
+          echo
+          step "Setting password for $USERNAME"
+          echo "$USERNAME:$PASSWD" | chpasswd -R /mnt
+          ok "Password set for $USERNAME"
+
+          if [[ "$USE_YUBIKEY" == "Yes" ]]; then
+            echo
+            step "Enrolling YubiKey for login/sudo"
+            gum log --structured --level info "Touch your YubiKey when it flashes..."
+            mkdir -p /mnt/home/$USERNAME/.config/Yubico
+            pamu2fcfg -o /mnt/home/$USERNAME/.config/Yubico/u2f_keys
+            ok "YubiKey enrolled for PAM authentication"
+          fi
 
           echo
           gum style \
@@ -173,6 +259,9 @@ in {
           echo
           gum log --structured --level info "Remove the USB drive and reboot."
           gum log --structured --level info "Login as '$USERNAME' with the password you just set."
+          if [[ "$USE_YUBIKEY" == "Yes" ]]; then
+            gum log --structured --level info "YubiKey is configured for LUKS unlock and sudo auth."
+          fi
         '';
       in {
         nixpkgs.hostPlatform = "x86_64-linux";
