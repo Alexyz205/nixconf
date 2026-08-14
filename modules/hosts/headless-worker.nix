@@ -96,6 +96,7 @@
 
             # systemd-networkd instead of NetworkManager
             networking.networkmanager.enable = lib.mkForce false;
+            networking.useNetworkd = true;
             systemd.network = {
               enable = true;
               networks."50-dhcp" = {

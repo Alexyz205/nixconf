@@ -1,10 +1,36 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+usage() {
+  cat <<'EOF'
+Usage: build-iso.sh [options]
+
+Builds the workstation-iso image and copies it to a Ventoy USB stick.
+
+Options:
+  -d, --dest-dir DIR  Ventoy mount point to copy the ISO into
+                      (default: /media/alexis.pigeon/Ventoy)
+  -e, --eject         Power off the USB device after copying and verifying
+  -h, --help          Show this help message
+EOF
+}
+
 ISO_BUILD=".#nixosConfigurations.workstation-iso.config.system.build.isoImage"
-DEST_DIR="${1:-/media/alexis.pigeon/Ventoy}"
+DEST_DIR="/media/alexis.pigeon/Ventoy"
+EJECT=0
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -d|--dest-dir) DEST_DIR="$2"; shift ;;
+    -e|--eject)   EJECT=1 ;;
+    -h|--help)    usage; exit 0 ;;
+    -*)           echo "Unknown option: $1" >&2; usage >&2; exit 2 ;;
+    *)            echo "Unexpected argument: $1" >&2; usage >&2; exit 2 ;;
+  esac
+  shift
+done
+
 SCRIPT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-EJECT="${EJECT:-0}"
 
 cleanup() {
   rm -f "$SCRIPT_DIR/result" "$SCRIPT_DIR/.sha256.src" "$SCRIPT_DIR/.sha256.dst"

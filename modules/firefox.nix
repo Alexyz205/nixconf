@@ -7,6 +7,7 @@
 
   firefoxCfg = {pkgs, ...}: {
     enable = true;
+    configPath = ".mozilla/firefox";
 
     profiles.alexis = {
       isDefault = true;

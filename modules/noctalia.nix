@@ -119,7 +119,7 @@
   }: {
     options.modules.noctalia.enable = lib.mkEnableOption "Noctalia Shell bar";
     config = lib.mkIf config.modules.noctalia.enable {
-      environment.systemPackages = [self.packages.${pkgs.system}.noctalia-shell];
+      environment.systemPackages = [self.packages.${pkgs.stdenv.hostPlatform.system}.noctalia-shell];
     };
   };
 }

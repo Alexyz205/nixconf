@@ -29,19 +29,29 @@ in {
 
           FLAKE_DIR="/iso/nixconf"
 
+          info() {
+            gum log --level info --structured "$*"
+          }
+          warn() {
+            gum log --level warn --structured "$*"
+          }
+          error() {
+            gum log --level error --structured "$*" >&2
+          }
+
           step() {
-            gum log --structured --level info --time timeonly "  • $*"
+            info "  • $*"
           }
           ok() {
-            gum log --structured --level info --time timeonly "OK: $*"
+            info "OK: $*"
           }
           fail() {
-            gum log --structured --level error --time timeonly "$*" >&2
+            error "$*"
             echo "Error: $*" >>"$LOGFILE"
             exit 1
           }
 
-          trap 'e=$?; gum log --structured --level error "Failed at line $LINENO: $BASH_COMMAND (exit $e)" >&2; echo "FAILED line $LINENO: $BASH_COMMAND (exit $e)" >>"$LOGFILE"; exit $e' ERR
+          trap 'e=$?; error "Failed at line $LINENO: $BASH_COMMAND (exit $e)" >&2; echo "FAILED line $LINENO: $BASH_COMMAND (exit $e)" >>"$LOGFILE"; exit $e' ERR
 
           echo
           echo "Installer log: $LOGFILE." >&2
@@ -65,11 +75,11 @@ in {
             step "YubiKey setup"
             USE_YUBIKEY=$(gum choose --header "Use YubiKey for disk encryption and login?" "No" "Yes")
             if [[ "$USE_YUBIKEY" == "Yes" ]]; then
-              gum log --structured --level warn "Plug in your YubiKey now"
-              gum log --structured --level info "Waiting for YubiKey..."
+              warn "Plug in your YubiKey now"
+              info "Waiting for YubiKey..."
               for i in $(seq 1 30); do
                 if lsusb 2>/dev/null | grep -qi yubico || compgen -G '/dev/hidraw*' >/dev/null; then
-                  gum log --structured --level info "YubiKey detected"
+                  info "YubiKey detected"
                   break
                 fi
                 if [[ "$i" -ge 30 ]]; then
@@ -77,14 +87,13 @@ in {
                 fi
                 sleep 1
               done
-              ok "YubiKey detected"
               ENROLL_FIDO2="true"
             else
-              gum log --structured --level info "Skipping YubiKey — password-only LUKS and sudo"
+              info "Skipping YubiKey — password-only LUKS and sudo"
               ENROLL_FIDO2="false"
             fi
           else
-            gum log --structured --level info "Skipping YubiKey — not used on headless servers"
+            info "Skipping YubiKey — not used on headless servers"
             USE_YUBIKEY="No"
             ENROLL_FIDO2="false"
           fi
@@ -115,13 +124,13 @@ in {
 
           echo
           step "Checking network"
-          gum log --structured --level info "Waiting for network..."
+          info "Waiting for network..."
           for i in $(seq 1 30); do
             if ping -c 1 -W 1 github.com >/dev/null 2>&1; then
               break
             fi
             if [[ "$i" -ge 30 ]]; then
-              gum log --structured --level error "No network after 30s"
+              error "No network after 30s"
               fail "No network. Connect Ethernet and retry."
             fi
             sleep 1
@@ -139,7 +148,7 @@ in {
               ok "Password accepted"
               break
             fi
-            gum log --structured --level error "Passwords do not match or empty (attempt $i/3)"
+            error "Passwords do not match or empty (attempt $i/3)"
             [[ "$i" -ge 3 ]] && fail "Failed to set password after 3 attempts"
           done
 
@@ -157,7 +166,7 @@ in {
 
           echo
           step "Partitioning and formatting disk"
-          gum log --structured --level info "Generating disk layout for $DISK..."
+          info "Generating disk layout for $DISK..."
 
           cat > /tmp/disko-config.nix << 'NIXEOF'
           { device, enrollFido2 ? false, lib, ... }:
@@ -187,7 +196,7 @@ in {
         NIXEOF
           sed -i "s/__HOST__/$HOST/" /tmp/disko-config.nix
 
-          gum log --structured --level info "Running disko (this will take a while)..."
+          info "Running disko (this will take a while)..."
           disko --mode destroy,format,mount /tmp/disko-config.nix \
             --argstr device "$DISK" \
             --arg enrollFido2 "$ENROLL_FIDO2" \
@@ -197,7 +206,7 @@ in {
 
           echo
           step "Installing NixOS"
-          gum log --structured --level info "Building system..."
+          info "Building system..."
 
           cat > /tmp/build-system.nix << 'NIXEOF'
           { device, withYubiKey ? true, ... }:
@@ -227,13 +236,18 @@ in {
             $YUBI_NIX_ARG \
             --no-out-link)
 
-          gum log --structured --level info "Running nixos-install..."
+          info "Running nixos-install..."
           nixos-install --no-root-passwd --system "$SYSTEM" --root /mnt 2>&1 | tee -a "$LOGFILE"
           ok "NixOS installed"
 
           echo
           step "Copying flake to installed system"
           cp -a "$FLAKE_DIR" /mnt/etc/nixos
+          USER_UID=$(awk -F: -v u="$USERNAME" '$1 == u {print $3}' /mnt/etc/passwd)
+          USER_GID=$(awk -F: -v u="$USERNAME" '$1 == u {print $4}' /mnt/etc/passwd)
+          if [[ -n "$USER_UID" && -n "$USER_GID" ]]; then
+            chown -R "$USER_UID:$USER_GID" /mnt/etc/nixos
+          fi
           ok "Flake copied to /mnt/etc/nixos"
 
           echo
@@ -244,10 +258,34 @@ in {
           if [[ "$USE_YUBIKEY" == "Yes" ]]; then
             echo
             step "Enrolling YubiKey for login/sudo"
-            gum log --structured --level info "Touch your YubiKey when it flashes..."
-            mkdir -p /mnt/home/$USERNAME/.config/Yubico
-            pamu2fcfg -o /mnt/home/$USERNAME/.config/Yubico/u2f_keys
-            ok "YubiKey enrolled for PAM authentication"
+            info "Touch your YubiKey with a single short tap when it flashes."
+            info "If it asks for a PIN, set/enter the FIDO2 PIN on the key."
+            ORIGIN="pam://$HOST"
+            U2F_DIR="/mnt/home/$USERNAME/.config/Yubico"
+            U2F_KEYS="$U2F_DIR/u2f_keys"
+            mkdir -p "$U2F_DIR"
+            enrolled=0
+            for attempt in $(seq 1 3); do
+              info "Enrollment attempt $attempt/3: $(lsusb 2>/dev/null | grep -i yubico || echo 'no Yubico detected')"
+              if pamu2fcfg -o "$ORIGIN" > "$U2F_KEYS"; then
+                ok "YubiKey enrolled for PAM authentication"
+                enrolled=1
+                break
+              fi
+              error "Attempt $attempt/3 failed: touch the key only during the short flash (or wrong FIDO2 PIN)."
+              sleep 2
+            done
+            if [[ "$enrolled" != 1 ]]; then
+              rm -f "$U2F_KEYS"
+              fail "YubiKey enrollment failed. Verify the FIDO2 applet is enabled and no PIN (or correct PIN), then re-run."
+            fi
+            UID_GID=$(awk -F: -v u="$USERNAME" '$1==u{print $3":"$4}' /mnt/etc/passwd)
+            if [[ -z "$UID_GID" ]]; then
+              fail "Could not resolve uid:gid for $USERNAME in /mnt/etc/passwd"
+            fi
+            chown "$UID_GID" "$U2F_DIR" "$U2F_KEYS"
+            chmod 700 "$U2F_DIR"
+            chmod 600 "$U2F_KEYS"
           fi
 
           echo
@@ -257,10 +295,10 @@ in {
             "Installation complete."
 
           echo
-          gum log --structured --level info "Remove the USB drive and reboot."
-          gum log --structured --level info "Login as '$USERNAME' with the password you just set."
+          info "Remove the USB drive and reboot."
+          info "Login as '$USERNAME' with the password you just set."
           if [[ "$USE_YUBIKEY" == "Yes" ]]; then
-            gum log --structured --level info "YubiKey is configured for LUKS unlock and sudo auth."
+            info "YubiKey is configured for LUKS unlock and sudo auth."
           fi
         '';
       in {

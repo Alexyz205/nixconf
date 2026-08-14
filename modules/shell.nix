@@ -90,7 +90,7 @@
       REPOS = "$HOME/repos";
       GITUSER = "alexyz205";
       GHREPOS = "$HOME/repos/github.com/alexyz205";
-      NICONF = "$HOME/repos/personal/nixconf";
+      NIXCONF = "$HOME/repos/personal/nixconf";
       XDG_CONFIG_HOME = "$HOME/.config";
       EZA_CONFIG_DIR = "$XDG_CONFIG_HOME/eza";
       TMUX_AUTO_START = "1";
