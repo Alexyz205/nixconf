@@ -1,7 +1,8 @@
 {lib, ...}: let
-  ghosttyCfg = {
+  mkGhosttyCfg = {pkgs}: {
     enable = true;
     settings = {
+      command = "${pkgs.tmux}/bin/tmux new-session -A -s dev";
       theme = "catppuccin-mocha";
       "font-family" = "JetBrains Mono";
       "mouse-hide-while-typing" = true;
@@ -46,7 +47,7 @@ in {
   }: {
     options.modules.ghostty.enable = lib.mkEnableOption "Ghostty terminal";
     config = lib.mkIf config.modules.ghostty.enable {
-      home-manager.users.${config.modules.users.userName}.programs.ghostty = ghosttyCfg;
+      home-manager.users.${config.modules.users.userName}.programs.ghostty = mkGhosttyCfg {inherit pkgs;};
     };
   };
 
@@ -57,6 +58,7 @@ in {
   }: {
     home.file = lib.mkIf pkgs.stdenv.isDarwin {
       ".config/ghostty/config".text = ''
+        command = ${pkgs.tmux}/bin/tmux new-session -A -s dev
         font-family = JetBrains Mono
         font-size = 14
         mouse-hide-while-typing = true
@@ -88,6 +90,6 @@ in {
         palette = 15=#bac2de
       '';
     };
-    programs.ghostty = lib.mkIf (!pkgs.stdenv.isDarwin) ghosttyCfg;
+    programs.ghostty = lib.mkIf (!pkgs.stdenv.isDarwin) (mkGhosttyCfg {inherit pkgs;});
   };
 }

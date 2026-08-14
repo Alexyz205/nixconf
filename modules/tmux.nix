@@ -1,9 +1,11 @@
 {lib, ...}: let
-  tmuxCfg = {
+  mkTmuxCfg = {pkgs}: {
     enable = true;
     extraConfig = ''
       set -g default-terminal "tmux-256color"
       set -ag terminal-overrides ",xterm-256color:RGB,xterm-ghostty:RGB"
+      set -g default-shell "${pkgs.zsh}/bin/zsh"
+      set -g default-command "${pkgs.zsh}/bin/zsh -l"
       set -g pane-border-lines simple
       set -g renumber-windows on
       set -sg escape-time 0
@@ -74,11 +76,14 @@ in {
   }: {
     options.modules.tmux.enable = lib.mkEnableOption "Tmux";
     config = lib.mkIf config.modules.tmux.enable {
-      home-manager.users.${config.modules.users.userName}.programs.tmux = tmuxCfg;
+      home-manager.users.${config.modules.users.userName}.programs.tmux = mkTmuxCfg {inherit pkgs;};
     };
   };
 
-  flake.modules.homeManager.tmux = {...}: {
-    programs.tmux = tmuxCfg;
+  flake.modules.homeManager.tmux = {
+    pkgs,
+    ...
+  }: {
+    programs.tmux = mkTmuxCfg {inherit pkgs;};
   };
 }
