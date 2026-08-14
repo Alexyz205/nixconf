@@ -61,6 +61,12 @@
             disko.devices.disk.main.device = diskDevice;
 
             services.xserver.enable = true;
+            # Disable TTS service: the graphical-desktop default enables
+            # speech-dispatcher (pulls mbrola/espeak/flite, ~890MB, unused here).
+            services.speechd.enable = false;
+            # Only the declared JetBrains Mono + emoji fonts are used, so skip
+            # the default CJK/unifont package set (~170MB).
+            fonts.enableDefaultPackages = false;
             services.greetd = {
               enable = true;
               settings = {
@@ -145,6 +151,23 @@
                   services.cliphist = {
                     enable = true;
                     allowImages = true;
+                  };
+                  # Stylix targets for apps not present in this repo/configuration.
+                  # AutoEnable would otherwise generate theme config for them.
+                  stylix.targets = {
+                    blender.enable = false;
+                    forge.enable = false;
+                    gdu.enable = false;
+                    gedit.enable = false;
+                    gnome.enable = false;
+                    gnome-text-editor.enable = false;
+                    gtksourceview.enable = false;
+                    kde.enable = false;
+                    rofi.enable = false;
+                    vencord.enable = false;
+                    vesktop.enable = false;
+                    nixcord.enable = false;
+                    qt.enable = false;
                   };
                 };
               };

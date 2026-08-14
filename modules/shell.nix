@@ -35,8 +35,6 @@
     d = "docker";
     dc = "docker-compose";
     ld = "lazydocker";
-    lss = "lazyssh";
-    lssh = "lazyssh";
     dru = "docker run -it --rm -v ~/repos/personal/nixconf:/root/nixconf ubuntu bash";
     gm = "glab mr";
     gml = "glab mr list";
