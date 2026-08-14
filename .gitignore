@@ -1,3 +1,6 @@
 /result
 # Private keys that must never be committed. Encrypted secrets go in secrets/.
 age-keys.txt
+
+# Node dependencies (reinstall with `npm install`)
+node_modules/

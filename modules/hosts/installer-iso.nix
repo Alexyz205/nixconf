@@ -33,10 +33,10 @@ in {
             gum log --structured --level info --time timeonly "  • $*"
           }
           ok() {
-            gum log --structured --level info "OK: $*"
+            gum log --structured --level info --time timeonly "OK: $*"
           }
           fail() {
-            gum log --structured --level error "$*" >&2
+            gum log --structured --level error --time timeonly "$*" >&2
             echo "Error: $*" >>"$LOGFILE"
             exit 1
           }
@@ -44,7 +44,7 @@ in {
           trap 'e=$?; gum log --structured --level error "Failed at line $LINENO: $BASH_COMMAND (exit $e)" >&2; echo "FAILED line $LINENO: $BASH_COMMAND (exit $e)" >>"$LOGFILE"; exit $e' ERR
 
           echo
-          echo "Installer log: $LOGFILE (verbatim command output below)." >&2
+          echo "Installer log: $LOGFILE." >&2
           echo
 
           gum style \
