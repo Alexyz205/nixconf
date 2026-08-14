@@ -17,9 +17,13 @@
         sponsorblock
         darkreader
         onepassword-password-manager
+        vimium
+        catppuccin-mocha-mauve
       ];
 
       settings = {
+        "extensions.autoDisableScopes" = 0;
+
         "browser.startup.page" = 3;
         "browser.zoom.siteSpecific" = true;
 
