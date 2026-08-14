@@ -5,6 +5,8 @@
   yubiKey = "id_ed25519_sk_rk_alexis-perso";
   yubiPub = "${./config/ssh}/${yubiKey}.pub";
   handle = "${./config/ssh}/${yubiKey}";
+  u2fOrigin = "pam://localhost";
+  u2fMapping = ./config/Yubico/u2f_keys;
 
   yubiCfg = {
     pkgs,
@@ -27,6 +29,8 @@
     };
   } // lib.optionalAttrs (builtins.pathExists handle) {
     home.file.".ssh/${yubiKey}".source = handle;
+  } // lib.optionalAttrs (builtins.pathExists u2fMapping) {
+    home.file.".config/Yubico/u2f_keys".source = u2fMapping;
   };
 in {
   flake.modules.nixos.yubikey = {
@@ -58,7 +62,8 @@ in {
     # One-time enrollments:
     #
     # LUKS:     disko enrolls automatically during disko-install
-    # Sudo/PAM: installer script runs pamu2fcfg during install
+    # Sudo/PAM: pre-register ONCE, bound to this ISO's YubiKey, and commit:
+    #             pamu2fcfg -u <user> -o pam://localhost > modules/config/Yubico/u2f_keys
     # SSH:      recover the resident key handle ONCE into the repo:
     #             ssh-keygen -K
     #             mv ~/id_ed25519_sk_rk_alexis-perso modules/config/ssh/${yubiKey}
@@ -83,6 +88,7 @@ in {
         settings = {
           cue = true;
           interactive = true;
+          origin = u2fOrigin;
         };
       };
       security.pam.services.sshd.u2f.enable = lib.mkIf config.modules.yubikey.sudoAuth false;

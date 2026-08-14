@@ -263,28 +263,15 @@ in {
 
           if [[ "$USE_YUBIKEY" == "Yes" ]]; then
             echo
-            step "Enrolling YubiKey for login/sudo"
-            info "Touch your YubiKey with a single short tap when it flashes."
-            info "If it asks for a PIN, set/enter the FIDO2 PIN on the key."
-            ORIGIN="pam://$HOST"
+            step "Provisioning YubiKey PAM mapping for login/sudo"
+            U2F_SRC="$FLAKE_DIR/modules/config/Yubico/u2f_keys"
             U2F_DIR="/mnt/home/$USERNAME/.config/Yubico"
             U2F_KEYS="$U2F_DIR/u2f_keys"
-            mkdir -p "$U2F_DIR"
-            enrolled=0
-            for attempt in $(seq 1 3); do
-              info "Enrollment attempt $attempt/3: $(lsusb 2>/dev/null | grep -i yubico || echo 'no Yubico detected')"
-              if pamu2fcfg -o "$ORIGIN" > "$U2F_KEYS"; then
-                ok "YubiKey enrolled for PAM authentication"
-                enrolled=1
-                break
-              fi
-              error "Attempt $attempt/3 failed: touch the key only during the short flash (or wrong FIDO2 PIN)."
-              sleep 2
-            done
-            if [[ "$enrolled" != 1 ]]; then
-              rm -f "$U2F_KEYS"
-              fail "YubiKey enrollment failed. Verify the FIDO2 applet is enabled and no PIN (or correct PIN), then re-run."
+            if [[ ! -f "$U2F_SRC" ]]; then
+              fail "Missing $U2F_SRC - this ISO is bound to one YubiKey. Register once with: pamu2fcfg -u $USERNAME -o pam://localhost > modules/config/Yubico/u2f_keys"
             fi
+            mkdir -p "$U2F_DIR"
+            cp "$U2F_SRC" "$U2F_KEYS"
             UID_GID=$(awk -F: -v u="$USERNAME" '$1==u{print $3":"$4}' /mnt/etc/passwd)
             if [[ -z "$UID_GID" ]]; then
               fail "Could not resolve uid:gid for $USERNAME in /mnt/etc/passwd"
@@ -292,6 +279,7 @@ in {
             chown "$UID_GID" "$U2F_DIR" "$U2F_KEYS"
             chmod 700 "$U2F_DIR"
             chmod 600 "$U2F_KEYS"
+            ok "YubiKey PAM mapping provisioned (bound to the key registered in the repo)"
           fi
 
           echo
