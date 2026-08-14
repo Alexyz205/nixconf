@@ -18,7 +18,6 @@ size = 50
 header = "Task: {0}"
 
 [keybindings]
-shortcut = "f7"
 enter = "actions:run"
 ctrl-e = "actions:edit"
 ctrl-i = "actions:info"

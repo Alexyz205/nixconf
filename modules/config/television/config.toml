@@ -159,9 +159,6 @@ ctrl-s = "cycle_sources"
 ctrl-r = "toggle_remote_control"
 ctrl-x = "toggle_action_picker"
 ctrl-o = "toggle_preview"
-f9 = "toggle_help"
-f10 = "toggle_status_bar"
-f11 = "toggle_layout"
 
 # Input field actions
 # ----------------------------------------
@@ -196,14 +193,6 @@ fallback_channel = "channels"
 #          `git checkout`  should trigger the `git-branches` channel
 #          `ls`            should trigger the `dirs` channel
 #          `cat` and `cp`  should trigger the `files` channel
-#
-# You would add the following to your configuration file:
-# ```
-# [shell_integration.channel_triggers]
-# "git-branches" = ["git checkout"]
-# "dirs" = ["ls"]
-# "files" = ["cat", "cp"]
-# ```
 "alias" = ["alias", "unalias"]
 "env" = ["export", "unset"]
 "dirs" = ["cd", "ls", "rmdir", "z"]

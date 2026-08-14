@@ -20,7 +20,6 @@ layout = "portrait"
 [keybindings]
 enter = "actions:exec"
 ctrl-s = "actions:start"
-f2 = "actions:stop"
 ctrl-r = "actions:restart"
 ctrl-l = "actions:logs"
 ctrl-e = "actions:exec"

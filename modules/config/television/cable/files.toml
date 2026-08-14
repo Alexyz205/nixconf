@@ -11,7 +11,6 @@ command = "bat -n --color=always '{}'"
 env = { BAT_THEME = "Catppuccin Mocha" }
 
 [keybindings]
-shortcut = "f1"
 enter = "actions:edit"
 ctrl-d = "actions:delete"
 ctrl-up = "actions:goto_parent_dir"

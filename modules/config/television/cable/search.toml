@@ -21,7 +21,6 @@ offset = "{strip_ansi|split:\\::1}"
 preview_panel = { header = "{strip_ansi|split:\\::..2}" }
 
 [keybindings]
-shortcut = "f2"
 enter = "actions:edit"
 
 [actions.edit]
