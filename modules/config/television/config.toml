@@ -219,16 +219,6 @@ fallback_channel = "channels"
   "gunzip",
   "xz",
 ]
-"git-diff" = ["git add", "git restore"]
-"git-branch" = [
-  "git checkout",
-  "git branch",
-  "git merge",
-  "git rebase",
-  "git pull",
-  "git push",
-]
-"git-log" = ["git log", "git show"]
 "docker-images" = ["docker run"]
 "git-repos" = ["nvim", "code", "hx", "git clone"]
 

@@ -30,32 +30,18 @@ set -o vi
 # ===============================================
 eval "$(tv init bash)" 2>/dev/null || true
 
-# Override Ctrl+T to launch tv files channel on empty prompt
+# Ctrl+T: guess the channel from the current prompt (channel_triggers config)
 tv_smart_autocomplete() {
   _disable_bracketed_paste
-  local tokens prefix lbuf
+  local output
   local current_prompt="${READLINE_LINE:0:$READLINE_POINT}"
-  read -ra tokens <<< "$current_prompt"
-  if [[ ${#tokens[@]} -lt 1 ]]; then
-    local output
-    printf "\n"
-    output=$(tv files --no-status-bar --inline)
-    if [[ -n "$output" ]]; then
-      READLINE_LINE="${READLINE_LINE:0:$READLINE_POINT}${output}"
-      READLINE_POINT=$(( READLINE_POINT + ${#output} ))
-    fi
-    printf "\033[A"
-    _enable_bracketed_paste
-    return
+  printf "\n"
+  output=$(tv --autocomplete-prompt "$current_prompt" --inline --no-status-bar)
+  if [[ -n "$output" ]]; then
+    READLINE_LINE="$output"
+    READLINE_POINT=${#READLINE_LINE}
   fi
-  [[ "${READLINE_LINE:$((READLINE_POINT-1)):1}" == " " ]] && tokens+=("")
-  prefix="${tokens[-1]}"
-  if [[ -n "$prefix" ]]; then
-    lbuf="${current_prompt:0:$((${#current_prompt} - ${#prefix}))}"
-  else
-    lbuf="$current_prompt"
-  fi
-  __tv_path_completion "$prefix" "$lbuf"
+  printf "\033[A"
   _enable_bracketed_paste
 }
 
