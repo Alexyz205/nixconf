@@ -16,7 +16,13 @@
           marginHorizontal = 0;
           marginVertical = 0;
           widgets = {
-            left = [{id = "Workspace";}];
+            left = [
+              {
+                id = "Workspace";
+                labelMode = "name";
+                characterCount = 7;
+              }
+            ];
             center = [];
             right = [
               {id = "Volume";}
