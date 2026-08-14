@@ -183,7 +183,7 @@ right = "go_to_next_char"
 
 [shell_integration]
 # This specifies the default fallback channel if no other channel is matched.
-fallback_channel = "channels"
+fallback_channel = "files"
 
 [shell_integration.channel_triggers]
 # Add your channel triggers here. Each key is a channel that will be triggered

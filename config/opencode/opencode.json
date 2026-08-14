@@ -181,25 +181,25 @@
     }
   },
   // --- MCP Servers ---
-  "mcp": {
-    "context7": {
-      "type": "local",
-      "command": [
-        "npx",
-        "-y",
-        "@upstash/context7-mcp@latest"
-      ]
-    },
-    "fetch": {
-      "type": "local",
-      "command": [
-        "uvx",
-        "--with",
-        "mcp<2.0.0",
-        "mcp-server-fetch"
-      ]
-    }
-  },
+  // "mcp": {
+  //   "context7": {
+  //     "type": "local",
+  //     "command": [
+  //       "npx",
+  //       "-y",
+  //       "@upstash/context7-mcp@latest"
+  //     ]
+  //   },
+  //   "fetch": {
+  //     "type": "local",
+  //     "command": [
+  //       "uvx",
+  //       "--with",
+  //       "mcp<2.0.0",
+  //       "mcp-server-fetch"
+  //     ]
+  //   }
+  // },
   // --- Plugins ---
   // Only active plugins are listed: each entry triggers an npm registry check at
   // startup. Trimmed 2026-08-14 (11 -> 2) to cut per-launch npm round-trips.

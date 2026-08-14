@@ -20,9 +20,12 @@
         vimium
         catppuccin-mocha-mauve
       ];
+      extensions.force = true;
 
       settings = {
         "extensions.autoDisableScopes" = 0;
+
+        "extensions.activeThemeID" = "{76aabc99-c1a8-4c1e-832b-d4f2941d5a7a}";
 
         "browser.startup.page" = 3;
         "browser.zoom.siteSpecific" = true;
@@ -158,7 +161,10 @@ in {
       home-manager.users.${config.modules.users.userName} = {
         programs.firefox = firefoxCfg {inherit pkgs;};
       } // lib.optionalAttrs (config ? stylix) {
-        stylix.targets.firefox.profileNames = [config.modules.users.userName];
+        stylix.targets.firefox = {
+          profileNames = [config.modules.users.userName];
+          colorTheme.enable = true;
+        };
       };
     };
   };
@@ -171,6 +177,9 @@ in {
   }: {
     nixpkgs.overlays = [firefoxOverlay];
     programs.firefox = firefoxCfg {inherit pkgs;};
-    stylix.targets.firefox.profileNames = [config.modules.users.userName];
+    stylix.targets.firefox = {
+      profileNames = [config.modules.users.userName];
+      colorTheme.enable = true;
+    };
   };
 }

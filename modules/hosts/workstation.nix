@@ -31,6 +31,7 @@
     lazyvim
     niri
     noctalia
+    hiddenApps
     firefox
   ];
 
@@ -139,6 +140,7 @@
               opencode.enable = true;
               niri.enable = true;
               noctalia.enable = true;
+              hiddenApps.enable = true;
               firefox.enable = true;
             };
 

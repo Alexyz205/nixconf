@@ -38,6 +38,7 @@
           position = "center";
           viewMode = "list";
           showCategories = true;
+          overviewLayer = true;
         };
 
         controlCenter = {

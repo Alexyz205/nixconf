@@ -61,8 +61,9 @@
       plugins.colorscheme = lazyvim.lib.lazyConfig [
         {
           plugin = "catppuccin/nvim";
-          lazy = true;
-          name = "catppuccin";
+          lazy = false;
+          priority = 1000;
+          main = "catppuccin";
           opts.flavour = "mocha";
         }
         {
