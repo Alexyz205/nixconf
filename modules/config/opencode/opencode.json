@@ -1,7 +1,9 @@
 {
   "$schema": "https://opencode.ai/config.json",
   "autoupdate": true,
-  "lsp": true,
+  // LSP disabled: lsp=true probes/enables 40 built-in servers at launch (~26s startup cost).
+  // Enable per-project when a language server is actually installed.
+  "lsp": false,
   "share": "disabled",
   // --- Model Configuration ---
   "model": "opencode/deepseek-v4-flash",
@@ -199,17 +201,10 @@
     }
   },
   // --- Plugins ---
+  // Only active plugins are listed: each entry triggers an npm registry check at
+  // startup. Trimmed 2026-08-14 (11 -> 2) to cut per-launch npm round-trips.
   "plugin": [
-    "opencode-shell-strategy",
-    "opencode-vibeguard",
     "opencode-skillful",
-    "opencode-supermemory",
-    "opencode-dynamic-context-pruning",
-    "opencode-background-agents",
-    "opencode-conductor",
-    "opencode.nvim",
-    "opencode-md-table-formatter",
-    "opencode-websearch-cited",
-    "opencode-gemini-auth"
+    "opencode.nvim"
   ]
 }
