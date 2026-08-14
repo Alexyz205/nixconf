@@ -18,7 +18,18 @@
           set -g @continuum-boot 'off'
         '';
       }
-      {plugin = catppuccin;}
+      {
+        plugin = catppuccin;
+        extraConfig = ''
+          set -g @catppuccin_flavor "mocha"
+          set -g @catppuccin_window_status_style "rounded"
+          set -g @catppuccin_window_default_text "#W"
+          set -g @catppuccin_window_current_text "#W"
+          set -g @catppuccin_status_left_separator ""
+          set -g @catppuccin_status_right_separator ""
+          set -g @catppuccin_status_connect_separator "no"
+        '';
+      }
     ];
     extraConfig = ''
       set -g default-terminal "tmux-256color"
@@ -46,10 +57,11 @@
       bind f resize-pane -Z
       bind q detach-client
       bind e choose-window -Z
-      bind h split-window -h
-      bind | split-window -h
-      bind v split-window -v
-      bind - split-window -v
+      bind h split-window -h -c "#{pane_current_path}"
+      bind | split-window -h -c "#{pane_current_path}"
+      bind v split-window -v -c "#{pane_current_path}"
+      bind - split-window -v -c "#{pane_current_path}"
+      bind c new-window -c "#{pane_current_path}"
       bind -n C-Tab next-window
       bind -n C-S-Tab previous-window
       bind C-g display-popup -d "#{pane_current_path}" -w 80% -h 80% -E "lazygit"
@@ -57,22 +69,16 @@
       bind C-j display-popup -E "tmux choose-session"
       bind C-y display-popup -d "#{pane_current_path}" -w 90% -h 90% -E "yazi"
       bind C-t display-popup -d "#{pane_current_path}" -w 75% -h 75% -E "zsh"
+      bind R display-popup -w 70% -h 60% -E "${pkgs.writeShellScript "repo-switcher" ''
+        exec ${./config/tmux/repo-switcher.sh}
+      ''}"
       bind d display-menu -T "#[align=centre]Dotfiles" -x C -y C \
         ".zshrc"      z  "display-popup -E 'nvim ~/.zshrc'" \
         ".tmux.conf"  t  "display-popup -E 'nvim ~/.tmux.conf'" \
         "yazi"        y  "display-popup -E 'yazi'" \
         "Exit"        q  ""
-      set -g @continuum-restore 'on'
-      set -g @continuum-boot 'off'
-      set -g @catppuccin_flavor "mocha"
       set -g set-titles on
       set -g set-titles-string "#S - #W"
-      set -g @catppuccin_window_status_style "rounded"
-      set -g @catppuccin_window_default_text "#W"
-      set -g @catppuccin_window_current_text "#W"
-      set -g @catppuccin_status_left_separator ""
-      set -g @catppuccin_status_right_separator ""
-      set -g @catppuccin_status_connect_separator "no"
       set -g status-position top
       set -g status-left-length 100
       set -g status-right-length 100
