@@ -24,6 +24,7 @@
     eza
     lazygit
     yazi
+    btop
     ghostty
     opencode
     zoxide
@@ -123,6 +124,7 @@
               tmux.enable = true;
               bat.enable = true;
               eza.enable = true;
+              btop.enable = true;
               lazygit.enable = true;
               yazi.enable = true;
               zoxide.enable = true;
