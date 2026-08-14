@@ -1,6 +1,25 @@
 {lib, ...}: let
   mkTmuxCfg = {pkgs}: {
     enable = true;
+    plugins = with pkgs.tmuxPlugins; [
+      {plugin = vim-tmux-navigator;}
+      {
+        plugin = resurrect;
+        extraConfig = ''
+          set -g @resurrect-strategy-nvim 'session'
+          set -g @resurrect-capture-pane-contents 'on'
+          set -g @resurrect-processes 'ssh:no,node:no'
+        '';
+      }
+      {
+        plugin = continuum;
+        extraConfig = ''
+          set -g @continuum-restore 'on'
+          set -g @continuum-boot 'off'
+        '';
+      }
+      {plugin = catppuccin;}
+    ];
     extraConfig = ''
       set -g default-terminal "tmux-256color"
       set -ag terminal-overrides ",xterm-256color:RGB,xterm-ghostty:RGB"
@@ -43,11 +62,6 @@
         ".tmux.conf"  t  "display-popup -E 'nvim ~/.tmux.conf'" \
         "yazi"        y  "display-popup -E 'yazi'" \
         "Exit"        q  ""
-      set -g @plugin 'tmux-plugins/tpm'
-      set -g @plugin 'catppuccin/tmux'
-      set -g @plugin 'christoomey/vim-tmux-navigator'
-      set -g @plugin 'tmux-plugins/tmux-resurrect'
-      set -g @plugin 'tmux-plugins/tmux-continuum'
       set -g @continuum-restore 'on'
       set -g @continuum-boot 'off'
       set -g @catppuccin_flavor "mocha"
@@ -59,7 +73,6 @@
       set -g @catppuccin_status_left_separator ""
       set -g @catppuccin_status_right_separator ""
       set -g @catppuccin_status_connect_separator "no"
-      run '~/.tmux/plugins/tpm/tpm'
       set -g status-position top
       set -g status-left-length 100
       set -g status-right-length 100
