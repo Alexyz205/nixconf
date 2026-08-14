@@ -11,13 +11,25 @@
   yubiCfg = {
     pkgs,
     ...
-  }: {
+  }: let
+    sshKeyFile = lib.optionalAttrs (builtins.pathExists handle) {
+      ".ssh/${yubiKey}".source = handle;
+    };
+    u2fKeyFile = lib.optionalAttrs (builtins.pathExists u2fMapping) {
+      ".config/Yubico/u2f_keys".source = u2fMapping;
+    };
+  in {
     home.packages = with pkgs; [
       yubikey-manager
       libu2f-host
       pam_u2f
     ];
-    home.file.".ssh/${yubiKey}.pub".source = yubiPub;
+    home.file =
+      {
+        ".ssh/${yubiKey}.pub".source = yubiPub;
+      }
+      // sshKeyFile
+      // u2fKeyFile;
     programs.ssh = {
       enable = true;
       enableDefaultConfig = false;
@@ -27,10 +39,6 @@
         SecurityKeyProvider = "internal";
       };
     };
-  } // lib.optionalAttrs (builtins.pathExists handle) {
-    home.file.".ssh/${yubiKey}".source = handle;
-  } // lib.optionalAttrs (builtins.pathExists u2fMapping) {
-    home.file.".config/Yubico/u2f_keys".source = u2fMapping;
   };
 in {
   flake.modules.nixos.yubikey = {
