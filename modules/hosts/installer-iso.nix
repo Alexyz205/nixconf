@@ -255,6 +255,12 @@ in {
           echo "$USERNAME:$PASSWD" | chpasswd -R /mnt
           ok "Password set for $USERNAME"
 
+          echo
+          step "Making sure home directory is owned by $USERNAME"
+          mkdir -p "/mnt/home/$USERNAME/.config"
+          chown -R "$USER_UID:$USER_GID" "/mnt/home/$USERNAME"
+          ok "Home directory owned by $USERNAME ($USER_UID:$USER_GID)"
+
           if [[ "$USE_YUBIKEY" == "Yes" ]]; then
             echo
             step "Enrolling YubiKey for login/sudo"
