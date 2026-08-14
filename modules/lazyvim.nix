@@ -3,10 +3,10 @@
   lib,
   ...
 }: let
-  lazyvimCfg = {
+  mkLazyvimCfg = {
     lazyvim,
     pkgs,
-    ...
+    autoFormatOnSave ? true,
   }: {
     imports = [lazyvim.homeManagerModules.default];
     programs.lazyvim = {
@@ -15,10 +15,7 @@
       pluginSource = "nixpkgs";
       extras = {
         coding.mini-surround.enable = true;
-        dap.core.enable = true;
-        editor.mini-files.enable = true;
         lang = {
-          helm.enable = true;
           json.enable = true;
           markdown.enable = true;
           python.enable = true;
@@ -39,6 +36,7 @@
           opt.swapfile = false; opt.backup = false; opt.undofile = true
           opt.updatetime = 50; vim.opt.clipboard = "unnamedplus"
           vim.g.clipboard = "osc52"
+          ${lib.optionalString (!autoFormatOnSave) "g.autoformat = false"}
         '';
         keymaps = ''
           local map = vim.keymap.set
@@ -73,7 +71,16 @@
         }
       ];
       configFiles = toString ./config/lazyvim;
-      extraPackages = with pkgs; [marksman yaml-language-server];
+      extraPackages = with pkgs; [
+        marksman
+        yaml-language-server
+        vscode-json-languageserver
+        basedpyright
+        taplo
+        ruff
+        prettierd
+        markdownlint-cli
+      ];
     };
   };
 in {
@@ -83,15 +90,37 @@ in {
     pkgs,
     ...
   }: {
-    options.modules.lazyvim.enable = lib.mkEnableOption "LazyVim";
+    options.modules.lazyvim = {
+      enable = lib.mkEnableOption "LazyVim";
+      autoFormatOnSave = lib.mkOption {
+        type = lib.types.bool;
+        default = true;
+        description = "Format buffer automatically on save.";
+      };
+    };
     config = lib.mkIf config.modules.lazyvim.enable {
-      environment.systemPackages = with pkgs; [neovim marksman yaml-language-server];
-      home-manager.users.${config.modules.users.userName} = lazyvimCfg {
+      environment.systemPackages = with pkgs; [
+        neovim
+        marksman
+        yaml-language-server
+        vscode-json-languageserver
+        basedpyright
+        taplo
+        ruff
+        prettierd
+        markdownlint-cli
+      ];
+      home-manager.users.${config.modules.users.userName} = mkLazyvimCfg {
         inherit (inputs) lazyvim;
         inherit pkgs;
+        autoFormatOnSave = config.modules.lazyvim.autoFormatOnSave;
       };
     };
   };
 
-  flake.modules.homeManager.lazyvim = lazyvimCfg;
+  flake.modules.homeManager.lazyvim = {
+    lazyvim,
+    pkgs,
+    ...
+  }: mkLazyvimCfg {inherit lazyvim pkgs;};
 }
