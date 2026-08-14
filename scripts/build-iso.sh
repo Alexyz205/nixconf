@@ -5,7 +5,7 @@ usage() {
   cat <<'EOF'
 Usage: build-iso.sh [options]
 
-Builds the workstation-iso image and copies it to a Ventoy USB stick.
+Builds the installer-iso image and copies it to a Ventoy USB stick.
 
 Options:
   -d, --dest-dir DIR  Ventoy mount point to copy the ISO into
@@ -15,7 +15,7 @@ Options:
 EOF
 }
 
-ISO_BUILD=".#nixosConfigurations.workstation-iso.config.system.build.isoImage"
+ISO_BUILD=".#nixosConfigurations.installer-iso.config.system.build.isoImage"
 DEST_DIR="/media/alexis.pigeon/Ventoy"
 EJECT=0
 

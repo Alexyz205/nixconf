@@ -5,7 +5,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SELF="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$(basename "${BASH_SOURCE[0]}")"
 cd "$SCRIPT_DIR"
 
-NIXOS_HOSTS=(workstation headless-worker proxmox-vm workstation-iso)
+NIXOS_HOSTS=(workstation headless-worker proxmox-vm installer-iso)
 HOME_CONFIGS=("alexis@linux" "alexis.pigeon@linux")
 DISKO_HOSTS=(workstation headless-worker)
 ALL_TESTS=(flake eval disko iso vm shellcheck)
@@ -62,7 +62,7 @@ test_disko() {
 
 test_iso() {
   log "building ISO image"
-  nix build ".#nixosConfigurations.workstation-iso.config.system.build.isoImage" --no-link --print-out-paths
+  nix build ".#nixosConfigurations.installer-iso.config.system.build.isoImage" --no-link --print-out-paths
 }
 
 test_vm() {

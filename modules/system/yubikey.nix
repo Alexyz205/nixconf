@@ -3,10 +3,10 @@
   ...
 }: let
   yubiKey = "id_ed25519_sk_rk_alexis-perso";
-  yubiPub = "${./config/ssh}/${yubiKey}.pub";
-  handle = "${./config/ssh}/${yubiKey}";
+  yubiPub = "${../../config/ssh}/${yubiKey}.pub";
+  handle = "${../../config/ssh}/${yubiKey}";
   u2fOrigin = "pam://localhost";
-  u2fMapping = ./config/Yubico/u2f_keys;
+  u2fMapping = ../../config/Yubico/u2f_keys;
 
   yubiCfg = {
     pkgs,
@@ -71,11 +71,11 @@ in {
     #
     # LUKS:     disko enrolls automatically during disko-install
     # Sudo/PAM: pre-register ONCE, bound to this ISO's YubiKey, and commit:
-    #             pamu2fcfg -u <user> -o pam://localhost > modules/config/Yubico/u2f_keys
+    #             pamu2fcfg -u <user> -o pam://localhost > config/Yubico/u2f_keys
     # SSH:      recover the resident key handle ONCE into the repo:
     #             ssh-keygen -K
-    #             mv ~/id_ed25519_sk_rk_alexis-perso modules/config/ssh/${yubiKey}
-    #             mv ~/id_ed25519_sk_rk_alexis-perso.pub modules/config/ssh/${yubiKey}.pub
+    #             mv ~/id_ed25519_sk_rk_alexis-perso config/ssh/${yubiKey}
+    #             mv ~/id_ed25519_sk_rk_alexis-perso.pub config/ssh/${yubiKey}.pub
     config = lib.mkIf config.modules.yubikey.enable {
       environment.systemPackages = with pkgs; [
         yubikey-manager

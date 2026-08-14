@@ -1,5 +1,5 @@
 {lib, ...}: let
-  themeSrc = toString ./config/bat/themes;
+  themeSrc = toString ../../config/bat/themes;
   batCfg = {
     enable = true;
     config.theme = "Catppuccin Mocha";

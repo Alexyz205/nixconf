@@ -5,7 +5,7 @@
 }: let
   diskoPkg = inputs.disko.packages.x86_64-linux.disko;
 in {
-  flake.nixosConfigurations.workstation-iso = inputs.nixpkgs.lib.nixosSystem {
+  flake.nixosConfigurations.installer-iso = inputs.nixpkgs.lib.nixosSystem {
     system = "x86_64-linux";
     specialArgs = { inherit diskoPkg; };
     modules = [
@@ -264,11 +264,11 @@ in {
           if [[ "$USE_YUBIKEY" == "Yes" ]]; then
             echo
             step "Provisioning YubiKey PAM mapping for login/sudo"
-            U2F_SRC="$FLAKE_DIR/modules/config/Yubico/u2f_keys"
+            U2F_SRC="$FLAKE_DIR/config/Yubico/u2f_keys"
             U2F_DIR="/mnt/home/$USERNAME/.config/Yubico"
             U2F_KEYS="$U2F_DIR/u2f_keys"
             if [[ ! -f "$U2F_SRC" ]]; then
-              fail "Missing $U2F_SRC - this ISO is bound to one YubiKey. Register once with: pamu2fcfg -u $USERNAME -o pam://localhost > modules/config/Yubico/u2f_keys"
+              fail "Missing $U2F_SRC - this ISO is bound to one YubiKey. Register once with: pamu2fcfg -u $USERNAME -o pam://localhost > config/Yubico/u2f_keys"
             fi
             mkdir -p "$U2F_DIR"
             cp "$U2F_SRC" "$U2F_KEYS"
@@ -315,7 +315,7 @@ in {
           password = "nixos";
         };
 
-        environment.etc."yubi-age-identity".source = ../config/sops/yubi-age-identity;
+        environment.etc."yubi-age-identity".source = ../../config/sops/yubi-age-identity;
 
         services.udev.packages = [pkgs.yubikey-personalization];
 

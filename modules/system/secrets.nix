@@ -1,6 +1,6 @@
 {lib, ...}: let
   secretsYaml = ./../secrets/secrets.yaml;
-  yubiIdentity = ./config/sops/yubi-age-identity;
+  yubiIdentity = ../../config/sops/yubi-age-identity;
 in {
   flake.modules.nixos.secrets = {
     config,

@@ -8,9 +8,9 @@ log() { printf '[%s] %s\n' "$(date '+%T')" "$*" >>"$LOG"; }
 log "== invoke args='${1:-}' cwd='$(pwd)' =="
 
 NIXCONF="${NIXCONF:-$HOME/repos/personal/nixconf}"
-REPO_SWITCHER="$NIXCONF/modules/config/tmux/repo-switcher.sh"
+REPO_SWITCHER="$NIXCONF/config/tmux/repo-switcher.sh"
 
-[ -d "$NIXCONF/modules" ] || { log "NIXCONF missing: $NIXCONF"; tmux display-message "nixconf not found: $NIXCONF"; exit 0; }
+[ -d "$NIXCONF/config" ] || { log "NIXCONF missing: $NIXCONF"; tmux display-message "nixconf not found: $NIXCONF"; exit 0; }
 
 case "${1:-}" in
   sessions)    log "sessions"; exec tmux choose-session ;;

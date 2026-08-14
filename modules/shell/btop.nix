@@ -13,7 +13,7 @@ let
         theme = "catppuccin_mocha";
       };
     };
-    home.file.".config/btop/themes/catppuccin_mocha.theme".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/repos/personal/nixconf/modules/config/btop/catppuccin_mocha.theme";
+    home.file.".config/btop/themes/catppuccin_mocha.theme".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/repos/personal/nixconf/config/btop/catppuccin_mocha.theme";
   };
 in
   {lib, ...}: {
