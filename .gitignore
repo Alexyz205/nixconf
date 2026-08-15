@@ -1,6 +1,36 @@
+# =========================================================
+# Nix / flake artifacts
+# =========================================================
 /result
-# Private keys that must never be committed. Encrypted secrets go in secrets/.
-age-keys.txt
+/result-*
+/.direnv/
 
-# Node dependencies (reinstall with `npm install`)
+# devenv: ephemeral environment store (NOT the lockfile — commit devenv.lock)
+/.devenv/
+
+# =========================================================
+# Secrets — never commit plaintext keys/creds.
+# Encrypted values live in secrets/ (managed by sops).
+# =========================================================
+age-keys.txt
+*.age
+*.gpg
+
+# =========================================================
+# Language / dependency artifacts
+# =========================================================
 node_modules/
+*.o
+*.a
+
+# =========================================================
+# OS / editor cruft
+# =========================================================
+core
+core.*
+.DS_Store
+*.swp
+*.swo
+*~
+.idea/
+.vscode/

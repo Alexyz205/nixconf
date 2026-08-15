@@ -30,7 +30,10 @@
     glab
     fabric-ai
     lazydocker
-    devenv
+  ];
+  desktopPkgs = {pkgs}: with pkgs; [
+    vlc
+    libreoffice
   ];
 in {
   flake.modules = {
@@ -57,14 +60,19 @@ in {
           type = lib.types.bool;
           default = false;
         };
+        desktop = lib.mkOption {
+          type = lib.types.bool;
+          default = false;
+        };
       };
 
-      config = lib.mkIf (config.modules.packages.basic || config.modules.packages.containers || config.modules.packages.security || config.modules.packages.devTools) {
+      config = lib.mkIf (config.modules.packages.basic || config.modules.packages.containers || config.modules.packages.security || config.modules.packages.devTools || config.modules.packages.desktop) {
         environment.systemPackages =
           (lib.optionals config.modules.packages.basic (basicPkgs {inherit pkgs;}))
           ++ (lib.optionals config.modules.packages.containers (containerPkgs {inherit pkgs;}))
           ++ (lib.optionals config.modules.packages.security (securityPkgs {inherit pkgs;}))
-          ++ (lib.optionals config.modules.packages.devTools (devToolsPkgs {inherit pkgs;}));
+          ++ (lib.optionals config.modules.packages.devTools (devToolsPkgs {inherit pkgs;}))
+          ++ (lib.optionals config.modules.packages.desktop (desktopPkgs {inherit pkgs;}));
       };
     };
 
@@ -91,14 +99,19 @@ in {
           type = lib.types.bool;
           default = false;
         };
+        desktop = lib.mkOption {
+          type = lib.types.bool;
+          default = false;
+        };
       };
 
-      config = lib.mkIf (config.modules.packages.basic || config.modules.packages.containers || config.modules.packages.security || config.modules.packages.devTools) {
+      config = lib.mkIf (config.modules.packages.basic || config.modules.packages.containers || config.modules.packages.security || config.modules.packages.devTools || config.modules.packages.desktop) {
         home.packages =
           (lib.optionals config.modules.packages.basic (basicPkgs {inherit pkgs;}))
           ++ (lib.optionals config.modules.packages.containers (containerPkgs {inherit pkgs;}))
           ++ (lib.optionals config.modules.packages.security (securityPkgs {inherit pkgs;}))
-          ++ (lib.optionals config.modules.packages.devTools (devToolsPkgs {inherit pkgs;}));
+          ++ (lib.optionals config.modules.packages.devTools (devToolsPkgs {inherit pkgs;}))
+          ++ (lib.optionals config.modules.packages.desktop (desktopPkgs {inherit pkgs;}));
       };
     };
   };

@@ -18,6 +18,7 @@
     secrets
     git
     yubikey
+    devenv
     starship
     tmux
     bat
@@ -121,6 +122,7 @@
                 containers = true;
                 security = true;
                 devTools = true;
+                desktop = true;
               };
               shell.enable = true;
               git.enable = true;
@@ -138,6 +140,7 @@
               lazyvim.enable = true;
               ghostty.enable = true;
               opencode.enable = true;
+              devenv.enable = true;
               niri.enable = true;
               noctalia.enable = true;
               hiddenApps.enable = true;

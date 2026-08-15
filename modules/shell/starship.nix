@@ -7,7 +7,7 @@
       follow_symlinks = false;
       scan_timeout = 200;
       command_timeout = 1000;
-      format = "[](surface0)$os$username$sudo[](bg:color_peach fg:surface0)$directory[](fg:color_peach bg:color_green)$git_branch$git_status[](fg:color_green bg:color_sapphire)$c$rust$golang$nodejs$python$package$nix_shell[](fg:color_sapphire bg:color_blue)$docker_context$kubernetes$container$terraform$helm[](fg:color_blue bg:color_pink)$shell[ ](fg:color_pink)$line_break$character";
+      format = "[](surface0)$os$username$sudo[](bg:color_peach fg:surface0)$directory[](fg:color_peach bg:color_green)$git_branch$git_status[](fg:color_green bg:color_sapphire)$c$cpp$rust$golang$nodejs$lua$python$package$nix_shell[](fg:color_sapphire bg:color_blue)$docker_context$kubernetes$container$terraform$helm[](fg:color_blue bg:color_pink)$shell[ ](fg:color_pink)$line_break$character";
       right_format = "[](surface0)$status[](bg:color_peach fg:surface0)$cmd_duration[](fg:color_peach bg:color_green)$shlvl$jobs[](fg:color_green bg:color_sapphire)$localip[](fg:color_sapphire bg:color_blue)$memory_usage[](fg:color_blue bg:color_pink)$time[ ](fg:color_pink)";
       palette = "catppuccin_mocha";
       palettes.catppuccin_mocha = {
@@ -31,6 +31,7 @@
         Ubuntu = "󰕈";
         Macos = "󰀵";
         Linux = "󰌽";
+        NixOS = "";
         Fedora = "󰣛";
         Alpine = "";
         Amazon = "";
@@ -74,7 +75,7 @@
         format = "[ $symbol( $version) ]($style)";
       };
       c = {
-        symbol = " ";
+        symbol = "";
         style = "bg:color_sapphire fg:color_fg1";
         format = "[ $symbol( $version) ]($style)";
       };
@@ -113,8 +114,8 @@
         symbol = "";
         style = "bg:color_sapphire fg:color_fg1";
         format = "[ $symbol$state( \($name\)) ]($style)";
-        impure_msg = "[impure](bold red)";
-        pure_msg = "[pure](bold green)";
+        impure_msg = "[ impure](fg:color_fg1 bg:color_sapphire)";
+        pure_msg = "[ pure](fg:color_fg1 bg:color_sapphire)";
         unknown_msg = "";
       };
       docker_context = {
@@ -139,12 +140,12 @@
       };
       status = {
         format = "[$symbol$status]($style)";
-        symbol = "❌";
+        symbol = "󰅖";
         success_symbol = "";
-        not_executable_symbol = "🚫";
-        not_found_symbol = "🔍";
-        sigint_symbol = "🧱";
-        signal_symbol = "⚡";
+        not_executable_symbol = "󰚫";
+        not_found_symbol = "󰍉";
+        sigint_symbol = "󰚊";
+        signal_symbol = "󰓉";
         style = "bg:surface0";
         success_style = "bg:surface0";
         failure_style = "bg:surface0";
@@ -158,7 +159,7 @@
       };
       shell = {
         fish_indicator = "󰈺";
-        powershell_indicator = "_";
+        powershell_indicator = "";
         unknown_indicator = "mystery shell";
         style = "bg:color_pink fg:color_fg1";
         format = "[ $indicator $shell]($style)";

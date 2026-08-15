@@ -1,9 +1,9 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "autoupdate": true,
+  "autoupdate": false,
   // LSP disabled: lsp=true probes/enables 40 built-in servers at launch (~26s startup cost).
   // Enable per-project when a language server is actually installed.
-  "lsp": false,
+  "lsp": true,
   "share": "disabled",
   // --- Model Configuration ---
   "model": "opencode/deepseek-v4-flash",

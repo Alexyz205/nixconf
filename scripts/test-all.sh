@@ -116,8 +116,8 @@ main() {
   fi
 
   if ! command -v disko >/dev/null 2>&1 || ! command -v shellcheck >/dev/null 2>&1; then
-    log "Missing test tools, re-entering via 'nix develop'..."
-    exec nix develop "path:$SCRIPT_DIR" -c bash -- "$SELF" "$@"
+    log "Missing test tools, re-entering via devenv shell..."
+    exec devenv shell -- bash "$SELF" "$@"
   fi
 
   local failed=()

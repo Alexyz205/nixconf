@@ -97,6 +97,28 @@
         "toolkit.telemetry.updatePing.enabled" = false;
       };
 
+      bookmarks = {
+        force = true;
+        settings = [
+          {
+            name = "Quick Access";
+            toolbar = true;
+            bookmarks = [
+              {
+                name = "alexyz205";
+                url = "https://github.com/alexyz205";
+                keyword = "gh";
+              }
+              {
+                name = "YouTube";
+                url = "https://youtube.com";
+                keyword = "yt";
+              }
+            ];
+          }
+        ];
+      };
+
       search = {
         force = true;
         default = "ddg";
