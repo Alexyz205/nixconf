@@ -35,6 +35,7 @@
 
       settings = {
         prefer-no-csd = _: {};
+        debug.honor-xdg-activation-with-invalid-serial = _: {};
 
         input = {
           focus-follows-mouse = _: {};
@@ -66,6 +67,9 @@
             spawn-sh = "${lib.getExe self'.packages.noctalia-shell} ipc call launcher toggle";
           };
           "Mod+S" = hotkey "Open Browser" {spawn-sh = lib.getExe pkgs.firefox;};
+          "Mod+Ctrl+V" = hotkey "Clipboard history" {
+            spawn-sh = "${lib.getExe self'.packages.noctalia-shell} ipc call launcher clipboard";
+          };
 
           # Windows.
           "Mod+Q" = _: {
@@ -245,6 +249,7 @@
 
         layout = {
           gaps = 5;
+          always-center-single-column = _: {};
           background-color = "transparent";
           focus-ring = {
             width = 2;

@@ -9,9 +9,9 @@
 
       settings = {
         bar = {
+          barType = "simple";
           position = "top";
-          floating = false;
-          exclusive = true;
+          enableExclusionZoneInset = true;
           outerCorners = false;
           marginHorizontal = 0;
           marginVertical = 0;
@@ -22,14 +22,17 @@
                 labelMode = "name";
                 characterCount = 7;
               }
+              {id = "SystemMonitor";}
             ];
             center = [];
             right = [
+              {id = "MediaMini"; hideMode = "hidden";}
               {id = "Volume";}
               {id = "Network";}
               {id = "Battery";}
               {id = "Clock";}
-              {id = "Tray";}
+              {id = "NotificationHistory";}
+              {id = "ControlCenter";}
             ];
           };
         };
@@ -39,6 +42,7 @@
           viewMode = "list";
           showCategories = true;
           overviewLayer = true;
+          enableClipboardHistory = true;
         };
 
         controlCenter = {
@@ -73,6 +77,10 @@
           showSessionButtonsOnLockScreen = true;
           lockOnSuspend = true;
           dimmerOpacity = 0.15;
+        };
+
+        dock = {
+          enabled = false;
         };
 
         notifications = {
