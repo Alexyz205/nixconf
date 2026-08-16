@@ -18,6 +18,14 @@ return {
     enabled = false,
   },
 
+  -- Disable the bogus 'nvim' plugin: lazyvim-nix mis-resolves the
+  -- "catppuccin/nvim" spec to nixpkgs' vimPlugins.nvim, which appears as an
+  -- eager dev plugin and fails with "Lua module not found for config of nvim".
+  {
+    "nvim",
+    enabled = false,
+  },
+
   -- Disable snacks.nvim explorer (using Yazi instead)
   {
     "folke/snacks.nvim",

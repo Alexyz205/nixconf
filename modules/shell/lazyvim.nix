@@ -58,19 +58,23 @@
           map("n", "<C-l>", "<cmd>TmuxNavigateRight<CR>", {})
         '';
       };
-      plugins.colorscheme = lazyvim.lib.lazyConfig [
-        {
-          plugin = "catppuccin/nvim";
-          lazy = false;
-          priority = 1000;
-          main = "catppuccin";
-          opts.flavour = "mocha";
+      # LazyVim 16's default colorscheme loads tokyonight, so the theme must be
+      # selected through `opts.colorscheme`. catppuccin is already declared by
+      # LazyVim itself (name "catppuccin", lazy, default flavour mocha), so we
+      # only need to load it on demand and then apply it.
+      plugins.colorscheme = ''
+        return {
+          {
+            "LazyVim/LazyVim",
+            opts = {
+              colorscheme = function()
+                require("lazy").load({ plugins = { "catppuccin" } })
+                vim.cmd.colorscheme("catppuccin")
+              end,
+            },
+          },
         }
-        {
-          plugin = "LazyVim/LazyVim";
-          opts.colorscheme = "catppuccin-mocha";
-        }
-      ];
+      '';
       configFiles = toString ../../config/lazyvim;
       extraPackages = with pkgs; [
         marksman
