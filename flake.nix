@@ -41,6 +41,11 @@
     firefox-addons = {
       url = "gitlab:rycee/nur-expressions?dir=pkgs/firefox-addons";
     };
+
+    claude-desktop = {
+      url = "github:GoByeBye/claude-desktop-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = inputs:
