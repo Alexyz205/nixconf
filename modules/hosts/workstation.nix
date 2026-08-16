@@ -34,6 +34,10 @@
     noctalia
     hiddenApps
     firefox
+    claude
+    discord
+    steam
+    youtubeMusic
   ];
 
   mkWorkstation = {
@@ -60,6 +64,14 @@
             system.stateVersion = "24.11";
             networking.hostName = hostName;
             networking.firewall.allowedTCPPorts = [];
+
+            nixpkgs.config.allowUnfreePredicate = pkg:
+              builtins.elem (lib.getName pkg) [
+                "steam"
+                "steam-unwrapped"
+                "claude-desktop"
+                "vesktop"
+              ];
             disko.devices.disk.main.device = diskDevice;
 
             services.xserver.enable = true;
@@ -101,11 +113,13 @@
                 name = "catppuccin-mocha-mauve-cursors";
                 size = 24;
               };
-              fonts = {
+              fonts = rec {
                 monospace = {
                   package = pkgs.nerd-fonts.jetbrains-mono;
                   name = "JetBrainsMono Nerd Font";
                 };
+                sansSerif = monospace;
+                serif = monospace;
               };
             };
 
@@ -145,6 +159,10 @@
               noctalia.enable = true;
               hiddenApps.enable = true;
               firefox.enable = true;
+              claude.enable = true;
+              discord.enable = true;
+              steam.enable = true;
+              youtubeMusic.enable = true;
             };
 
               home-manager = {
@@ -170,7 +188,6 @@
                     kde.enable = false;
                     rofi.enable = false;
                     vencord.enable = false;
-                    vesktop.enable = false;
                     nixcord.enable = false;
                     qt.enable = false;
                   };
@@ -186,6 +203,12 @@
               enableRedistributableFirmware = true;
               bluetooth.enable = true;
               graphics.enable = true;
+              # Unconditional: enables the NVIDIA driver whenever an NVIDIA GPU
+              # is present; harmless (module never binds) on non-NVIDIA hardware.
+              nvidia = {
+                modesetting.enable = true;
+                open = true;
+              };
             };
             security.rtkit.enable = true;
             fonts.packages = with pkgs; [nerd-fonts.jetbrains-mono];

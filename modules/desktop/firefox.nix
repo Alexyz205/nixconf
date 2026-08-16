@@ -94,6 +94,10 @@
         "toolkit.telemetry.unified" = false;
         "toolkit.telemetry.unifiedIsOptIn" = false;
         "toolkit.telemetry.updatePing.enabled" = false;
+
+        "font.name.sans-serif" = "JetBrainsMono Nerd Font";
+        "font.name.serif" = "JetBrainsMono Nerd Font";
+        "font.name.monospace" = "JetBrainsMono Nerd Font";
       };
 
       bookmarks = {
