@@ -47,11 +47,6 @@
     gciv = "glab ci view";
     ds = "devpod ssh";
     du = "devpod up .";
-    pw = "pass";
-    pwls = "pass ls";
-    pwgen = "pass generate";
-    pwcp = "pass show -c";
-
     nr = "sudo nixos-rebuild switch --flake $NIXCONF";
     nrb = "nixos-rebuild build --flake $NIXCONF";
     nrt = "sudo nixos-rebuild test --flake $NIXCONF";

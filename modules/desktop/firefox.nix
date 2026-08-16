@@ -16,7 +16,6 @@
         ublock-origin
         sponsorblock
         darkreader
-        onepassword-password-manager
         vimium
         catppuccin-mocha-mauve
       ];
@@ -178,7 +177,6 @@ in {
     options.modules.firefox.enable = lib.mkEnableOption "Firefox with Catppuccin theme";
     config = lib.mkIf config.modules.firefox.enable {
       nixpkgs.overlays = [firefoxOverlay];
-      nixpkgs.config.allowUnfreePredicate = pkg: lib.getName pkg == "onepassword-password-manager";
       programs.firefox.enable = true;
       home-manager.users.${config.modules.users.userName} = {
         programs.firefox = firefoxCfg {inherit pkgs;};

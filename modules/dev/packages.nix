@@ -18,7 +18,6 @@
     docker-compose
   ];
   securityPkgs = {pkgs}: with pkgs; [
-    pass
     age
     sops
     gnupg
