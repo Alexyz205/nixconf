@@ -189,8 +189,8 @@ flow that:
 To build and copy the ISO to a Ventoy USB:
 
 ```bash
-./scripts/build-iso.sh -d /media/alexis.pigeon/Ventoy
-./scripts/build-iso.sh -d /media/alexis.pigeon/Ventoy -e   # unmount + power-off USB after
+./scripts/build-iso.sh                    # auto-detects the plugged-in Ventoy USB
+./scripts/build-iso.sh -e                 # auto-detect + unmount and power off USB after
 ```
 
 A pre-baked copy of the flake ships inside the ISO at `/iso/nixconf`.
