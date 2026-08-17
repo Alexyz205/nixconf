@@ -1,5 +1,5 @@
 keys:
-  - &yubi age1yubikey1qdkk8ze7xq06radsdurn4mqk0g2vaqc776vesd563uwn087pzx2kspmvkha
+  - &yubi age1yubikey1qtlwktpdhke5uqs6nv2wvwp662ygc5x52qn2w8fntvxl338j9dx2ggzk2ld
 
 creation_rules:
   - path_regex: secrets/.+\.yaml$

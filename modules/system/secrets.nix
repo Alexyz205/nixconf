@@ -1,6 +1,11 @@
-{lib, ...}: let
-  secretsYaml = ./../secrets/secrets.yaml;
+{
+  inputs,
+  config,
+  ...
+}: let
+  secretsYaml = ../../secrets/secrets.yaml;
   yubiIdentity = ../../config/sops/yubi-age-identity;
+  homeSecretsModule = config.flake.modules.homeManager.secrets;
 in {
   flake.modules.nixos.secrets = {
     config,
@@ -35,6 +40,24 @@ in {
           user.email = config.modules.secrets.gitEmail;
         };
       };
+      home-manager.sharedModules = [
+        inputs.sops-nix.homeManagerModules.sops
+        homeSecretsModule
+      ];
+    };
+  };
+
+  flake.modules.homeManager.secrets = {
+    config,
+    pkgs,
+    ...
+  }: {
+    sops = {
+      age.keyFile = "${config.home.homeDirectory}/repos/personal/nixconf/config/sops/yubi-age-identity";
+      age.plugins = [pkgs.age-plugin-yubikey];
+      defaultSopsFile = secretsYaml;
+      secrets.GITHUB_TOKEN = {};
+      secrets.GITLAB_TOKEN = {};
     };
   };
 }

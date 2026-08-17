@@ -62,6 +62,7 @@
     ngo = "nix store optimise";
     nu = "nix flake update ${nixconf}";
     nl = "nix flake lock ${nixconf}";
+    sec = "SOPS_AGE_KEY_FILE=${nixconf}/config/sops/yubi-age-identity sops ${nixconf}/secrets/secrets.yaml";
   };
   sharedFunctions = builtins.readFile ../../config/shell/functions.sh;
   zshExtra = builtins.readFile ../../config/shell/zsh-extra.zsh;
@@ -72,19 +73,15 @@
     config,
     lib,
     ...
-  }: {
-    programs.home-manager.enable = true;
-    home = {
-      sessionPath = ["${config.home.homeDirectory}/bin" "${config.home.homeDirectory}/.local/bin"];
-    };
-    home.sessionVariables = {
+  }: let
+    environmentVariables = {
       SHELL = "${pkgs.zsh}/bin/zsh";
       VISUAL = "nvim";
       EDITOR = "nvim";
       REPOS = "$HOME/repos";
       GITUSER = "alexyz205";
       GHREPOS = "$HOME/repos/github.com/alexyz205";
-      NIXCONF = "$HOME/repos/personal/nixconf";
+      NIXCONF = nixconf;
       XDG_CONFIG_HOME = "$HOME/.config";
       EZA_CONFIG_DIR = "$XDG_CONFIG_HOME/eza";
       TMUX_AUTO_START = "1";
@@ -94,6 +91,25 @@
       GIT_PAGER = "bat";
       LANG = "en_US.UTF-8";
     };
+    secretExports =
+      let
+        exportVar = name: secret:
+          lib.optionalString (secret ? path) ''
+            if [ -r "${secret.path}" ]; then
+              export ${name}="$(cat "${secret.path}")"
+            fi
+          '';
+      in
+        builtins.concatStringsSep "" (lib.mapAttrsToList exportVar (config.sops.secrets or {}));
+    sessionVarsSource = ''
+      . "${config.home.sessionVariablesPackage}/etc/profile.d/hm-session-vars.sh"
+    '';
+  in {
+    programs.home-manager.enable = true;
+    home = {
+      sessionPath = ["${config.home.homeDirectory}/bin" "${config.home.homeDirectory}/.local/bin"];
+    };
+    home.sessionVariables = environmentVariables;
     home.file = {
       ".config/opencode/opencode.json".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/repos/personal/nixconf/config/opencode/opencode.json";
       ".config/opencode/tui.json".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/repos/personal/nixconf/config/opencode/tui.json";
@@ -120,6 +136,7 @@
       initContent = lib.mkMerge [
         (lib.mkOrder 600 sharedFunctions)
         (lib.mkOrder 900 zshExtra)
+        (lib.mkOrder 950 secretExports)
       ];
     };
     programs.bash = {
@@ -127,7 +144,7 @@
       enableCompletion = true;
       historySize = 100000;
       shellAliases = commonAliases // {reload = "source ~/.bashrc";};
-      initExtra = sharedFunctions + "\n" + bashExtra;
+      initExtra = sharedFunctions + "\n" + bashExtra + "\n" + sessionVarsSource + secretExports;
     };
   };
 in {

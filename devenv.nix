@@ -8,6 +8,8 @@
   packages = with pkgs; [
     disko
     shellcheck
+    sops
+    age-plugin-yubikey
   ];
 
   languages.nix.enable = true;

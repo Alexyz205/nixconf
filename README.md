@@ -46,7 +46,7 @@ Standalone home-manager profiles (`flake.homeConfigurations`):
 |--------|----------|----------|-------|
 | `alexis@macos` | alexis | aarch64-darwin | macOS profile |
 | `alexis@linux` | alexis | x86_64-linux | Linux profile |
-| `alexis.pigeon@linux` | alexis.pigeon | x86_64-linux | Professional machine profile |
+| `alexis.pigeon@RNSL-APIGEON5` | alexis.pigeon | x86_64-linux | Professional machine profile |
 
 Hosts are referenced by their flake attribute: `nixosConfigurations.workstation`,
 `darwinConfigurations.macbook`, `homeConfigurations."alexis@linux"`, etc.
@@ -54,6 +54,7 @@ Hosts are referenced by their flake attribute: `nixosConfigurations.workstation`
 ## Commands
 
 ### NixOS
+
 ```bash
 nr   # sudo nixos-rebuild switch --flake $NIXCONF
 nrb  # nixos-rebuild build --flake $NIXCONF
@@ -61,6 +62,7 @@ nrt  # nixos-rebuild test --flake $NIXCONF
 ```
 
 ### macOS (nix-darwin)
+
 ```bash
 dr   # darwin-rebuild switch --flake $NIXCONF
 drb  # darwin-rebuild build --flake $NIXCONF
@@ -68,6 +70,7 @@ drc  # darwin-rebuild check --flake $NIXCONF
 ```
 
 ### Home-manager (standalone)
+
 ```bash
 hm   # home-manager switch --flake $NIXCONF
 hmb  # home-manager build --flake $NIXCONF
@@ -75,6 +78,7 @@ hmc  # home-manager build --flake $NIXCONF --check
 ```
 
 ### General
+
 ```bash
 nc   # nix flake check $NIXCONF
 nu   # nix flake update $NIXCONF
@@ -153,22 +157,25 @@ specific compiler versions) belongs in the repo's `devenv.nix`, not in nixconf.
 Secrets are managed with [sops-nix](https://github.com/Mic92/sops-nix) using a
 YubiKey-based age identity.
 
-```yaml
-# .sops.yaml
-keys:
-  - &yubi age1yubikey1qdkk8ze7...
-creation_rules:
-  - path_regex: secrets/.+\.yaml$
-    age: [*yubi]
-```
-
-- Encrypted files live in `secrets/` (e.g. `secrets.yaml` with `userPasswordHash`).
+- Encrypted files live in `secrets/` (e.g. `secrets.yaml` with `GITHUB_TOKEN`
+  and `GITLAB_TOKEN`). Edit them with `sec` (alias for
+  `sops $NIXCONF/secrets/secrets.yaml`).
 - The module `modules/system/secrets.nix` wires sops into NixOS: default sops
-  file, age key file (`/etc/yubi-age-identity`), age-plugin-yubikey, and git
-  identity (user name + email).
+  file, age key file (`/etc/yubi-age-identity`), age-plugin-yubikey, git
+  identity (user name + email), and exposes a home-manager `secrets` feature
+  that decrypts `GITHUB_TOKEN`/`GITLAB_TOKEN` to
+  `~/.config/sops-nix/secrets/GITHUB_TOKEN` / `.../GITLAB_TOKEN` (via the
+  sops-nix home-manager module, using the repo's age identity as an
+  out-of-store symlink). The feature is shared by every home-manager profile:
+  NixOS hosts with the `secrets` feature, standalone Linux profiles, and the
+  macOS home-manager config.
+- The shell module exports these into `$GITHUB_TOKEN` / `$GITLAB_TOKEN` at login
+  (only when the decrypted secret is readable), so `gh`, `glab`, and the
+  LazyVim GitLab plugin work out of the box on any profile with secrets
+  enabled.
 - The age identity and SSH keys are stored under `config/` and referenced by the
   feature modules. Decryption requires the YubiKey (workstation,
-  headless-worker).
+  headless-worker, and any home-manager profile where the token is exported).
 
 ## Installer / ISO
 

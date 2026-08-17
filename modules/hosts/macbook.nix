@@ -8,6 +8,7 @@
     nix
     shell
     git
+    secrets
     bat
     eza
     zoxide
@@ -83,7 +84,7 @@ in {
           useUserPackages = true;
           extraSpecialArgs = {lazyvim = inputs.lazyvim;};
           users.alexis = {
-            imports = hmModules;
+            imports = hmModules ++ [inputs.sops-nix.homeManagerModules.sops];
             home = {
               username = "alexis";
               homeDirectory = lib.mkForce "/Users/alexis";

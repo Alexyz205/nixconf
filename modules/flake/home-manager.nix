@@ -9,6 +9,7 @@
     nix
     shell
     git
+    secrets
     bat
     eza
     zoxide
@@ -31,6 +32,7 @@
     };
     modules =
       [
+        inputs.sops-nix.homeManagerModules.sops
         {
           home = {
             inherit username homeDirectory;
