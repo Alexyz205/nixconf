@@ -33,7 +33,7 @@
     niri
     noctalia
     hiddenApps
-    firefox
+    brave
     claude
     discord
     steam
@@ -67,6 +67,7 @@
 
             nixpkgs.config.allowUnfreePredicate = pkg:
               builtins.elem (lib.getName pkg) [
+                "brave"
                 "steam"
                 "steam-unwrapped"
                 "claude-desktop"
@@ -158,7 +159,7 @@
               niri.enable = true;
               noctalia.enable = true;
               hiddenApps.enable = true;
-              firefox.enable = true;
+              brave.enable = true;
               claude.enable = true;
               discord.enable = true;
               steam.enable = true;

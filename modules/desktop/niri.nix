@@ -66,7 +66,7 @@
           "Mod+D" = hotkey "Run an Application" {
             spawn-sh = "${lib.getExe self'.packages.noctalia-shell} ipc call launcher toggle";
           };
-          "Mod+S" = hotkey "Open Browser" {spawn-sh = lib.getExe pkgs.firefox;};
+          "Mod+S" = hotkey "Open Browser" {spawn-sh = lib.getExe pkgs.brave;};
           "Mod+Ctrl+V" = hotkey "Clipboard history" {
             spawn-sh = "${lib.getExe self'.packages.noctalia-shell} ipc call launcher clipboard";
           };
@@ -266,7 +266,7 @@
         ];
         window-rules = [
           {
-            matches = [{app-id = "^firefox$";}];
+            matches = [{app-id = "^(brave|brave-browser|Brave-browser)$";}];
             open-on-workspace = "browser";
           }
           {

@@ -22,7 +22,7 @@ modules/
 ├── hosts/              # One file per machine / image
 ├── system/             # boot, disko, network, nix, podman, secrets, security, ssh, users, yubikey
 ├── shell/              # shell, starship, tmux, zoxide, eza, bat, btop, lazygit, yazi, lazyvim, ghostty
-├── desktop/            # niri, noctalia, firefox
+├── desktop/            # niri, noctalia, brave
 └── dev/                # devenv, git, packages
 config/                 # Dotfiles & static assets referenced from feature modules
 examples/dev-env/       # Per-project devenv + devcontainer template
