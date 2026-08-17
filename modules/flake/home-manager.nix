@@ -50,6 +50,6 @@ in {
   flake.homeConfigurations = {
     "alexis@macos" = mkHome "aarch64-darwin" "alexis" "/Users/alexis";
     "alexis@linux" = mkHome "x86_64-linux" "alexis" "/home/alexis";
-    "alexis.pigeon@linux" = mkHome "x86_64-linux" "alexis.pigeon" "/home/alexis.pigeon";
+    "alexis.pigeon@RNSL-APIGEON5" = mkHome "x86_64-linux" "alexis.pigeon" "/home/alexis.pigeon";
   };
 }

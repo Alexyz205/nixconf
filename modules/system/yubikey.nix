@@ -37,6 +37,7 @@
         IdentityFile = "~/.ssh/${yubiKey}";
         IdentitiesOnly = "yes";
         SecurityKeyProvider = "internal";
+        IdentityAgent = "none";
       };
     };
   };
@@ -106,6 +107,7 @@ in {
           IdentityFile ~/.ssh/${yubiKey}
           IdentitiesOnly yes
           SecurityKeyProvider internal
+          IdentityAgent none
         '';
       };
       users.users.${config.modules.users.userName}.openssh.authorizedKeys.keys =

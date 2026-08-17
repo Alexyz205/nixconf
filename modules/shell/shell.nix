@@ -1,6 +1,7 @@
 {lib, ...}: let
+  nixconf = "$HOME/repos/personal/nixconf";
   commonAliases = {
-    nf = "cd $NIXCONF";
+    nf = "cd ${nixconf}";
     repos = "cd $REPOS";
     ".." = "cd ..";
     "..." = "cd ../..";
@@ -47,20 +48,20 @@
     gciv = "glab ci view";
     ds = "devpod ssh";
     du = "devpod up .";
-    nr = "sudo nixos-rebuild switch --flake $NIXCONF";
-    nrb = "nixos-rebuild build --flake $NIXCONF";
-    nrt = "sudo nixos-rebuild test --flake $NIXCONF";
-    dr = "sudo darwin-rebuild switch --flake $NIXCONF";
-    drb = "sudo darwin-rebuild build --flake $NIXCONF";
-    drc = "sudo darwin-rebuild check --flake $NIXCONF";
-    hm = "home-manager switch --flake $NIXCONF";
-    hmb = "home-manager build --flake $NIXCONF";
-    hmc = "home-manager build --flake $NIXCONF --check";
-    nc = "nix flake check $NIXCONF";
+    nr = "sudo nixos-rebuild switch --flake ${nixconf}";
+    nrb = "nixos-rebuild build --flake ${nixconf}";
+    nrt = "sudo nixos-rebuild test --flake ${nixconf}";
+    dr = "sudo darwin-rebuild switch --flake ${nixconf}";
+    drb = "sudo darwin-rebuild build --flake ${nixconf}";
+    drc = "sudo darwin-rebuild check --flake ${nixconf}";
+    hm = "home-manager switch --flake ${nixconf}";
+    hmb = "home-manager build --flake ${nixconf}";
+    hmc = "home-manager build --flake ${nixconf} --check";
+    nc = "nix flake check ${nixconf}";
     ngc = "nix store gc";
     ngo = "nix store optimise";
-    nu = "nix flake update $NIXCONF";
-    nl = "nix flake lock $NIXCONF";
+    nu = "nix flake update ${nixconf}";
+    nl = "nix flake lock ${nixconf}";
   };
   sharedFunctions = builtins.readFile ../../config/shell/functions.sh;
   zshExtra = builtins.readFile ../../config/shell/zsh-extra.zsh;
