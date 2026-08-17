@@ -56,7 +56,7 @@ in {
     lib,
     ...
   }: {
-    home.file = lib.mkIf pkgs.stdenv.isDarwin {
+    home.file = lib.mkIf pkgs.stdenv.hostPlatform.isDarwin {
       ".config/ghostty/config".text = ''
         command = ${pkgs.tmux}/bin/tmux new-session -A -s dev
         font-family = JetBrains Mono
@@ -90,6 +90,6 @@ in {
         palette = 15=#bac2de
       '';
     };
-    programs.ghostty = lib.mkIf (!pkgs.stdenv.isDarwin) (mkGhosttyCfg {inherit pkgs;});
+    programs.ghostty = lib.mkIf (!pkgs.stdenv.hostPlatform.isDarwin) (mkGhosttyCfg {inherit pkgs;});
   };
 }

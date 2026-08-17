@@ -16,6 +16,6 @@
     lib,
     ...
   }: {
-    home.packages = lib.mkIf (!pkgs.stdenv.isDarwin) [pkgs.opencode];
+    home.packages = lib.mkIf (!pkgs.stdenv.hostPlatform.isDarwin) [pkgs.opencode];
   };
 }
