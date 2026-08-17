@@ -110,13 +110,9 @@
         format = "[ $symbol( $version) ]($style)";
       };
       nix_shell = {
-        heuristic = true;
         symbol = "";
         style = "bg:color_sapphire fg:color_fg1";
-        format = "[ $symbol$state( \($name\)) ]($style)";
-        impure_msg = "[ impure](fg:color_fg1 bg:color_sapphire)";
-        pure_msg = "[ pure](fg:color_fg1 bg:color_sapphire)";
-        unknown_msg = "";
+        format = "[ $symbol( \($name\)) ]($style)";
       };
       docker_context = {
         symbol = "";

@@ -4,6 +4,7 @@
 #   (test_disko needs `disko`, test_shellcheck needs `shellcheck`).
 # Devenv also gives auto-activation when you `cd` into this repo.
 {pkgs, ...}: {
+  name = "nixconf";
   packages = with pkgs; [
     disko
     shellcheck
