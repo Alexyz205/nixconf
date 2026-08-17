@@ -22,10 +22,12 @@ Systematic CI/CD pipeline debugging for GitLab CI and GitHub Actions.
 ## Common Failures
 
 ### Runner Issues
+
 - Tags must match registered runners
 - Check: runner health, disk space, Docker socket
 
 ### Cache Issues (most common flaky cause)
+
 ```yaml
 # GitLab
 cache:
@@ -39,29 +41,35 @@ cache:
     path: ~/.npm
     key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
 ```
+
 - Clear cache and retry first
 - Pin dependency versions, commit lockfile
 
 ### Secrets/Auth
+
 - 401/403, empty variables → check scope
 - Not available in forks (PRs)
 - OIDC preferred over long-lived tokens
 
 ### Docker Build Failures
+
 - Check `.dockerignore` (missing = huge context)
 - BuildKit cache: `--cache-from` / `--cache-to`
 - Platform mismatch on multi-arch builds
 
 ### Artifact Issues
+
 ```yaml
 artifacts:
   paths: [build/]
   expire_in: 1 hour
 ```
+
 - Check `needs:` / `dependencies:` graph
 - Path patterns must match actual output
 
 ### Timeout Failures
+
 - Identify slow step via timestamps
 - Common: deps install, Docker build, tests
 - Fix: cache, parallelism, test sharding
