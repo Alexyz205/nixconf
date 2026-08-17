@@ -177,7 +177,11 @@
                   };
                   # Stylix targets for apps not present in this repo/configuration.
                   # AutoEnable would otherwise generate theme config for them.
+                  # btop is themed explicitly by modules/shell/btop.nix, so Stylix's
+                  # auto-enabled btop target must be disabled: its generated "stylix"
+                  # theme conflicts with the repo's color_theme = "catppuccin_mocha".
                   stylix.targets = {
+                    btop.enable = false;
                     blender.enable = false;
                     forge.enable = false;
                     gdu.enable = false;

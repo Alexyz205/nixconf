@@ -8,9 +8,9 @@ let
     programs.btop = {
       enable = true;
       settings = {
-        theme_background = true;
+        theme_background = false;
         vim_keys = true;
-        theme = "catppuccin_mocha";
+        color_theme = "catppuccin_mocha";
       };
     };
     home.file.".config/btop/themes/catppuccin_mocha.theme".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/repos/personal/nixconf/config/btop/catppuccin_mocha.theme";
