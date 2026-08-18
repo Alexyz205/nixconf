@@ -8,7 +8,7 @@
     nix
     shell
     git
-    secrets
+    sops
     bat
     eza
     zoxide

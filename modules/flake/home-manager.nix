@@ -11,7 +11,7 @@
     git
     gitlab
     containers
-    secrets
+    sops
     bat
     eza
     zoxide

@@ -17,7 +17,7 @@
     packages
     containers
     disko
-    secrets
+    sops
     git
     starship
     tmux

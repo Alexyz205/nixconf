@@ -16,7 +16,7 @@
     packages
     containers
     disko
-    secrets
+    sops
     git
     yubikey
     devenv

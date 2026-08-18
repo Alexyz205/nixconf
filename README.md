@@ -14,15 +14,22 @@ flake-parts, and import-tree recursively loads every `*.nix` file under
 (`flake.modules.homeManager.<feature>`), and each host mixes them via its
 `features` list.
 
+Each tool module is self-contained: it owns its `enable` option, the packages
+it installs, and its zsh aliases. Enabling a feature is one line
+(`modules.<feature>.enable = true`) and the aliases come along. The `shell`
+module is the exception: it centralizes the environment and the
+platform-specific rebuild aliases (`nr`/`hm`/`dr` sets), gated per platform
+(see [Commands](#commands)).
+
 ```
 flake.nix               # Entry point: flake-parts + import-tree
 devenv.nix / devenv.yaml# Dev environment for this repo (test tooling)
 modules/
 ├── flake/              # options.nix (option types), home-manager.nix (standalone configs)
 ├── hosts/              # One file per machine / image
-├── system/             # boot, disko, network, nix, podman, secrets, security, ssh, users, yubikey
+├── system/             # boot, disko, network, nix, podman, sops, security, ssh, users, yubikey
 ├── shell/              # shell, starship, tmux, zoxide, eza, bat, btop, yazi, ghostty
-├── desktop/            # niri, noctalia, brave
+├── desktop/            # brave, claude, discord, hidden-apps, niri, noctalia, steam, youtube-music
 └── dev/                # containers, devenv, git, gitlab, lazygit, lazyvim, opencode, packages
 config/                 # Dotfiles & static assets referenced from feature modules
 examples/dev-env/       # Per-project devenv + devcontainer template
@@ -53,6 +60,22 @@ Hosts are referenced by their flake attribute: `nixosConfigurations.workstation`
 
 ## Commands
 
+Rebuild aliases are zsh aliases defined by the `shell` module and gated per
+platform: NixOS hosts get the `nixos-rebuild` set, nix-darwin the
+`darwin-rebuild` set, and standalone home-manager profiles the `home-manager`
+set. The `nix` flake aliases exist on every platform. All aliases use the
+`$NIXCONF` env var.
+
+### General (every platform)
+
+```bash
+nc   # nix flake check $NIXCONF
+nu   # nix flake update $NIXCONF
+nl   # nix flake lock $NIXCONF
+ngc  # nix store gc
+ngo  # nix store optimise
+```
+
 ### NixOS
 
 ```bash
@@ -77,15 +100,20 @@ hmb  # home-manager build --flake $NIXCONF
 hmc  # home-manager build --flake $NIXCONF --check
 ```
 
-### General
+### Tool aliases
 
-```bash
-nc   # nix flake check $NIXCONF
-nu   # nix flake update $NIXCONF
-nl   # nix flake lock $NIXCONF
-ngc  # nix store gc
-ngo  # nix store optimise
-```
+Each tool module ships its own `enable` flag, packages, and aliases:
+
+| Module | Aliases |
+|--------|---------|
+| `eza` | `ls`, `la`, `ll`, `lt`, `lta`, `ltl`, `ldir`, `lm`, `lz` |
+| `git` | `g`, `ga`, `gc`, `gcm`, `gco`, `gd`, `gl`, `gp`, `gP`, `gs` |
+| `lazygit` | `lg` |
+| `tmux` | `t` (`new-session -A -s dev`) |
+| `lazyvim` | `v` |
+| `containers` | `d`, `dc`, `ld`, `dru`, `ds`, `du` |
+| `gitlab` (RNSL only) | `gm`, `gml`, `gmv`, `gmc`, `gma`, `gmm`, `gci`, `gcil`, `gciv` |
+| `shell` | `nf`, `repos`, `f`, `p`, `e`, `c`, `reload` |
 
 ## Test suite
 
@@ -157,21 +185,25 @@ specific compiler versions) belongs in the repo's `devenv.nix`, not in nixconf.
 Secrets are managed with [sops-nix](https://github.com/Mic92/sops-nix) using a
 YubiKey-based age identity.
 
-- Encrypted files live in `secrets/` (e.g. `secrets.yaml` with `GITHUB_TOKEN`
-  and `GITLAB_TOKEN`). Edit them with `sec` (alias for
-  `sops $NIXCONF/secrets/secrets.yaml`).
-- The module `modules/system/secrets.nix` wires sops into NixOS: default sops
-  file, age key file (`/etc/yubi-age-identity`), age-plugin-yubikey, git
-  identity (user name + email), and exposes a home-manager `secrets` feature
+- Encrypted files live in `secrets/`, split by concern:
+  - `env.yaml` — environment secrets (`GITHUB_TOKEN`, `GITLAB_TOKEN`) that get
+    exported into the shell at login. Edit with `sece` (alias for
+    `sops $NIXCONF/secrets/env.yaml`).
+  - `secrets.yaml` — plain secrets that are **not** loaded into the shell
+    environment. Edit with `sec` (alias for
+    `sops $NIXCONF/secrets/secrets.yaml`).
+- The module `modules/system/sops.nix` wires sops into NixOS: default sops file
+  (`env.yaml`), age key file (`/etc/yubi-age-identity`), age-plugin-yubikey,
+  and exposes a home-manager `sops` feature
   that decrypts `GITHUB_TOKEN` to
   `~/.config/sops-nix/secrets/GITHUB_TOKEN` (via the sops-nix home-manager
   module, using the repo's age identity as an out-of-store symlink). The
   feature is shared by every home-manager profile: NixOS hosts with the
-  `secrets` feature, standalone Linux profiles, and the macOS home-manager
-  config.
-- The shell module exports these into `$GITHUB_TOKEN` at login (only when the
-  decrypted secret is readable), so `gh` works out of the box on any profile
-  with secrets enabled.
+  `sops` feature, standalone Linux profiles, and the macOS home-manager
+  config. It also defines the `sec`/`sece` aliases.
+- The sops module exports env secrets (`env.yaml`) into `$GITHUB_TOKEN` at
+  login (only when the decrypted secret is readable), so `gh` works out of the
+  box on any profile with sops enabled.
 - GitLab tooling (`glab`, the `gitlab.nvim` LazyVim plugin, and the
   `GITLAB_TOKEN` secret) lives in the standalone `gitlab` feature module and is
   only enabled on the `alexis.pigeon@RNSL-APIGEON5` home-manager profile.

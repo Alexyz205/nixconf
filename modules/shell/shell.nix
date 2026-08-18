@@ -1,6 +1,6 @@
 {lib, ...}: let
   nixconf = "$HOME/repos/personal/nixconf";
-  shellAliases = {
+  baseAliases = {
     nf = "cd $NIXCONF";
     repos = "cd $REPOS";
     ".." = "cd ..";
@@ -11,26 +11,33 @@
     p = "python";
     e = "exit";
     c = "clear";
-    nr = "sudo nixos-rebuild switch --flake $NIXCONF";
-    nrb = "nixos-rebuild build --flake $NIXCONF";
-    nrt = "sudo nixos-rebuild test --flake $NIXCONF";
-    dr = "sudo darwin-rebuild switch --flake $NIXCONF";
-    drb = "sudo darwin-rebuild build --flake $NIXCONF";
-    drc = "sudo darwin-rebuild check --flake $NIXCONF";
-    hm = "home-manager switch --flake $NIXCONF";
-    hmb = "home-manager build --flake $NIXCONF";
-    hmc = "home-manager build --flake $NIXCONF --check";
+  };
+  nixAliases = {
     nc = "nix flake check $NIXCONF";
     ngc = "nix store gc";
     ngo = "nix store optimise";
     nu = "nix flake update $NIXCONF";
     nl = "nix flake lock $NIXCONF";
-    sec = "SOPS_AGE_KEY_FILE=$NIXCONF/config/sops/yubi-age-identity sops $NIXCONF/secrets/secrets.yaml";
+  };
+  nixosAliases = {
+    nr = "sudo nixos-rebuild switch --flake $NIXCONF";
+    nrb = "nixos-rebuild build --flake $NIXCONF";
+    nrt = "sudo nixos-rebuild test --flake $NIXCONF";
+  };
+  darwinAliases = {
+    dr = "sudo darwin-rebuild switch --flake $NIXCONF";
+    drb = "sudo darwin-rebuild build --flake $NIXCONF";
+    drc = "sudo darwin-rebuild check --flake $NIXCONF";
+  };
+  hmAliases = {
+    hm = "home-manager switch --flake $NIXCONF";
+    hmb = "home-manager build --flake $NIXCONF";
+    hmc = "home-manager build --flake $NIXCONF --check";
   };
   sharedFunctions = builtins.readFile ../../config/shell/functions.sh;
   zshExtra = builtins.readFile ../../config/shell/zsh-extra.zsh;
 
-  shellCfg = {
+  mkShellCfg = extraAliases: {
     pkgs,
     config,
     lib,
@@ -53,16 +60,6 @@
       GIT_PAGER = "bat";
       LANG = "en_US.UTF-8";
     };
-    secretExports =
-      let
-        exportVar = name: secret:
-          lib.optionalString (secret ? path) ''
-            if [ -r "${secret.path}" ]; then
-              export ${name}="$(cat "${secret.path}")"
-            fi
-          '';
-      in
-        builtins.concatStringsSep "" (lib.mapAttrsToList exportVar (config.sops.secrets or {}));
   in {
     programs.home-manager.enable = true;
     home = {
@@ -91,11 +88,10 @@
         save = 100000;
         share = true;
       };
-      shellAliases = shellAliases // {reload = "source ~/.zshrc";};
+      shellAliases = extraAliases // {reload = "source ~/.zshrc";};
       initContent = lib.mkMerge [
         (lib.mkOrder 600 sharedFunctions)
         (lib.mkOrder 900 zshExtra)
-        (lib.mkOrder 950 secretExports)
       ];
     };
   };
@@ -111,9 +107,16 @@ in {
       programs.zsh.enable = true;
       programs.git.enable = true;
       environment.systemPackages = with pkgs; [git];
-      home-manager.users.${config.modules.users.userName} = shellCfg;
+      home-manager.users.${config.modules.users.userName} = mkShellCfg (baseAliases // nixAliases // nixosAliases);
     };
   };
 
-  flake.modules.homeManager.shell = shellCfg;
+  flake.modules.homeManager.shell = args@{lib, pkgs, ...}: let
+    aliases =
+      baseAliases
+      // nixAliases
+      // hmAliases
+      // lib.optionalAttrs pkgs.stdenv.hostPlatform.isDarwin darwinAliases;
+  in
+    mkShellCfg aliases args;
 }
