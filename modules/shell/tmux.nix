@@ -68,7 +68,7 @@
       bind -n C-Tab next-window
       bind -n C-S-Tab previous-window
       bind C-g display-popup -d "#{pane_current_path}" -w 80% -h 80% -E "lazygit"
-      bind C-n display-popup -E 'bash -i -c "read -p \"Session name: \" name; tmux new-session -d -s $name && tmux switch-client -t $name"'
+      bind C-n display-popup -d "#{pane_current_path}" -w 50% -h 25% -T "New session" -E 'exec bash ${../../config/tmux/nixconf-menu.sh} new-session'
       bind C-y display-popup -d "#{pane_current_path}" -w 90% -h 90% -E "yazi"
       bind C-t display-popup -d "#{pane_current_path}" -w 75% -h 75% -E "zsh"
       bind R display-popup -w 70% -h 60% -E "${pkgs.writeShellScript "repo-switcher" ''

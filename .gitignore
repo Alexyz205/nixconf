@@ -8,6 +8,9 @@
 # devenv: ephemeral environment store (NOT the lockfile — commit devenv.lock)
 /.devenv/
 
+# Script tmp files
+.sha256*
+
 # =========================================================
 # Secrets — never commit plaintext keys/creds.
 # Encrypted values live in secrets/ (managed by sops).

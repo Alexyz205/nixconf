@@ -14,7 +14,10 @@ REPO_SWITCHER="$NIXCONF/config/tmux/repo-switcher.sh"
 
 case "${1:-}" in
   sessions)    log "sessions"; exec tmux choose-session ;;
-  new-session) log "new-session"; exec bash -c "read -p 'Session name: ' n && tmux new-session -d -s \"\$n\" -c \"\$PWD\" && tmux switch-client -t \"\$n\"" ;;
+  new-session) log "new-session"
+    read -rp 'Session name: ' n || exit 0
+    [ -n "$n" ] || exit 0
+    exec tmux new-session -A -s "$n" ;;
   repo-switch) log "repo-switch"; exec "$REPO_SWITCHER" ;;
   lazygit)     log "lazygit"; exec lazygit ;;
   yazi)        log "yazi"; exec yazi ;;
