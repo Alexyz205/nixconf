@@ -3,7 +3,7 @@
   lib,
   ...
 }: let
-  mkLazyvimCfg = {
+  lazyvimCfg = {
     lazyvim,
     pkgs,
     autoFormatOnSave ? true,
@@ -115,7 +115,7 @@ in {
         prettierd
         markdownlint-cli
       ];
-      home-manager.users.${config.modules.users.userName} = mkLazyvimCfg {
+      home-manager.users.${config.modules.users.userName} = lazyvimCfg {
         inherit (inputs) lazyvim;
         inherit pkgs;
         autoFormatOnSave = config.modules.lazyvim.autoFormatOnSave;
@@ -127,5 +127,5 @@ in {
     lazyvim,
     pkgs,
     ...
-  }: mkLazyvimCfg {inherit lazyvim pkgs;};
+  }: lazyvimCfg {inherit lazyvim pkgs;};
 }

@@ -1,5 +1,5 @@
 {lib, ...}: let
-  mkTmuxCfg = {pkgs}: {
+  tmuxCfg = {pkgs}: {
     enable = true;
     plugins = with pkgs.tmuxPlugins; [
       {plugin = vim-tmux-navigator;}
@@ -96,7 +96,7 @@ in {
   }: {
     options.modules.tmux.enable = lib.mkEnableOption "Tmux";
     config = lib.mkIf config.modules.tmux.enable {
-      home-manager.users.${config.modules.users.userName}.programs.tmux = mkTmuxCfg {inherit pkgs;};
+      home-manager.users.${config.modules.users.userName}.programs.tmux = tmuxCfg {inherit pkgs;};
     };
   };
 
@@ -104,6 +104,6 @@ in {
     pkgs,
     ...
   }: {
-    programs.tmux = mkTmuxCfg {inherit pkgs;};
+    programs.tmux = tmuxCfg {inherit pkgs;};
   };
 }

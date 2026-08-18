@@ -1,5 +1,5 @@
 {lib, ...}: let
-  mkGhosttyCfg = {pkgs}: {
+  ghosttyCfg = {pkgs}: {
     enable = true;
     settings = {
       command = "${pkgs.tmux}/bin/tmux new-session -A -s dev";
@@ -47,7 +47,7 @@ in {
   }: {
     options.modules.ghostty.enable = lib.mkEnableOption "Ghostty terminal";
     config = lib.mkIf config.modules.ghostty.enable {
-      home-manager.users.${config.modules.users.userName}.programs.ghostty = mkGhosttyCfg {inherit pkgs;};
+      home-manager.users.${config.modules.users.userName}.programs.ghostty = ghosttyCfg {inherit pkgs;};
     };
   };
 
@@ -90,6 +90,6 @@ in {
         palette = 15=#bac2de
       '';
     };
-    programs.ghostty = lib.mkIf (!pkgs.stdenv.hostPlatform.isDarwin) (mkGhosttyCfg {inherit pkgs;});
+    programs.ghostty = lib.mkIf (!pkgs.stdenv.hostPlatform.isDarwin) (ghosttyCfg {inherit pkgs;});
   };
 }
