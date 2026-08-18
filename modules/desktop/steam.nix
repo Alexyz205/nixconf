@@ -16,6 +16,11 @@
       # via the compositor instead. See niri "Application-Specific Issues: Steam".
       programs.steam.package = pkgs.steam.override {
         extraArgs = "-system-composer";
+        # Steam client segfaults at startup in its bundled libaudio.so via the
+        # PulseAudio threaded-mainloop when talking to pipewire-pulse
+        # (ValveSoftware/steam-for-linux#13174, still open in Jul 2026 builds).
+        # Make PulseAudio unreachable for the client only; game audio is unaffected.
+        extraEnv.PULSE_SERVER = "/nonexistent";
       };
     };
   };
