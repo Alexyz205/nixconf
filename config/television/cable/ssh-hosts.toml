@@ -7,7 +7,7 @@ requirements = ["rg"]
 command = "rg '^Host(name)? ' $HOME/.ssh/config --no-filename --no-line-number | tr -s ' ' | cut -d' ' -f2- | tr ' ' '\n' | rg -v '^$'"
 
 [preview]
-command = "awk '/^Host / { found=0 } /^Host (.*[[:space:]])?'{}'([[:space:]].*)?$/ { found=1 } found' $HOME/.ssh/config"
+command = "rg -A 8 -m 1 '^Host {0}( |$)' $HOME/.ssh/config"
 
 [keybindings]
 enter = "actions:connect"

@@ -1,15 +1,15 @@
 [metadata]
 name = "devenv-tasks"
 description = "A channel to find, inspect and run devenv tasks"
-requirements = ["devenv"]
+requirements = ["devenv", "jq"]
 
 [source]
-command = "devenv tasks list 2>/dev/null | sed -E 's/^[├└│ ]*[─]*[ ]*//'"
+command = "devenv tasks list --json 2>/dev/null | jq -er '.[].name' 2>/dev/null || devenv tasks list 2>/dev/null | sed -E 's/\\x1b\\[[0-9;]*m//g; s/^[├└│ ]*[─]*[ ]*//; /^·/d' | awk 'NF'"
 display = "{0}"
 output = "{0}"
 
 [preview]
-command = "jq -r --arg t '{0}' '.[] | select(.name==$t) | \"Name: \" + .name + \"\\nDescription: \" + .description + \"\\n\" + (if .command then \"Command: \" + .command else \"Command: (group task, no script)\" end) + \"\\nBefore: \" + (.before|join(\", \")) + \"\\nAfter: \" + (.after|join(\", \"))' .devenv/gc/task-config-devenv-config-task-config 2>/dev/null || rg -n -A 8 '\\\"{0}\\\"' devenv.nix | sed 's/^/  /' || printf 'Run: devenv tasks run {0}\\n'"
+command = "jq -er --arg t '{0}' '.[] | select(.name==$t) | \"Description: \" + (.description // \"(no description)\") + \"\\n\\n\" + \"Exec:\\n\" + (.command // \"(group task, no script)\")' .devenv/gc/task-config-devenv-config-task-config 2>/dev/null || rg -n -A 8 '\\\"{0}\\\"' devenv.nix | sed 's/^/  /' | grep . || printf 'Run: devenv tasks run {0}\\n'"
 
 [ui]
 layout = "portrait"
@@ -36,4 +36,3 @@ mode = "fork"
 description = "Show task dependencies"
 command = "devenv tasks run '{}' --mode all"
 mode = "fork"
-

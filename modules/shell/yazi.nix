@@ -4,6 +4,12 @@
     shellWrapperName = "y";
     enableZshIntegration = true;
 
+    settings = {
+      manager = {
+        show_hidden = true;
+      };
+    };
+
     theme = {
       mgr = {
         cwd = {fg = "#94e2d5";};

@@ -1,19 +1,20 @@
 [metadata]
 name = "mounts"
 description = "List mounted filesystems"
-requirements = ["df", "eza"]
+requirements = ["duf", "eza", "jq"]
 
 [source]
-command = "df -h --output=target,fstype,size,used,avail,pcent 2>/dev/null | tail -n +2"
-display = "{split: :0}"
+command = "duf -json -only local 2>/dev/null | jq -r '.[] | [.mount_point, .fs_type, (.used/1073741824|floor|tostring + \"G\"), (.free/1073741824|floor|tostring + \"G\"), (.total/1073741824|floor|tostring + \"G\")] | @tsv'"
+display = "{split:\t:0}"
+output = "{split:\t:0}"
 
 [preview]
-command = "df -h '{}' && echo && eza -la --color=always '{}' 2>/dev/null"
+command = "duf '{split:\t:0}' 2>/dev/null && echo && eza -la --color=always '{split:\t:0}' 2>/dev/null"
 
 [keybindings]
 enter = "actions:cd"
 
 [actions.cd]
 description = "Open a shell in the selected mount point"
-command = "cd '{}' && $SHELL"
+command = "cd '{split:\t:0}' && $SHELL"
 mode = "execute"

@@ -1,6 +1,6 @@
 [metadata]
-name = "search"
-description = "Ripgrep content search across the codebase, opened in nvim"
+name = "text"
+description = "Ripgrep content search across files, opened in nvim"
 requirements = ["rg", "bat"]
 
 [source]
