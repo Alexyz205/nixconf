@@ -26,7 +26,6 @@
     delta
     diff-so-fancy
     gh
-    glab
     fabric-ai
     lazydocker
   ];

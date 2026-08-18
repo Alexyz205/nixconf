@@ -23,7 +23,7 @@ modules/
 ├── system/             # boot, disko, network, nix, podman, secrets, security, ssh, users, yubikey
 ├── shell/              # shell, starship, tmux, zoxide, eza, bat, btop, lazygit, yazi, lazyvim, ghostty
 ├── desktop/            # niri, noctalia, brave
-└── dev/                # devenv, git, packages
+└── dev/                # devenv, git, gitlab, packages
 config/                 # Dotfiles & static assets referenced from feature modules
 examples/dev-env/       # Per-project devenv + devcontainer template
 scripts/                # test-all.sh, build-iso.sh
@@ -163,16 +163,18 @@ YubiKey-based age identity.
 - The module `modules/system/secrets.nix` wires sops into NixOS: default sops
   file, age key file (`/etc/yubi-age-identity`), age-plugin-yubikey, git
   identity (user name + email), and exposes a home-manager `secrets` feature
-  that decrypts `GITHUB_TOKEN`/`GITLAB_TOKEN` to
-  `~/.config/sops-nix/secrets/GITHUB_TOKEN` / `.../GITLAB_TOKEN` (via the
-  sops-nix home-manager module, using the repo's age identity as an
-  out-of-store symlink). The feature is shared by every home-manager profile:
-  NixOS hosts with the `secrets` feature, standalone Linux profiles, and the
-  macOS home-manager config.
-- The shell module exports these into `$GITHUB_TOKEN` / `$GITLAB_TOKEN` at login
-  (only when the decrypted secret is readable), so `gh`, `glab`, and the
-  LazyVim GitLab plugin work out of the box on any profile with secrets
-  enabled.
+  that decrypts `GITHUB_TOKEN` to
+  `~/.config/sops-nix/secrets/GITHUB_TOKEN` (via the sops-nix home-manager
+  module, using the repo's age identity as an out-of-store symlink). The
+  feature is shared by every home-manager profile: NixOS hosts with the
+  `secrets` feature, standalone Linux profiles, and the macOS home-manager
+  config.
+- The shell module exports these into `$GITHUB_TOKEN` at login (only when the
+  decrypted secret is readable), so `gh` works out of the box on any profile
+  with secrets enabled.
+- GitLab tooling (`glab`, the `gitlab.nvim` LazyVim plugin, and the
+  `GITLAB_TOKEN` secret) lives in the standalone `gitlab` feature module and is
+  only enabled on the `alexis.pigeon@RNSL-APIGEON5` home-manager profile.
 - The age identity and SSH keys are stored under `config/` and referenced by the
   feature modules. Decryption requires the YubiKey (workstation,
   headless-worker, and any home-manager profile where the token is exported).

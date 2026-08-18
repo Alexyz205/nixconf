@@ -57,7 +57,6 @@ in {
       age.plugins = [pkgs.age-plugin-yubikey];
       defaultSopsFile = secretsYaml;
       secrets.GITHUB_TOKEN = {};
-      secrets.GITLAB_TOKEN = {};
     };
   };
 }

@@ -9,6 +9,7 @@
     nix
     shell
     git
+    gitlab
     secrets
     bat
     eza
@@ -25,7 +26,7 @@
     btop
   ];
 
-  mkHome = system: username: homeDirectory: inputs.home-manager.lib.homeManagerConfiguration {
+  mkHome = system: username: homeDirectory: extra: inputs.home-manager.lib.homeManagerConfiguration {
     pkgs = inputs.nixpkgs.legacyPackages.${system};
     extraSpecialArgs = {
       lazyvim = inputs.lazyvim;
@@ -46,12 +47,15 @@
           gtk.gtk4.theme = null;
         }
       ]
-      ++ hmModules;
+      ++ hmModules
+      ++ [extra];
   };
 in {
   flake.homeConfigurations = {
-    "alexis@macos" = mkHome "aarch64-darwin" "alexis" "/Users/alexis";
-    "alexis@linux" = mkHome "x86_64-linux" "alexis" "/home/alexis";
-    "alexis.pigeon@RNSL-APIGEON5" = mkHome "x86_64-linux" "alexis.pigeon" "/home/alexis.pigeon";
+    "alexis@macos" = mkHome "aarch64-darwin" "alexis" "/Users/alexis" {};
+    "alexis@linux" = mkHome "x86_64-linux" "alexis" "/home/alexis" {};
+    "alexis.pigeon@RNSL-APIGEON5" = mkHome "x86_64-linux" "alexis.pigeon" "/home/alexis.pigeon" {
+      modules.gitlab.enable = true;
+    };
   };
 }

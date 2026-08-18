@@ -67,7 +67,6 @@
       url."git@git.dxyz.pro:".insteadOf = "gl:";
       credential."https://github.com".helper = ["" "!\${pkgs.gh}/bin/gh auth git-credential"];
       credential."https://gist.github.com".helper = ["" "!\${pkgs.gh}/bin/gh auth git-credential"];
-      credential."https://git.dxyz.pro".helper = ["" "!\${pkgs.glab}/bin/glab auth git-credential"];
     };
     includes = [
       {
@@ -91,9 +90,9 @@ in {
     pkgs,
     ...
   }: {
-    options.modules.git.enable = lib.mkEnableOption "Git with delta, lazygit, gh, glab";
+    options.modules.git.enable = lib.mkEnableOption "Git with delta, lazygit, gh";
     config = lib.mkIf config.modules.git.enable {
-      environment.systemPackages = with pkgs; [git delta diff-so-fancy gh glab lazygit];
+      environment.systemPackages = with pkgs; [git delta diff-so-fancy gh lazygit];
       programs.git = {
         enable = true;
         config.init.defaultBranch = "main";

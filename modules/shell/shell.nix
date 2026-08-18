@@ -37,15 +37,6 @@
     dc = "docker-compose";
     ld = "lazydocker";
     dru = "docker run -it --rm -v ~/repos/personal/nixconf:/root/nixconf ubuntu bash";
-    gm = "glab mr";
-    gml = "glab mr list";
-    gmv = "glab mr view";
-    gmc = "glab mr create";
-    gma = "glab mr approve";
-    gmm = "glab mr merge";
-    gci = "glab ci";
-    gcil = "glab ci list";
-    gciv = "glab ci view";
     ds = "devpod ssh";
     du = "devpod up .";
     nr = "sudo nixos-rebuild switch --flake ${nixconf}";
