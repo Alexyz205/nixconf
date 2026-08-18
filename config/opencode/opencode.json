@@ -121,6 +121,7 @@
   },
   // --- Instructions ---
   "instructions": [
+    "~/repos/personal/nixconf/README.md",
     "~/.config/opencode/AGENTS.md",
     "README.md",
     "CONTRIBUTING.md"

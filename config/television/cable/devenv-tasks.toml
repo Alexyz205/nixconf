@@ -4,12 +4,12 @@ description = "A channel to find, inspect and run devenv tasks"
 requirements = ["devenv"]
 
 [source]
-command = "devenv tasks list"
+command = "devenv tasks list 2>/dev/null | sed -E 's/^[├└│ ]*[─]*[ ]*//'"
 display = "{0}"
 output = "{0}"
 
 [preview]
-command = "rg -n -A 6 '\"{0}\"' devenv.nix devenv.*.nix 2>/dev/null | sed 's/^/  /' || echo 'No devenv.nix task definition found'"
+command = "jq -r --arg t '{0}' '.[] | select(.name==$t) | \"Name: \" + .name + \"\\nDescription: \" + .description + \"\\n\" + (if .command then \"Command: \" + .command else \"Command: (group task, no script)\" end) + \"\\nBefore: \" + (.before|join(\", \")) + \"\\nAfter: \" + (.after|join(\", \"))' .devenv/gc/task-config-devenv-config-task-config 2>/dev/null || rg -n -A 8 '\\\"{0}\\\"' devenv.nix | sed 's/^/  /' || printf 'Run: devenv tasks run {0}\\n'"
 
 [ui]
 layout = "portrait"
@@ -36,3 +36,4 @@ mode = "fork"
 description = "Show task dependencies"
 command = "devenv tasks run '{}' --mode all"
 mode = "fork"
+
