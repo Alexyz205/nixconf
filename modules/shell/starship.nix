@@ -1,7 +1,6 @@
 {lib, ...}: let
   starshipCfg = {
     enable = true;
-    enableBashIntegration = true;
     enableZshIntegration = true;
     settings = {
       follow_symlinks = false;

@@ -1,4 +1,7 @@
 {lib, ...}: let
+  lazygitAliases = {
+    lg = "lazygit";
+  };
   lazygitCfg = {
     enable = true;
     settings = {
@@ -38,11 +41,15 @@ in {
   }: {
     options.modules.lazygit.enable = lib.mkEnableOption "Lazygit";
     config = lib.mkIf config.modules.lazygit.enable {
-      home-manager.users.${config.modules.users.userName}.programs.lazygit = lazygitCfg;
+      home-manager.users.${config.modules.users.userName} = {
+        programs.lazygit = lazygitCfg;
+        programs.zsh.shellAliases = lazygitAliases;
+      };
     };
   };
 
   flake.modules.homeManager.lazygit = {...}: {
     programs.lazygit = lazygitCfg;
+    programs.zsh.shellAliases = lazygitAliases;
   };
 }

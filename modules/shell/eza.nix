@@ -4,6 +4,17 @@ let
     icons = "auto";
     git = true;
   };
+  ezaAliases = {
+    ls = "eza --color=auto --icons=auto";
+    la = "eza -la --icons=auto";
+    ll = "eza -l --git --hyperlink --icons=auto";
+    lt = "eza --tree --level=2 --icons=auto";
+    lta = "eza --tree --level=2 --icons=auto -a";
+    ltl = "eza --tree --level=2 --icons=auto -l";
+    ldir = "eza --long --icons=auto --only-dirs";
+    lm = "eza --icons=auto --sort=modified";
+    lz = "eza --icons=auto --sort=size";
+  };
 in
   {lib, ...}: {
     flake.modules.nixos.eza = {
@@ -15,11 +26,15 @@ in
       options.modules.eza.enable = lib.mkEnableOption "Eza";
       config = lib.mkIf config.modules.eza.enable {
         environment.systemPackages = [pkgs.eza];
-        home-manager.users.${config.modules.users.userName}.programs.eza = ezaCfg;
+        home-manager.users.${config.modules.users.userName} = {
+          programs.eza = ezaCfg;
+          programs.zsh.shellAliases = ezaAliases;
+        };
       };
     };
 
     flake.modules.homeManager.eza = {...}: {
       programs.eza = ezaCfg;
+      programs.zsh.shellAliases = ezaAliases;
     };
   }

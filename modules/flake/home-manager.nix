@@ -10,6 +10,7 @@
     shell
     git
     gitlab
+    containers
     secrets
     bat
     eza
@@ -41,9 +42,9 @@
           };
           modules.packages = {
             basic = true;
-            containers = true;
             devTools = true;
           };
+          modules.containers.enable = true;
           gtk.gtk4.theme = null;
         }
       ]

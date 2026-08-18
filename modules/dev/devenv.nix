@@ -3,7 +3,6 @@
   ...
 }: let
   zshHook = ''eval "$(devenv hook zsh)"'';
-  bashHook = ''eval "$(devenv hook bash)"'';
 in {
   flake.modules.nixos.devenv = {
     config,
@@ -16,7 +15,6 @@ in {
       environment.systemPackages = [pkgs.devenv];
       home-manager.users.${config.modules.users.userName} = {
         programs.zsh.initContent = lib.mkOrder 500 zshHook;
-        programs.bash.initExtra = lib.mkOrder 500 bashHook;
       };
     };
   };
@@ -28,6 +26,5 @@ in {
   }: {
     home.packages = [pkgs.devenv];
     programs.zsh.initContent = lib.mkOrder 500 zshHook;
-    programs.bash.initExtra = lib.mkOrder 500 bashHook;
   };
 }

@@ -13,10 +13,6 @@
     jq
     tree-sitter
   ];
-  containerPkgs = {pkgs}: with pkgs; [
-    devpod
-    docker-compose
-  ];
   securityPkgs = {pkgs}: with pkgs; [
     age
     sops
@@ -46,10 +42,6 @@ in {
           type = lib.types.bool;
           default = false;
         };
-        containers = lib.mkOption {
-          type = lib.types.bool;
-          default = false;
-        };
         security = lib.mkOption {
           type = lib.types.bool;
           default = false;
@@ -64,10 +56,9 @@ in {
         };
       };
 
-      config = lib.mkIf (config.modules.packages.basic || config.modules.packages.containers || config.modules.packages.security || config.modules.packages.devTools || config.modules.packages.desktop) {
+      config = lib.mkIf (config.modules.packages.basic || config.modules.packages.security || config.modules.packages.devTools || config.modules.packages.desktop) {
         environment.systemPackages =
           (lib.optionals config.modules.packages.basic (basicPkgs {inherit pkgs;}))
-          ++ (lib.optionals config.modules.packages.containers (containerPkgs {inherit pkgs;}))
           ++ (lib.optionals config.modules.packages.security (securityPkgs {inherit pkgs;}))
           ++ (lib.optionals config.modules.packages.devTools (devToolsPkgs {inherit pkgs;}))
           ++ (lib.optionals config.modules.packages.desktop (desktopPkgs {inherit pkgs;}));
@@ -85,10 +76,6 @@ in {
           type = lib.types.bool;
           default = false;
         };
-        containers = lib.mkOption {
-          type = lib.types.bool;
-          default = false;
-        };
         security = lib.mkOption {
           type = lib.types.bool;
           default = false;
@@ -103,10 +90,9 @@ in {
         };
       };
 
-      config = lib.mkIf (config.modules.packages.basic || config.modules.packages.containers || config.modules.packages.security || config.modules.packages.devTools || config.modules.packages.desktop) {
+      config = lib.mkIf (config.modules.packages.basic || config.modules.packages.security || config.modules.packages.devTools || config.modules.packages.desktop) {
         home.packages =
           (lib.optionals config.modules.packages.basic (basicPkgs {inherit pkgs;}))
-          ++ (lib.optionals config.modules.packages.containers (containerPkgs {inherit pkgs;}))
           ++ (lib.optionals config.modules.packages.security (securityPkgs {inherit pkgs;}))
           ++ (lib.optionals config.modules.packages.devTools (devToolsPkgs {inherit pkgs;}))
           ++ (lib.optionals config.modules.packages.desktop (desktopPkgs {inherit pkgs;}));

@@ -1,4 +1,7 @@
 {lib, ...}: let
+  tmuxAliases = {
+    t = "tmux new-session -A -s dev";
+  };
   tmuxCfg = {pkgs}: {
     enable = true;
     plugins = with pkgs.tmuxPlugins; [
@@ -96,7 +99,10 @@ in {
   }: {
     options.modules.tmux.enable = lib.mkEnableOption "Tmux";
     config = lib.mkIf config.modules.tmux.enable {
-      home-manager.users.${config.modules.users.userName}.programs.tmux = tmuxCfg {inherit pkgs;};
+      home-manager.users.${config.modules.users.userName} = {
+        programs.tmux = tmuxCfg {inherit pkgs;};
+        programs.zsh.shellAliases = tmuxAliases;
+      };
     };
   };
 
@@ -105,5 +111,6 @@ in {
     ...
   }: {
     programs.tmux = tmuxCfg {inherit pkgs;};
+    programs.zsh.shellAliases = tmuxAliases;
   };
 }

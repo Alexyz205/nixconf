@@ -1,63 +1,34 @@
 {lib, ...}: let
   nixconf = "$HOME/repos/personal/nixconf";
-  commonAliases = {
-    nf = "cd ${nixconf}";
+  shellAliases = {
+    nf = "cd $NIXCONF";
     repos = "cd $REPOS";
     ".." = "cd ..";
     "..." = "cd ../..";
     "...." = "cd ../../..";
     mkdir = "mkdir -pv";
-    ls = "eza --color=auto --icons=auto";
-    la = "eza -la --icons=auto";
-    ll = "eza -l --git --hyperlink --icons=auto";
-    lt = "eza --tree --level=2 --icons=auto";
-    lta = "eza --tree --level=2 --icons=auto -a";
-    ltl = "eza --tree --level=2 --icons=auto -l";
-    ldir = "eza --long --icons=auto --only-dirs";
-    lg = "lazygit";
-    lm = "eza --icons=auto --sort=modified";
-    lz = "eza --icons=auto --sort=size";
     f = "tv";
-    v = "nvim";
-    t = "tmux new-session -A -s dev";
     p = "python";
     e = "exit";
     c = "clear";
-    g = "git";
-    ga = "git add";
-    gc = "git commit";
-    gcm = "git commit -m";
-    gco = "git checkout";
-    gd = "git diff";
-    gl = "git log";
-    gp = "git pull";
-    gP = "git push";
-    gs = "git status";
-    d = "docker";
-    dc = "docker-compose";
-    ld = "lazydocker";
-    dru = "docker run -it --rm -v ~/repos/personal/nixconf:/root/nixconf ubuntu bash";
-    ds = "devpod ssh";
-    du = "devpod up .";
-    nr = "sudo nixos-rebuild switch --flake ${nixconf}";
-    nrb = "nixos-rebuild build --flake ${nixconf}";
-    nrt = "sudo nixos-rebuild test --flake ${nixconf}";
-    dr = "sudo darwin-rebuild switch --flake ${nixconf}";
-    drb = "sudo darwin-rebuild build --flake ${nixconf}";
-    drc = "sudo darwin-rebuild check --flake ${nixconf}";
-    hm = "home-manager switch --flake ${nixconf}";
-    hmb = "home-manager build --flake ${nixconf}";
-    hmc = "home-manager build --flake ${nixconf} --check";
-    nc = "nix flake check ${nixconf}";
+    nr = "sudo nixos-rebuild switch --flake $NIXCONF";
+    nrb = "nixos-rebuild build --flake $NIXCONF";
+    nrt = "sudo nixos-rebuild test --flake $NIXCONF";
+    dr = "sudo darwin-rebuild switch --flake $NIXCONF";
+    drb = "sudo darwin-rebuild build --flake $NIXCONF";
+    drc = "sudo darwin-rebuild check --flake $NIXCONF";
+    hm = "home-manager switch --flake $NIXCONF";
+    hmb = "home-manager build --flake $NIXCONF";
+    hmc = "home-manager build --flake $NIXCONF --check";
+    nc = "nix flake check $NIXCONF";
     ngc = "nix store gc";
     ngo = "nix store optimise";
-    nu = "nix flake update ${nixconf}";
-    nl = "nix flake lock ${nixconf}";
-    sec = "SOPS_AGE_KEY_FILE=${nixconf}/config/sops/yubi-age-identity sops ${nixconf}/secrets/secrets.yaml";
+    nu = "nix flake update $NIXCONF";
+    nl = "nix flake lock $NIXCONF";
+    sec = "SOPS_AGE_KEY_FILE=$NIXCONF/config/sops/yubi-age-identity sops $NIXCONF/secrets/secrets.yaml";
   };
   sharedFunctions = builtins.readFile ../../config/shell/functions.sh;
   zshExtra = builtins.readFile ../../config/shell/zsh-extra.zsh;
-  bashExtra = builtins.readFile ../../config/shell/bash-extra.sh;
 
   shellCfg = {
     pkgs,
@@ -92,9 +63,6 @@
           '';
       in
         builtins.concatStringsSep "" (lib.mapAttrsToList exportVar (config.sops.secrets or {}));
-    sessionVarsSource = ''
-      . "${config.home.sessionVariablesPackage}/etc/profile.d/hm-session-vars.sh"
-    '';
   in {
     programs.home-manager.enable = true;
     home = {
@@ -123,19 +91,12 @@
         save = 100000;
         share = true;
       };
-      shellAliases = commonAliases // {reload = "source ~/.zshrc";};
+      shellAliases = shellAliases // {reload = "source ~/.zshrc";};
       initContent = lib.mkMerge [
         (lib.mkOrder 600 sharedFunctions)
         (lib.mkOrder 900 zshExtra)
         (lib.mkOrder 950 secretExports)
       ];
-    };
-    programs.bash = {
-      enable = true;
-      enableCompletion = true;
-      historySize = 100000;
-      shellAliases = commonAliases // {reload = "source ~/.bashrc";};
-      initExtra = sharedFunctions + "\n" + bashExtra + "\n" + sessionVarsSource + secretExports;
     };
   };
 in {
@@ -145,7 +106,7 @@ in {
     pkgs,
     ...
   }: {
-    options.modules.shell.enable = lib.mkEnableOption "Shell (Zsh + Bash + env)";
+    options.modules.shell.enable = lib.mkEnableOption "Shell (Zsh + env)";
     config = lib.mkIf config.modules.shell.enable {
       programs.zsh.enable = true;
       programs.git.enable = true;

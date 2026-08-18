@@ -76,6 +76,19 @@
     ];
   };
 
+    gitAliases = {
+    g = "git";
+    ga = "git add";
+    gc = "git commit";
+    gcm = "git commit -m";
+    gco = "git checkout";
+    gd = "git diff";
+    gl = "git log";
+    gp = "git pull";
+    gP = "git push";
+    gs = "git status";
+  };
+
   gitWorkConfig = {
     home.file.".config/git/config-work".text = ''
       [user]
@@ -99,6 +112,7 @@ in {
       };
       home-manager.users.${config.modules.users.userName} = gitWorkConfig // {
         programs.git = gitCfg {inherit pkgs;};
+        programs.zsh.shellAliases = gitAliases;
       };
     };
   };
@@ -106,5 +120,6 @@ in {
   flake.modules.homeManager.git = {pkgs, ...}:
     gitWorkConfig // {
       programs.git = gitCfg {inherit pkgs;};
+      programs.zsh.shellAliases = gitAliases;
     };
 }

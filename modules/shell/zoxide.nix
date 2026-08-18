@@ -1,7 +1,6 @@
 let
   zoxideCfg = {
     enable = true;
-    enableBashIntegration = true;
     enableZshIntegration = true;
   };
 in

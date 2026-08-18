@@ -20,7 +20,6 @@
     programs.git.settings.credential."https://git.dxyz.pro".helper = ["" "!\${pkgs.glab}/bin/glab auth git-credential"];
     programs.lazyvim.plugins.gitlab = gitlabLua;
     programs.zsh.shellAliases = gitlabAliases;
-    programs.bash.shellAliases = gitlabAliases;
     sops.secrets.GITLAB_TOKEN = {};
   };
 in {

@@ -21,9 +21,9 @@ modules/
 ├── flake/              # options.nix (option types), home-manager.nix (standalone configs)
 ├── hosts/              # One file per machine / image
 ├── system/             # boot, disko, network, nix, podman, secrets, security, ssh, users, yubikey
-├── shell/              # shell, starship, tmux, zoxide, eza, bat, btop, lazygit, yazi, lazyvim, ghostty
+├── shell/              # shell, starship, tmux, zoxide, eza, bat, btop, yazi, ghostty
 ├── desktop/            # niri, noctalia, brave
-└── dev/                # devenv, git, gitlab, packages
+└── dev/                # containers, devenv, git, gitlab, lazygit, lazyvim, opencode, packages
 config/                 # Dotfiles & static assets referenced from feature modules
 examples/dev-env/       # Per-project devenv + devcontainer template
 scripts/                # test-all.sh, build-iso.sh
@@ -123,7 +123,7 @@ devenv up           # run services / stay resident (here: no services)
 ```
 
 On NixOS hosts the `modules.dev.devenv` feature is enabled, which installs
-`devenv` system-wide and adds a zsh/bash hook so devenv **auto-activates** when
+`devenv` system-wide and adds a zsh hook so devenv **auto-activates** when
 you `cd` into a repo that has its own `devenv.nix`. (Same behavior is provided
 for standalone home-manager profiles.)
 

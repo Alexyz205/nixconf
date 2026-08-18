@@ -3,12 +3,16 @@
   lib,
   ...
 }: let
+  lazyvimAliases = {
+    v = "nvim";
+  };
   lazyvimCfg = {
     lazyvim,
     pkgs,
     autoFormatOnSave ? true,
   }: {
     imports = [lazyvim.homeManagerModules.default];
+    programs.zsh.shellAliases = lazyvimAliases;
     programs.lazyvim = {
       enable = true;
       ignoreBuildNotifications = true;

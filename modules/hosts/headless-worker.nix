@@ -15,6 +15,7 @@
     users
     shell
     packages
+    containers
     disko
     secrets
     git
@@ -115,10 +116,10 @@
             # Packages
             modules.packages = {
               basic = true;
-              containers = true;
               security = true;
               devTools = true;
             };
+            modules.containers.enable = true;
             modules.shell.enable = true;
             modules.git.enable = true;
             modules.starship.enable = true;

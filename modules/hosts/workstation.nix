@@ -14,6 +14,7 @@
     users
     shell
     packages
+    containers
     disko
     secrets
     git
@@ -134,11 +135,11 @@
               users.extraGroups = ["wheel" "networkmanager" "podman" "video"];
               packages = {
                 basic = true;
-                containers = true;
                 security = true;
                 devTools = true;
                 desktop = true;
               };
+              containers.enable = true;
               shell.enable = true;
               git.enable = true;
               yubikey.enable = true;
