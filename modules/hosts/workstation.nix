@@ -74,10 +74,15 @@
                 "steam-unwrapped"
                 "claude-desktop"
                 "vesktop"
+                "nvidia-x11"
+                "nvidia-settings"
               ];
             disko.devices.disk.main.device = diskDevice;
 
             services.xserver.enable = true;
+            # Required for hardware.nvidia to actually activate: the module is
+            # gated on "nvidia" being listed here (nvidia.nix: nvidiaEnabled).
+            services.xserver.videoDrivers = ["nvidia"];
             # Disable TTS service: the graphical-desktop default enables
             # speech-dispatcher (pulls mbrola/espeak/flite, ~890MB, unused here).
             services.speechd.enable = false;
