@@ -60,10 +60,8 @@
       bind f resize-pane -Z
       bind q detach-client
       bind e choose-window -Z
-      bind h split-window -h -c "#{pane_current_path}"
-      bind | split-window -h -c "#{pane_current_path}"
-      bind v split-window -v -c "#{pane_current_path}"
-      bind - split-window -v -c "#{pane_current_path}"
+      bind % split-window -h -c "#{pane_current_path}"
+      bind '"' split-window -v -c "#{pane_current_path}"
       bind c new-window -c "#{pane_current_path}"
       bind -n C-Tab next-window
       bind -n C-S-Tab previous-window
