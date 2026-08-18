@@ -311,7 +311,6 @@ in {
 
         services.openssh.enable = true;
         users.users.root = {
-          initialHashedPassword = lib.mkForce null;
           password = "nixos";
         };
 

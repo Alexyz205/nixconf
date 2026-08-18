@@ -51,10 +51,8 @@
       GITUSER = "alexyz205";
       GHREPOS = "$HOME/repos/github.com/alexyz205";
       NIXCONF = nixconf;
-      XDG_CONFIG_HOME = "$HOME/.config";
       EZA_CONFIG_DIR = "$XDG_CONFIG_HOME/eza";
       TMUX_AUTO_START = "1";
-      PASSWORD_STORE_DIR = "$HOME/.password-store";
       BAT_THEME = "Catppuccin Mocha";
       PAGER = "bat";
       GIT_PAGER = "bat";
@@ -62,6 +60,7 @@
     };
   in {
     programs.home-manager.enable = true;
+    xdg.enable = true;
     home = {
       sessionPath = ["${config.home.homeDirectory}/bin" "${config.home.homeDirectory}/.local/bin"];
     };
@@ -78,6 +77,7 @@
     };
     programs.zsh = {
       enable = true;
+      dotDir = config.home.homeDirectory;
       enableCompletion = true;
       defaultKeymap = "viins";
       autosuggestion.enable = true;
