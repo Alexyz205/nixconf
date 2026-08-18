@@ -41,13 +41,13 @@ return {
 			preset = {
 				---@type snacks.dashboard.Item[]
 				keys = {
-					{ icon = " ", key = "f", desc = "Find File", action = ":Tv files" },
+					{ icon = " ", key = "f", desc = "Find File", action = ":lua Snacks.dashboard.pick('files')" },
 					{ icon = " ", key = "n", desc = "New File", action = ":ene | startinsert" },
 					{
 						icon = " ",
 						key = "g",
 						desc = "Find Text",
-						action = ":Tv text",
+						action = ":lua Snacks.dashboard.pick('live_grep')",
 					},
 					{
 						icon = " ",

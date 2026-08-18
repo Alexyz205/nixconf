@@ -25,6 +25,7 @@
     devenv
     opencode
     btop
+    tv
   ];
 
   mkHome = system: username: homeDirectory: extra: inputs.home-manager.lib.homeManagerConfiguration {
@@ -45,6 +46,7 @@
             devTools = true;
           };
           modules.containers.enable = true;
+          modules.tv.enable = true;
           gtk.gtk4.theme = null;
         }
       ]

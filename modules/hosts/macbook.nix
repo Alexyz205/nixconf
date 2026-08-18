@@ -20,6 +20,8 @@
     lazyvim
     yubikey
     opencode
+    devenv
+    tv
   ];
 in {
   flake.darwinConfigurations.macbook = inputs.nix-darwin.lib.darwinSystem {
@@ -96,6 +98,7 @@ in {
                 basic = true;
                 devTools = true;
               };
+              tv.enable = true;
             };
           };
         };

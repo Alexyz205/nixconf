@@ -28,6 +28,7 @@
     opencode
     zoxide
     lazyvim
+    tv
   ];
 
   mkServer = {
@@ -130,6 +131,7 @@
             modules.yazi.enable = true;
             modules.zoxide.enable = true;
             modules.lazyvim.enable = true;
+            modules.tv.enable = true;
             modules.opencode.enable = true;
 
             home-manager = {

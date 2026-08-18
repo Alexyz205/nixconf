@@ -31,6 +31,7 @@
     opencode
     zoxide
     lazyvim
+    tv
     niri
     noctalia
     hiddenApps
@@ -154,6 +155,7 @@
               yazi.enable = true;
               zoxide.enable = true;
               lazyvim.enable = true;
+              tv.enable = true;
               ghostty.enable = true;
               opencode.enable = true;
               devenv.enable = true;

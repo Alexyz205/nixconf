@@ -5,7 +5,6 @@
     openssl
     ripgrep
     fd
-    television
     fastfetch
     dust
     duf
