@@ -9,7 +9,7 @@ display = "{0}"
 output = "{0}"
 
 [preview]
-command = "jq -er --arg t '{0}' '.[] | select(.name==$t) | \"Description: \" + (.description // \"(no description)\") + \"\\n\\n\" + \"Exec:\\n\" + (.command // \"(group task, no script)\")' .devenv/gc/task-config-devenv-config-task-config 2>/dev/null || rg -n -A 8 '\\\"{0}\\\"' devenv.nix | sed 's/^/  /' | grep . || printf 'Run: devenv tasks run {0}\\n'"
+command = "s=$(rg -F -n -e '\"{0}\" = ' -e '{0} = ' devenv.nix 2>/dev/null | head -1 | cut -d: -f1); if [ -n \"$s\" ]; then o=$(tail -n +\"$s\" devenv.nix | rg -n '^[[:space:]]*};$' | head -1 | cut -d: -f1); e=$((s+o-1)); sed -n \"$s,$e\"p devenv.nix; else jq -er --arg t '{0}' '.[] | select(.name==$t) | \"Description: \" + (.description // \"(no description)\") + \"\\n\\n\" + \"Exec:\\n\" + (.command // \"(group task, no script)\")' .devenv/gc/task-config-devenv-config-task-config 2>/dev/null || printf 'Run: devenv tasks run {0}\\n'; fi"
 
 [ui]
 layout = "portrait"
