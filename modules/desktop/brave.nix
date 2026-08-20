@@ -90,7 +90,10 @@
       package = pkgs.brave;
       inherit extensions;
     };
-    home.file.".config/BraveSoftware/Brave-Browser/Default/Bookmarks".text = bookmarksJson;
+    home.file.".config/BraveSoftware/Brave-Browser/Default/Bookmarks" = {
+      text = bookmarksJson;
+      force = true;
+    };
   };
 in {
   flake.modules.nixos.brave = {
