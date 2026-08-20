@@ -190,6 +190,7 @@
                   # auto-enabled btop target must be disabled: its generated "stylix"
                   # theme conflicts with the repo's color_theme = "catppuccin_mocha".
                   stylix.targets = {
+                    ghostty.enable = false;
                     btop.enable = false;
                     blender.enable = false;
                     forge.enable = false;
