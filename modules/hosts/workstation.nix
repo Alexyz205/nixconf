@@ -15,6 +15,7 @@
     shell
     packages
     containers
+    devpod
     disko
     sops
     git

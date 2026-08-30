@@ -1,12 +1,4 @@
 {
-  "image": "ghcr.io/cachix/devenv/devcontainer:latest",
-  "overrideCommand": false,
-  "updateContentCommand": "devenv test",
-  "customizations": {
-    "vscode": {
-      "extensions": [
-        "mkhl.direnv"
-      ]
-    }
-  }
+  "name": "nixconf devpod",
+  "image": "ubuntu:24.04"
 }
