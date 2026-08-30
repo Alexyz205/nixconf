@@ -1,3 +1,12 @@
 {
-  "image": "mcr.microsoft.com/vscode/devcontainers/base:ubuntu"
+  "image": "ghcr.io/cachix/devenv/devcontainer:latest",
+  "overrideCommand": false,
+  "updateContentCommand": "devenv test",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "mkhl.direnv"
+      ]
+    }
+  }
 }

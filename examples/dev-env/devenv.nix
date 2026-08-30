@@ -65,31 +65,37 @@
     LC_ALL = "en_US.UTF-8";
   };
 
+  # Regenerate .devcontainer/devcontainer.json from this devenv.nix on every
+  # `devenv shell`/`devenv test`. Uses the official devenv base image, so
+  # `devpod up .` gives you the exact same tools as the local dev shell.
+  devcontainer.enable = true;
+
   # Runs when you enter `devenv shell` / `devenv up`.
   enterShell = ''
     echo "Dev shell ready — run 'devenv tasks list' to see available tasks"
   '';
 
   # Project tasks: runnable via `devenv tasks run <name>` (or the TV channel
-  # `devenv-tasks`). Edit `exec` to your real commands.
+  # `devenv-tasks`). Edit `exec` to your real commands. Task names must use
+  # `namespace:name` format (devenv >= 2.0).
   tasks = {
-    dev = {
+    "project:dev" = {
       description = "Start the dev server";
       exec = "echo 'TODO: define your dev server'";
     };
-    build = {
+    "project:build" = {
       description = "Build the project";
       exec = "echo 'TODO: define your build command'";
     };
-    test = {
+    "project:test" = {
       description = "Run the test suite";
       exec = "echo 'TODO: define your test command'";
     };
-    lint = {
+    "project:lint" = {
       description = "Lint the codebase";
       exec = "echo 'TODO: define your lint command'";
     };
-    fmt = {
+    "project:fmt" = {
       description = "Format the codebase";
       exec = "echo 'TODO: define your format command'";
     };

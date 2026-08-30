@@ -25,7 +25,7 @@ platform-specific rebuild aliases (`nr`/`hm`/`dr` sets), gated per platform
 flake.nix               # Entry point: flake-parts + import-tree
 devenv.nix / devenv.yaml# Dev environment for this repo (test tooling)
 modules/
-├── flake/              # options.nix (option types), home-manager.nix (standalone configs)
+├── flake/              # options.nix (option types), home-manager.nix (standalone configs), tools.nix (.#tools profile)
 ├── hosts/              # One file per machine / image
 ├── system/             # boot, disko, network, nix, podman, sops, security, ssh, users, yubikey
 ├── shell/              # shell, starship, tmux, zoxide, eza, bat, btop, yazi, ghostty
@@ -33,9 +33,49 @@ modules/
 └── dev/                # containers, devenv, git, gitlab, lazygit, lazyvim, opencode, packages
 config/                 # Dotfiles & static assets referenced from feature modules
 examples/dev-env/       # Per-project devenv + devcontainer template
-scripts/                # test-all.sh, build-iso.sh
+scripts/                # install-linux.sh, install-devcontainer.sh, test-all.sh, build-iso.sh
 secrets/                # sops-encrypted secrets
 ```
+
+## Install scripts
+
+Two standalone bootstrap scripts let anyone get the nixconf tooling without
+installing a full host config or home-manager.
+
+### `scripts/install-linux.sh` — standalone Nix + tools on any Linux box
+
+Bootstraps a fresh Linux machine (or Docker host) with Nix and the dev-tools
+stack. No home-manager, no system config — just the tools, installed as a
+user profile from the repo's `.#tools` output (a `symlinkJoin` of all tool
+binaries: git, neovim, lazygit, gh, ripgrep, fd, bat, eza, zoxide, starship,
+tmux, yazi, btop, delta, sops, devenv, …).
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Alexyz205/nixconf/main/scripts/install-linux.sh -o install-linux.sh
+bash install-linux.sh            # interactive; add -y to assume yes
+```
+
+It installs Nix via the official installer (downloaded to a temp file — never
+`curl | sh`), enables flakes in `~/.config/nix/nix.conf`, clones this repo to
+`$HOME/repos/personal/nixconf`, and runs `nix profile install .#tools`.
+
+### `scripts/install-devcontainer.sh` — devenv devcontainer for devpod
+
+Scaffolds a devenv dev environment + Dev Container into any project, so
+`devpod up .` (or VS Code Dev Containers) gives you the exact same toolset as
+the local dev shell. Uses the official devenv base image; the tool list comes
+from the copied `devenv.nix` template.
+
+```bash
+./scripts/install-devcontainer.sh [project-dir]   # defaults to .
+cd project-dir && devpod up .
+```
+
+Requires `nix` + `devenv` on PATH (both come with `install-linux.sh`, or via
+`nix profile install nixpkgs#devenv`). It copies `examples/dev-env/`, runs
+`devenv test` to validate and regenerate `.devcontainer/devcontainer.json`
+(the template sets `devcontainer.enable = true`), then prints devpod next
+steps.
 
 ## Hosts
 
