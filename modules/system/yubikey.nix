@@ -39,6 +39,11 @@
         SecurityKeyProvider = "internal";
         IdentityAgent = "none";
       };
+      # GitHub: prefer the plain ed25519 key already in ~/.ssh (primary);
+      # SSH skips it if absent and falls back to the YubiKey.
+      settings."github.com" = {
+        IdentityFile = ["~/.ssh/id_ed25519" "~/.ssh/${yubiKey}"];
+      };
     };
   };
 in {
