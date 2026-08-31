@@ -9,6 +9,14 @@
 # auto-activation. This file is also the reference template for new repos.
 { pkgs, ... }: {
   name = "nixconf";
+
+  # Kept in sync with .devcontainer.json (containerEnv + remoteEnv).
+  env = {
+    TERM = "screen-256color";
+    LANG = "en_US.UTF-8";
+    LC_ALL = "en_US.UTF-8";
+  };
+
   packages = with pkgs; [
     disko
     shellcheck
@@ -79,4 +87,62 @@
       };
     };
   };
+
+  # Project commands: `devenv tasks run <name>` (also reachable through the tv
+  # `devenv-tasks` channel). Mirrors scripts/test-all.sh plus common workflows.
+  tasks = {
+    "test:all" = {
+      description = "Run the full test suite (scripts/test-all.sh)";
+      exec = "./scripts/test-all.sh";
+    };
+    "test:flake" = {
+      description = "nix flake check (all configs, options, checks)";
+      exec = "nix flake check";
+    };
+    "test:eval" = {
+      description = "Dry-run eval every NixOS + home-manager config";
+      exec = "./scripts/test-all.sh eval";
+    };
+    "test:disko" = {
+      description = "Disko dry-run for workstation & headless-worker";
+      exec = "./scripts/test-all.sh disko";
+    };
+    "test:iso" = {
+      description = "Build the installer-iso image";
+      exec = "./scripts/test-all.sh iso";
+    };
+    "test:vm" = {
+      description = "Build the Proxmox VM image (.#proxmox-vm)";
+      exec = "./scripts/test-all.sh vm";
+    };
+    "test:shellcheck" = {
+      description = "Lint scripts/*.sh with shellcheck";
+      exec = "./scripts/test-all.sh shellcheck";
+    };
+    "repo:fmt" = {
+      description = "Format the repo (nixfmt, shfmt, prettierd via treefmt)";
+      exec = "treefmt";
+    };
+    "repo:fmt-check" = {
+      description = "Verify formatting without applying (CI-style)";
+      exec = "treefmt --fail-on-change";
+    };
+    "repo:lint" = {
+      description = "Static analysis: statix, deadnix, shellcheck";
+      exec = "statix check && deadnix -f . && shellcheck -S warning scripts/*.sh";
+    };
+    "repo:update" = {
+      description = "Update flake lockfile inputs (nix flake update)";
+      exec = "nix flake update";
+    };
+    "repo:lock" = {
+      description = "Refresh the flake lock without updating inputs";
+      exec = "nix flake lock";
+    };
+  };
+
+  enterShell = ''
+    echo "nixconf dev environment — run 'devenv tasks run <name>':"
+    echo "  test:all, test:{flake,eval,disko,iso,vm,shellcheck}  repo:{fmt,fmt-check,lint,update,lock}"
+  '';
 }
