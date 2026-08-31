@@ -52,6 +52,11 @@ let
   };
   # Extras for interactive desktop hosts (macos, linux, RNSL).
   desktopExtras = extras.yubikey ++ extras.ghostty ++ extras.containers;
+  # Required for standalone home-manager on non-NixOS Linux: wires nix.sh into
+  # the shell config so $HOME/.nix-profile/bin lands on PATH in managed shells.
+  genericLinux = {
+    targets.genericLinux.enable = true;
+  };
 
   mkHome =
     {
@@ -105,7 +110,7 @@ in
       system = "x86_64-linux";
       username = "alexis";
       homeDirectory = "/home/alexis";
-      extra = desktopExtras;
+      extra = desktopExtras ++ [ genericLinux ];
     };
     "alexis.pigeon@RNSL-APIGEON5" = mkHome {
       system = "x86_64-linux";
@@ -118,12 +123,14 @@ in
       system = "x86_64-linux";
       username = "alexis";
       homeDirectory = "/home/alexis";
+      extra = [ genericLinux ];
     };
     # Root-based container (devpod / docker, single-user nix): terminal-only.
     "root@container" = mkHome {
       system = "x86_64-linux";
       username = "root";
       homeDirectory = "/root";
+      extra = [ genericLinux ];
     };
   };
 }

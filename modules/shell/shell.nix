@@ -68,6 +68,10 @@ let
       xdg.enable = true;
       home = {
         sessionPath = [
+          # The home-manager profile bin (the generation ~/.nix-profile points
+          # at): ensures every managed shell finds the tools without depending
+          # on nix.sh (which no-ops when USER isn't exported, e.g. devpod exec).
+          "${config.home.profileDirectory}/bin"
           "${config.home.homeDirectory}/bin"
           "${config.home.homeDirectory}/.local/bin"
         ];
@@ -106,6 +110,14 @@ let
         shellAliases = extraAliases // {
           reload = "source ~/.zshrc";
         };
+        # devpod's ssh server inherits home-manager's __HM_*_SOURCED guards
+        # from the agent env, which makes hm-session-vars.sh early-return and
+        # leave PATH without the home-manager profile. Reset the guards in
+        # .zshenv (runs for every zsh) and re-source the session variables.
+        envExtra = ''
+          unset __HM_SESS_VARS_SOURCED __HM_ZSH_SESS_VARS_SOURCED
+          . "${config.home.sessionVariablesPackage}/etc/profile.d/hm-session-vars.sh"
+        '';
         initContent = lib.mkMerge [
           (lib.mkOrder 600 sharedFunctions)
           (lib.mkOrder 900 zshExtra)

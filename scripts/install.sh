@@ -210,6 +210,37 @@ activate_home() {
   log "Home-manager activated. Start a new shell to pick up zsh + aliases."
 }
 
+# devpod reads the user's shell from /etc/passwd, then execs it BY BASENAME
+# resolved through PATH (its ssh server does `filepath.Base(passwdShell)` and
+# `exec.Command("zsh")`). A nix-store path in passwd therefore never works —
+# zsh must be reachable by name, so symlink it into /usr/local/bin.
+set_login_shell() {
+  local zsh="$HOME/.nix-profile/bin/zsh"
+  [ -x "$zsh" ] || {
+    warn "zsh not found in the home-manager profile; keeping the default shell."
+    return 0
+  }
+  local zsh_path=/usr/local/bin/zsh
+  if [ ! -d /usr/local/bin ]; then
+    zsh_path=/usr/bin/zsh
+  fi
+  ln -sf "$zsh" "$zsh_path"
+  local user
+  user="$(id -un)"
+  if command -v chsh >/dev/null 2>&1; then
+    grep -qs "^${zsh_path}$" /etc/shells 2>/dev/null || echo "$zsh_path" >> /etc/shells
+    if [ "$(getent passwd "$user" 2>/dev/null | cut -d: -f7)" != "$zsh_path" ]; then
+      chsh -s "$zsh_path" "$user"
+      log "Set login shell to zsh for $user ($zsh_path)."
+    fi
+  elif command -v usermod >/dev/null 2>&1; then
+    usermod -s "$zsh_path" "$user"
+    log "Set login shell to zsh for $user ($zsh_path)."
+  else
+    warn "No chsh/usermod available — run 'zsh' manually until you set the shell."
+  fi
+}
+
 # -----------------------------------------------------------
 # container mode (default) / server mode
 # -----------------------------------------------------------
@@ -221,6 +252,7 @@ cmd_container() {
   ensure_flakes
   clone_repo
   activate_home
+  set_login_shell
 
   cat <<EOF
 
@@ -231,9 +263,10 @@ What was set up:
   - Flakes:       enabled in $HOME/.config/nix/nix.conf
   - Repo:         $INSTALL_DIR
   - Home-manager: $HM_CONFIG (zsh + starship + tmux + tools + aliases)
+  - Login shell:  zsh (devpod now drops you straight into it)
 
 Next steps:
-  1. Restart your shell (or 'source ~/.zshrc') so the tools + aliases are active.
+  1. Re-run 'devpod up' (or 'devpod ssh') to start the container shell as zsh.
   2. Project-specific tooling (LSPs, languages) comes from the repo's devenv.nix,
      not from home-manager.
 EOF
