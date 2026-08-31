@@ -105,6 +105,22 @@ let
       };
       modules = [ baseModule ] ++ modules ++ extra ++ linuxModules;
     };
+  # Container profiles: terminal-only, no extras. Plain images run as root;
+  # devcontainer base images run as their non-root `vscode` user, so both get a
+  # profile. install.sh picks `${user}@container` at runtime via `id -un`, so a
+  # new container user is one more `username = homeDir;` entry here.
+  containerUsers = {
+    root = "/root";
+    vscode = "/home/vscode";
+  };
+  containerConfigs = inputs.nixpkgs.lib.mapAttrs' (username: homeDirectory: {
+    name = "${username}@container";
+    value = mkHome {
+      system = "x86_64-linux";
+      inherit username homeDirectory;
+      extra = [ ];
+    };
+  }) containerUsers;
 in
 {
   flake.homeConfigurations = {
@@ -133,21 +149,6 @@ in
       homeDirectory = "/home/alexis";
       extra = [ ];
     };
-    # Root-based container (devpod / docker, single-user nix): terminal-only.
-    # Plain images run as root; devcontainer base images run as their non-root
-    # `vscode` user, so both get a profile. install.sh picks `${user}@container`
-    # at runtime via `id -un`.
-    "root@container" = mkHome {
-      system = "x86_64-linux";
-      username = "root";
-      homeDirectory = "/root";
-      extra = [ ];
-    };
-    "vscode@container" = mkHome {
-      system = "x86_64-linux";
-      username = "vscode";
-      homeDirectory = "/home/vscode";
-      extra = [ ];
-    };
-  };
+  }
+  // containerConfigs;
 }
