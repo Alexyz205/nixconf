@@ -16,10 +16,9 @@
   flake.modules.homeManager.opencode =
     {
       pkgs,
-      lib,
       ...
     }:
     {
-      home.packages = lib.mkIf (!pkgs.stdenv.hostPlatform.isDarwin) [ pkgs.opencode ];
+      home.packages = [ pkgs.opencode ];
     };
 }
