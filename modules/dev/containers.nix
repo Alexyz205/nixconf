@@ -80,6 +80,8 @@ in
     }:
     {
       options.modules.containers.enable = lib.mkEnableOption "Container tooling (devpod, docker-compose)";
-      config = lib.mkIf config.modules.containers.enable (homeConfig { inherit pkgs; });
+      config = lib.mkIf config.modules.containers.enable (homeConfig {
+        inherit pkgs;
+      });
     };
 }

@@ -228,7 +228,7 @@ set_login_shell() {
   local user
   user="$(id -un)"
   if command -v chsh >/dev/null 2>&1; then
-    grep -qs "^${zsh_path}$" /etc/shells 2>/dev/null || echo "$zsh_path" >> /etc/shells
+    grep -qs "^${zsh_path}$" /etc/shells 2>/dev/null || echo "$zsh_path" >>/etc/shells
     if [ "$(getent passwd "$user" 2>/dev/null | cut -d: -f7)" != "$zsh_path" ]; then
       chsh -s "$zsh_path" "$user"
       log "Set login shell to zsh for $user ($zsh_path)."
