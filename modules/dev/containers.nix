@@ -32,6 +32,9 @@ let
         "$devpod" provider add docker >/dev/null 2>&1 || true
       fi
       "$devpod" provider use docker >/dev/null 2>&1 || true
+      # SSH by default: `devpod up` starts the workspace + configures ssh, but
+      # never auto-opens a browser IDE (openvscode). Connect with `devpod ssh`.
+      "$devpod" ide use none >/dev/null 2>&1 || true
     }
     ensure_devpod
   '';
