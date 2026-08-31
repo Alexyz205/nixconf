@@ -19,6 +19,7 @@ let
   };
   trustedSettings = {
     auto-optimise-store = true;
+    # Keep 128 MiB free, start GC at 1 GiB free (byte literals for readability).
     min-free = 134217728;
     max-free = 1000000000;
   };

@@ -75,7 +75,7 @@ let
         {
           home = {
             inherit username homeDirectory;
-            stateVersion = "24.11";
+            stateVersion = "26.05";
           };
           # Replaces the old `.#tools` profile: every standalone home-manager
           # config ships the terminal tool stack (shell + basic + security

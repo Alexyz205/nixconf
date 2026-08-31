@@ -22,7 +22,7 @@ let
         inputs.home-manager.nixosModules.home-manager
         (mkHostCommon {
           inherit hostName;
-          stateVersion = "24.11";
+          stateVersion = "26.05";
         })
       ]
       ++ features

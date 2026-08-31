@@ -21,7 +21,7 @@ in
     ++ features
     ++ [
       ({ pkgs, modulesPath, ... }: {
-        system.stateVersion = "24.11";
+        system.stateVersion = "26.05";
 
         modules.users.userName = "alexis";
 

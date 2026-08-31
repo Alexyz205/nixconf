@@ -100,7 +100,7 @@ in
               home = {
                 username = "alexis";
                 homeDirectory = lib.mkForce "/Users/alexis";
-                stateVersion = "24.11";
+                stateVersion = "26.05";
               };
               nix.package = lib.mkForce pkgs.nix;
               modules = {

@@ -10,7 +10,6 @@
 { pkgs, ... }: {
   name = "nixconf";
 
-  # Kept in sync with .devcontainer.json (containerEnv + remoteEnv).
   env = {
     TERM = "screen-256color";
     LANG = "en_US.UTF-8";
