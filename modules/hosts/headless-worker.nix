@@ -9,6 +9,7 @@ let
   yubiPub = ../../config/ssh/id_ed25519_sk_rk_alexis-perso.pub;
   features = config.flake.nixosFeatures.server;
   mkBtrfsLayout = config.flake.mkBtrfsLayout;
+  mkHostCommon = config.flake.mkHostCommon;
 
   mkServer =
     {
@@ -21,6 +22,10 @@ let
         inputs.disko.nixosModules.disko
         inputs.sops-nix.nixosModules.sops
         inputs.home-manager.nixosModules.home-manager
+        (mkHostCommon {
+          inherit hostName;
+          stateVersion = "24.11";
+        })
       ]
       ++ features
       ++ [
@@ -32,9 +37,6 @@ let
             ...
           }:
           {
-            system.stateVersion = "24.11";
-            networking.hostName = hostName;
-            networking.firewall.allowedTCPPorts = [ ];
             disko.devices.disk.main.device = diskDevice;
             disko.devices.disk.main.content = lib.mkForce {
               type = "gpt";
@@ -97,17 +99,6 @@ let
             modules.tv.enable = true;
             modules.opencode.enable = true;
 
-            home-manager = {
-              useGlobalPkgs = true;
-              extraSpecialArgs = {
-                lazyvim = inputs.lazyvim;
-              };
-              users.${config.modules.users.userName} = {
-                home.stateVersion = "24.11";
-                nix.package = lib.mkForce pkgs.nix;
-              };
-            };
-
             # Server optimizations
             nix.gc = {
               automatic = true;
@@ -115,10 +106,6 @@ let
               options = "--delete-older-than 30d";
             };
             boot.kernelParams = [ "quiet" ];
-
-            hardware.enableRedistributableFirmware = true;
-            time.timeZone = "Europe/Paris";
-            i18n.defaultLocale = "en_US.UTF-8";
           }
         )
       ];

@@ -6,6 +6,7 @@
 let
   system = "x86_64-linux";
   features = config.flake.nixosFeatures.desktop;
+  mkHostCommon = config.flake.mkHostCommon;
 
   mkWorkstation =
     {
@@ -19,6 +20,10 @@ let
         inputs.sops-nix.nixosModules.sops
         inputs.stylix.nixosModules.stylix
         inputs.home-manager.nixosModules.home-manager
+        (mkHostCommon {
+          inherit hostName;
+          stateVersion = "24.11";
+        })
       ]
       ++ features
       ++ [
@@ -30,10 +35,6 @@ let
             ...
           }:
           {
-            system.stateVersion = "24.11";
-            networking.hostName = hostName;
-            networking.firewall.allowedTCPPorts = [ ];
-
             nixpkgs.config.allowUnfreePredicate =
               pkg:
               builtins.elem (lib.getName pkg) [
@@ -147,39 +148,31 @@ let
               youtubeMusic.enable = true;
             };
 
-            home-manager = {
-              useGlobalPkgs = true;
-              extraSpecialArgs = {
-                lazyvim = inputs.lazyvim;
+            home-manager.users.${config.modules.users.userName} = {
+              services.cliphist = {
+                enable = true;
+                allowImages = true;
               };
-              users.${config.modules.users.userName} = {
-                home.stateVersion = "24.11";
-                nix.package = lib.mkForce pkgs.nix;
-                services.cliphist = {
-                  enable = true;
-                  allowImages = true;
-                };
-                # Stylix targets for apps not present in this repo/configuration.
-                # AutoEnable would otherwise generate theme config for them.
-                # btop is themed explicitly by modules/shell/btop.nix, so Stylix's
-                # auto-enabled btop target must be disabled: its generated "stylix"
-                # theme conflicts with the repo's color_theme = "catppuccin_mocha".
-                stylix.targets = {
-                  ghostty.enable = false;
-                  btop.enable = false;
-                  blender.enable = false;
-                  forge.enable = false;
-                  gdu.enable = false;
-                  gedit.enable = false;
-                  gnome.enable = false;
-                  gnome-text-editor.enable = false;
-                  gtksourceview.enable = false;
-                  kde.enable = false;
-                  rofi.enable = false;
-                  vencord.enable = false;
-                  nixcord.enable = false;
-                  qt.enable = false;
-                };
+              # Stylix targets for apps not present in this repo/configuration.
+              # AutoEnable would otherwise generate theme config for them.
+              # btop is themed explicitly by modules/shell/btop.nix, so Stylix's
+              # auto-enabled btop target must be disabled: its generated "stylix"
+              # theme conflicts with the repo's color_theme = "catppuccin_mocha".
+              stylix.targets = {
+                ghostty.enable = false;
+                btop.enable = false;
+                blender.enable = false;
+                forge.enable = false;
+                gdu.enable = false;
+                gedit.enable = false;
+                gnome.enable = false;
+                gnome-text-editor.enable = false;
+                gtksourceview.enable = false;
+                kde.enable = false;
+                rofi.enable = false;
+                vencord.enable = false;
+                nixcord.enable = false;
+                qt.enable = false;
               };
             };
 
@@ -189,7 +182,6 @@ let
               pulse.enable = true;
             };
             hardware = {
-              enableRedistributableFirmware = true;
               bluetooth.enable = true;
               graphics.enable = true;
               # Unconditional: enables the NVIDIA driver whenever an NVIDIA GPU
@@ -201,8 +193,6 @@ let
             };
             security.rtkit.enable = true;
             fonts.packages = with pkgs; [ nerd-fonts.jetbrains-mono ];
-            time.timeZone = "Europe/Paris";
-            i18n.defaultLocale = "en_US.UTF-8";
             xdg.portal.enable = true;
             xdg.portal.extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
           }
