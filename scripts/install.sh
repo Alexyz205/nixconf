@@ -200,6 +200,10 @@ activate_home() {
     export NIX_SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
     export NIX_GIT_SSL_CAINFO=/etc/ssl/certs/ca-certificates.crt
   fi
+  # The devcontainer base image ships its own ~/.zshrc / ~/.zprofile (Oh My
+  # Zsh). Standalone activation has no `home-manager.backupFileExtension`, so
+  # back clobbered files up via the env var the activation script reads.
+  export HOME_MANAGER_BACKUP_EXT="hm-backup"
   # shellcheck disable=SC2016
   (cd "$INSTALL_DIR" && nix --extra-experimental-features "nix-command flakes" run "$INSTALL_DIR#homeConfigurations.$cfg.activationPackage")
   log "Home-manager activated. Start a new shell to pick up zsh + aliases."
