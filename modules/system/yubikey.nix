@@ -122,5 +122,13 @@ in {
     };
   };
 
-  flake.modules.homeManager.yubikey = yubiCfg;
+  flake.modules.homeManager.yubikey = {
+    config,
+    lib,
+    pkgs,
+    ...
+  }: {
+    options.modules.yubikey.enable = lib.mkEnableOption "YubiKey hardware auth";
+    config = lib.mkIf config.modules.yubikey.enable (yubiCfg {inherit pkgs;});
+  };
 }

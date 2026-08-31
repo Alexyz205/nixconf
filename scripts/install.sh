@@ -49,7 +49,7 @@ Commands:
 
 Options:
   -c, --config NAME    Home-manager config to activate.
-                       container -> alexis@container, server -> alexis@linux.
+                       container -> root@container, server -> alexis@server.
                        You can pick any, e.g. '-c alexis@linux'.
   -y, --yes            Assume yes to all prompts
   -n, --no-nix         Skip the Nix installer (Nix already present)
@@ -194,7 +194,7 @@ activate_home() {
 
 cmd_container() {
   check_deps
-  HM_CONFIG="${HM_CONFIG:-alexis@container}"
+  HM_CONFIG="${HM_CONFIG:-root@container}"
   ensure_nix single
   ensure_flakes
   clone_repo
@@ -219,7 +219,7 @@ EOF
 
 cmd_server() {
   check_deps
-  HM_CONFIG="${HM_CONFIG:-alexis@linux}"
+  HM_CONFIG="${HM_CONFIG:-alexis@server}"
   ensure_nix daemon
   ensure_flakes
   clone_repo

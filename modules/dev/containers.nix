@@ -57,7 +57,7 @@ in {
           ds = "devpod ssh";
           du = "devpod up .";
         };
-        home.activation.setupDevpod = config.lib.dag.entryAfter ["writeBoundary"] {
+        home.activation.setupDevpod = ''
           ensure_devpod() {
             command -v devpod >/dev/null 2>&1 || return 0
             if ! grep -q 'DOTFILES_URL' "$HOME/.devpod/config.yaml" 2>/dev/null; then
@@ -71,7 +71,7 @@ in {
             devpod provider use docker >/dev/null 2>&1 || true
           }
           ensure_devpod
-        };
+        '';
       };
     };
   };
@@ -92,7 +92,7 @@ in {
         ds = "devpod ssh";
         du = "devpod up .";
       };
-      home.activation.setupDevpod = config.lib.dag.entryAfter ["writeBoundary"] {
+      home.activation.setupDevpod = config.lib.dag.entryAfter ["writeBoundary"] ''
         ensure_devpod() {
           command -v devpod >/dev/null 2>&1 || return 0
           if ! grep -q 'DOTFILES_URL' "$HOME/.devpod/config.yaml" 2>/dev/null; then
@@ -106,7 +106,7 @@ in {
           devpod provider use docker >/dev/null 2>&1 || true
         }
         ensure_devpod
-      };
+      '';
     };
   };
 }

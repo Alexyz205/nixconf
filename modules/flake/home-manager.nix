@@ -4,37 +4,13 @@
   lib,
   ...
 }: let
-  fullModules = with config.flake.modules.homeManager; [
+  # Terminal-only tooling: the default for every host. Nothing GUI, hardware,
+  # secret, or platform-specific lives here — those are opt-in extras.
+  baseModules = with config.flake.modules.homeManager; [
     packages
     nix
     shell
     git
-    gitlab
-    containers
-    sops
-    bat
-    eza
-    zoxide
-    starship
-    tmux
-    yazi
-    lazygit
-    ghostty
-    lazyvim
-    yubikey
-    devenv
-    opencode
-    btop
-    tv
-  ];
-  # Containers can't reach the YubiKey, so sops (secret decryption), the
-  # hardware ssh key (yubikey), and the RNSL-only gitlab module are excluded.
-  containerModules = with config.flake.modules.homeManager; [
-    packages
-    nix
-    shell
-    git
-    containers
     bat
     eza
     zoxide
@@ -43,19 +19,45 @@
     yazi
     lazygit
     lazyvim
-    devenv
-    opencode
     btop
     tv
+    devenv
+    opencode
   ];
+  # Opt-in extras, each gated by its own `enable` option. Every extra follows
+  # the same shape: the feature module + the flag that switches it on.
+  extras = with config.flake.modules.homeManager; {
+    sops = [
+      inputs.sops-nix.homeManagerModules.sops
+      sops
+      {modules.sops.enable = true;}
+    ];
+    yubikey = [
+      yubikey
+      {modules.yubikey.enable = true;}
+    ];
+    ghostty = [
+      ghostty
+      {modules.ghostty.enable = true;}
+    ];
+    containers = [
+      containers
+      {modules.containers.enable = true;}
+    ];
+    gitlab = [
+      gitlab
+      {modules.gitlab.enable = true;}
+    ];
+  };
+  # Extras for interactive desktop hosts (macos, linux, RNSL).
+  desktopExtras = extras.sops ++ extras.yubikey ++ extras.ghostty ++ extras.containers;
 
   mkHome = {
     system,
     username,
     homeDirectory,
-    modules,
-    withSops ? true,
-    extra ? {},
+    modules ? baseModules,
+    extra ? [],
   }: let
     baseModule = {
       pkgs,
@@ -66,14 +68,13 @@
         stateVersion = "24.11";
       };
       # Replaces the old `.#tools` profile: every standalone home-manager
-      # config ships the full nixconf tool stack (shell + basic + security
-      # + devTools) plus the tools that used to live in tools.nix.
+      # config ships the terminal tool stack (shell + basic + security
+      # + devTools) plus tv.
       modules.packages = {
         basic = true;
         security = true;
         devTools = true;
       };
-      modules.containers.enable = true;
       modules.tv.enable = true;
       home.packages = [pkgs.nixfmt-rfc-style];
       gtk.gtk4.theme = null;
@@ -85,10 +86,9 @@
         lazyvim = inputs.lazyvim;
       };
       modules =
-        (lib.optionals withSops [inputs.sops-nix.homeManagerModules.sops])
-        ++ [baseModule]
+        [baseModule]
         ++ modules
-        ++ [extra];
+        ++ extra;
     };
 in {
   flake.homeConfigurations = {
@@ -96,29 +96,31 @@ in {
       system = "aarch64-darwin";
       username = "alexis";
       homeDirectory = "/Users/alexis";
-      modules = fullModules;
+      extra = desktopExtras;
     };
     "alexis@linux" = mkHome {
       system = "x86_64-linux";
       username = "alexis";
       homeDirectory = "/home/alexis";
-      modules = fullModules;
+      extra = desktopExtras;
     };
     "alexis.pigeon@RNSL-APIGEON5" = mkHome {
       system = "x86_64-linux";
       username = "alexis.pigeon";
       homeDirectory = "/home/alexis.pigeon";
-      modules = fullModules;
-      extra = {
-        modules.gitlab.enable = true;
-      };
+      extra = desktopExtras ++ extras.gitlab;
     };
-    "alexis@container" = mkHome {
+    # Headless Ubuntu server: terminal-only, no YubiKey / sops / GUI.
+    "alexis@server" = mkHome {
       system = "x86_64-linux";
       username = "alexis";
       homeDirectory = "/home/alexis";
-      modules = containerModules;
-      withSops = false;
+    };
+    # Root-based container (devpod / docker, single-user nix): terminal-only.
+    "root@container" = mkHome {
+      system = "x86_64-linux";
+      username = "root";
+      homeDirectory = "/root";
     };
   };
 }

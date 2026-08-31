@@ -8,6 +8,7 @@
   homeSopsModule = config.flake.modules.homeManager.sops;
 in {
   flake.modules.nixos.sops = {
+    config,
     pkgs,
     ...
   }: {
@@ -25,6 +26,7 @@ in {
         inputs.sops-nix.homeManagerModules.sops
         homeSopsModule
       ];
+      home-manager.users.${config.modules.users.userName}.modules.sops.enable = true;
     };
   };
 
@@ -49,13 +51,19 @@ in {
       sece = "SOPS_AGE_KEY_FILE=$NIXCONF/config/sops/yubi-age-identity sops $NIXCONF/secrets/env.yaml";
     };
   in {
-    sops = {
-      age.keyFile = "${config.home.homeDirectory}/repos/personal/nixconf/config/sops/yubi-age-identity";
-      age.plugins = [pkgs.age-plugin-yubikey];
-      defaultSopsFile = envFile;
-      secrets.GITHUB_TOKEN = {};
+    options.modules.sops.enable = lib.mkEnableOption "Sops secrets (env.yaml, GITHUB_TOKEN, sec/sece aliases)";
+    # The sops-nix base module is imported at the composition level (paired with
+    # this feature + enable in home-manager.nix), so hosts without a YubiKey
+    # (server, containers) never pull it in.
+    config = lib.mkIf config.modules.sops.enable {
+      sops = {
+        age.keyFile = "${config.home.homeDirectory}/repos/personal/nixconf/config/sops/yubi-age-identity";
+        age.plugins = [pkgs.age-plugin-yubikey];
+        defaultSopsFile = envFile;
+        secrets.GITHUB_TOKEN = {};
+      };
+      programs.zsh.shellAliases = sopsAliases;
+      programs.zsh.initContent = lib.mkOrder 950 secretExports;
     };
-    programs.zsh.shellAliases = sopsAliases;
-    programs.zsh.initContent = lib.mkOrder 950 secretExports;
   };
 }
