@@ -6,23 +6,23 @@
   "lsp": true,
   "share": "disabled",
   // --- Model Configuration ---
-  "model": "opencode/deepseek-v4-flash",
-  "small_model": "opencode/big-pickle",
+  "model": "opencode-go/deepseek-v4-pro",
+  "small_model": "opencode-go/deepseek-v4-flash",
   "agent": {
     "explore": {
-      "model": "opencode/deepseek-v4-flash",
+      "model": "opencode-go/deepseek-v4-flash",
       "steps": 20
     },
     "general": {
-      "model": "opencode/deepseek-v4-flash",
+      "model": "opencode-go/deepseek-v4-flash",
       "steps": 30
     },
     "task": {
-      "model": "opencode/deepseek-v4-flash",
+      "model": "opencode-go/deepseek-v4-flash",
       "steps": 30
     },
     "compaction": {
-      "model": "opencode/big-pickle"
+      "model": "opencode-go/deepseek-v4-flash"
     }
   },
   // --- LLM Providers ---
