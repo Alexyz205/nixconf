@@ -1,4 +1,38 @@
 {
   "$schema": "https://opencode.ai/tui.json",
   "theme": "catppuccin",
+
+  // Diff rendering: "auto" adapts to terminal width, "stacked" forces a
+  // single-column layout.
+  "diff_style": "auto",
+
+  // macOS-style scrolling: speed ramps with rapid scrolling gestures.
+  "scroll_acceleration": {
+    "enabled": true
+  },
+
+  // Terminal cursor in TUI input fields.
+  "cursor": {
+    "style": "block",
+    "blinking": true
+  },
+
+  // Cap the prompt box so it doesn't grow unbounded.
+  "prompt": {
+    "max_height": 15,
+    "max_width": "auto"
+  },
+
+  // Desktop notifications + sounds when a session finishes, errors, or asks.
+  "attention": {
+    "enabled": true,
+    "notifications": true,
+    "sound": true,
+    "volume": 0.4
+  },
+
+  // Extra keybinds (merged with defaults; leader = ctrl+x).
+  "keybinds": {
+    "app_toggle_file_context": "<leader>f"
+  }
 }
