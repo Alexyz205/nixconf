@@ -1,4 +1,63 @@
-{ lib, ... }: {
+{
+  lib,
+  ...
+}:
+let
+  # Shared btrfs layout: the subvolume set every disko-managed host uses.
+  # `luks = true` wraps it in a LUKS container (workstation); bare otherwise
+  # (headless-worker). Exposed as config.flake.mkBtrfsLayout for hosts to reuse.
+  btrfsLayout =
+    {
+      swapSize ? "8G",
+      luks ? false,
+      luksName ? "crypted",
+    }:
+    let
+      fs = {
+        type = "btrfs";
+        extraArgs = [ "-f" ];
+        subvolumes = {
+          "/root" = {
+            mountpoint = "/";
+            mountOptions = [
+              "compress=zstd"
+              "noatime"
+            ];
+          };
+          "/home" = {
+            mountpoint = "/home";
+            mountOptions = [
+              "compress=zstd"
+              "noatime"
+            ];
+          };
+          "/nix" = {
+            mountpoint = "/nix";
+            mountOptions = [
+              "compress=zstd"
+              "noatime"
+            ];
+          };
+          "/swap" = {
+            mountpoint = "/.swapvol";
+            swap.swapfile.size = swapSize;
+          };
+        };
+      };
+    in
+    if luks then
+      {
+        type = "luks";
+        name = luksName;
+        settings.allowDiscards = true;
+        content = fs;
+      }
+    else
+      fs;
+in
+{
+  flake.mkBtrfsLayout = btrfsLayout;
+
   flake.modules.nixos.disko = { ... }: {
     disko.devices.disk.main = {
       type = "disk";
@@ -18,42 +77,7 @@
           };
           luks = {
             size = "100%";
-            content = {
-              type = "luks";
-              name = "crypted";
-              settings.allowDiscards = true;
-              content = {
-                type = "btrfs";
-                extraArgs = [ "-f" ];
-                subvolumes = {
-                  "/root" = {
-                    mountpoint = "/";
-                    mountOptions = [
-                      "compress=zstd"
-                      "noatime"
-                    ];
-                  };
-                  "/home" = {
-                    mountpoint = "/home";
-                    mountOptions = [
-                      "compress=zstd"
-                      "noatime"
-                    ];
-                  };
-                  "/nix" = {
-                    mountpoint = "/nix";
-                    mountOptions = [
-                      "compress=zstd"
-                      "noatime"
-                    ];
-                  };
-                  "/swap" = {
-                    mountpoint = "/.swapvol";
-                    swap.swapfile.size = "8G";
-                  };
-                };
-              };
-            };
+            content = btrfsLayout { luks = true; };
           };
         };
       };

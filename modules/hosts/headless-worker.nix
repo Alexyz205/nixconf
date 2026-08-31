@@ -7,30 +7,8 @@
 let
   system = "x86_64-linux";
   yubiPub = ../../config/ssh/id_ed25519_sk_rk_alexis-perso.pub;
-  features = with config.flake.modules.nixos; [
-    boot
-    security
-    ssh
-    podman
-    nix
-    users
-    shell
-    packages
-    containers
-    disko
-    sops
-    git
-    starship
-    tmux
-    bat
-    eza
-    lazygit
-    yazi
-    opencode
-    zoxide
-    lazyvim
-    tv
-  ];
+  features = config.flake.nixosFeatures.server;
+  mkBtrfsLayout = config.flake.mkBtrfsLayout;
 
   mkServer =
     {
@@ -73,37 +51,7 @@ let
                 };
                 root = {
                   size = "100%";
-                  content = {
-                    type = "btrfs";
-                    extraArgs = [ "-f" ];
-                    subvolumes = {
-                      "/root" = {
-                        mountpoint = "/";
-                        mountOptions = [
-                          "compress=zstd"
-                          "noatime"
-                        ];
-                      };
-                      "/home" = {
-                        mountpoint = "/home";
-                        mountOptions = [
-                          "compress=zstd"
-                          "noatime"
-                        ];
-                      };
-                      "/nix" = {
-                        mountpoint = "/nix";
-                        mountOptions = [
-                          "compress=zstd"
-                          "noatime"
-                        ];
-                      };
-                      "/swap" = {
-                        mountpoint = "/.swapvol";
-                        swap.swapfile.size = "8G";
-                      };
-                    };
-                  };
+                  content = mkBtrfsLayout { };
                 };
               };
             };

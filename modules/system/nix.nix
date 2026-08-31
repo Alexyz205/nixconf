@@ -24,7 +24,7 @@ let
   };
 in
 {
-  flake.modules.nixos.nix = { _ }: {
+  flake.modules.nixos.nix = _: {
     nix.settings =
       userSettings
       // trustedSettings

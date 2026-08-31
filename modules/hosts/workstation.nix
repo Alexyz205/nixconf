@@ -5,43 +5,7 @@
 }:
 let
   system = "x86_64-linux";
-  features = with config.flake.modules.nixos; [
-    boot
-    network
-    security
-    ssh
-    podman
-    nix
-    users
-    shell
-    packages
-    containers
-    disko
-    sops
-    git
-    yubikey
-    devenv
-    starship
-    tmux
-    bat
-    eza
-    lazygit
-    yazi
-    btop
-    ghostty
-    opencode
-    zoxide
-    lazyvim
-    tv
-    niri
-    noctalia
-    hiddenApps
-    brave
-    claude
-    discord
-    steam
-    youtubeMusic
-  ];
+  features = config.flake.nixosFeatures.desktop;
 
   mkWorkstation =
     {
