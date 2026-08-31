@@ -15,10 +15,10 @@
 # Usage:  ./scripts/install.sh [command] [options]
 # =========================================================
 set -euo pipefail
+IFS=$'\n\t'
 
-NIX_CONF="${NIXCONF:-$HOME/repos/personal/nixconf}"
-REPO_URL="${NIXCONF_REPO_URL:-https://github.com/Alexyz205/nixconf.git}"
-INSTALL_DIR="${NIX_CONF}"
+readonly INSTALL_DIR="${NIXCONF:-$HOME/repos/personal/nixconf}"
+readonly REPO_URL="https://github.com/Alexyz205/nixconf.git"
 
 INSTALL_NIX=1
 ASSUME_YES=0
@@ -38,13 +38,8 @@ Commands:
   -h, --help           Show this help message
 
 Options:
-  -c, --config NAME    Home-manager config to activate.
-                       container -> root@container, server -> alexis@server.
-                       You can pick any, e.g. '-c alexis@linux'.
   -y, --yes            Assume yes to all prompts
   -n, --no-nix         Skip the Nix installer (Nix already present)
-  -d, --dir DIR        Clone target dir (default: \$HOME/repos/personal/nixconf)
-  -u, --url URL        Repo URL to clone (default: github.com/Alexyz205/nixconf)
 
 Exit codes: 0=success 1=error 2=usage 3=dependencies
 EOF
@@ -56,12 +51,12 @@ err() { printf '[ERROR] %s\n' "$*" >&2; }
 
 confirm() {
   local prompt="$1"
-  if [ "$ASSUME_YES" = "1" ]; then
+  if [[ "$ASSUME_YES" = "1" ]]; then
     return 0
   fi
   # Non-interactive stdin (devpod / CI bootstrap): assume yes instead of
   # letting `read` fail on EOF and skipping the setup.
-  if [ ! -t 0 ]; then
+  if [[ ! -t 0 ]]; then
     return 0
   fi
   local reply
@@ -78,11 +73,11 @@ check_deps() {
   for cmd in curl git; do
     command -v "$cmd" >/dev/null 2>&1 || missing+=("$cmd")
   done
-  if [ "${#missing[@]}" -eq 0 ]; then
+  if [[ "${#missing[@]}" -eq 0 ]]; then
     return 0
   fi
 
-  if [ "$COMMAND" = "container" ] && command -v apt-get >/dev/null 2>&1; then
+  if [[ "$COMMAND" = "container" ]] && command -v apt-get >/dev/null 2>&1; then
     log "Installing missing base deps with apt: ${missing[*]}"
     apt-get update -qq
     apt-get install -y -qq "${missing[@]}" >/dev/null 2>&1 || {
@@ -107,7 +102,7 @@ ensure_nix() {
     log "Nix already installed ($(nix --version))"
     return 0
   fi
-  if [ "$INSTALL_NIX" = "0" ]; then
+  if [[ "$INSTALL_NIX" = "0" ]]; then
     err "Nix is required but not found; pass without --no-nix to install it."
     exit 3
   fi
@@ -127,18 +122,18 @@ ensure_nix() {
     exit 1
   fi
 
-  if [ "$mode" = "single" ]; then
+  if [[ "$mode" = "single" ]]; then
     # Running as root in a container: the installer wants `sudo` (absent) to
     # create /nix, and Nix hardcodes `build-users-group = nixbld` when run as
     # root (no such group in the image). Pre-create /nix and pin an empty
     # build-users-group so neither is needed — no extra packages required.
-    if [ "$(id -u)" = "0" ]; then
-      if [ ! -d /nix ]; then
+    if [[ "$(id -u)" = "0" ]]; then
+      if [[ ! -d /nix ]]; then
         log "Pre-creating /nix (running as root, no sudo available)..."
         mkdir -m 0755 /nix
         chown root /nix
       fi
-      if [ ! -e /etc/nix/nix.conf ]; then
+      if [[ ! -e /etc/nix/nix.conf ]]; then
         log "Disabling build-users-group in /etc/nix/nix.conf (no nixbld group)..."
         mkdir -p /etc/nix
         printf 'build-users-group =\n' >/etc/nix/nix.conf
@@ -150,7 +145,7 @@ ensure_nix() {
       exit 1
     fi
     # shellcheck disable=SC1091
-    [ -e "$HOME/.nix-profile/etc/profile.d/nix.sh" ] && . "$HOME/.nix-profile/etc/profile.d/nix.sh"
+    [[ -e "$HOME/.nix-profile/etc/profile.d/nix.sh" ]] && . "$HOME/.nix-profile/etc/profile.d/nix.sh"
     # nix.sh no-ops unless USER is exported (not set in containers) — put the
     # profile bin on PATH explicitly so nix is usable in this same shell.
     export PATH="$HOME/.nix-profile/bin:$PATH"
@@ -162,7 +157,7 @@ ensure_nix() {
       err "Nix installer failed."
       exit 1
     fi
-    if [ -e /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh ]; then
+    if [[ -e /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh ]]; then
       # shellcheck disable=SC1091
       . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
     fi
@@ -180,7 +175,7 @@ ensure_flakes() {
 }
 
 clone_repo() {
-  if [ -d "$INSTALL_DIR/.git" ]; then
+  if [[ -d "$INSTALL_DIR/.git" ]]; then
     log "Repo already cloned at $INSTALL_DIR"
     return 0
   fi
@@ -201,7 +196,7 @@ activate_home() {
   # bundle — point nix's git fetches at it so corporate CAs are honoured.
   export USER="${USER:-$(id -un)}"
   export LOGNAME="${LOGNAME:-$USER}"
-  if [ -e /etc/ssl/certs/ca-certificates.crt ]; then
+  if [[ -e /etc/ssl/certs/ca-certificates.crt ]]; then
     export NIX_SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
     export NIX_GIT_SSL_CAINFO=/etc/ssl/certs/ca-certificates.crt
   fi
@@ -216,12 +211,12 @@ activate_home() {
 # zsh must be reachable by name, so symlink it into /usr/local/bin.
 set_login_shell() {
   local zsh="$HOME/.nix-profile/bin/zsh"
-  [ -x "$zsh" ] || {
+  [[ -x "$zsh" ]] || {
     warn "zsh not found in the home-manager profile; keeping the default shell."
     return 0
   }
   local zsh_path=/usr/local/bin/zsh
-  if [ ! -d /usr/local/bin ]; then
+  if [[ ! -d /usr/local/bin ]]; then
     zsh_path=/usr/bin/zsh
   fi
   ln -sf "$zsh" "$zsh_path"
@@ -229,7 +224,7 @@ set_login_shell() {
   user="$(id -un)"
   if command -v chsh >/dev/null 2>&1; then
     grep -qs "^${zsh_path}$" /etc/shells 2>/dev/null || echo "$zsh_path" >>/etc/shells
-    if [ "$(getent passwd "$user" 2>/dev/null | cut -d: -f7)" != "$zsh_path" ]; then
+    if [[ "$(getent passwd "$user" 2>/dev/null | cut -d: -f7)" != "$zsh_path" ]]; then
       chsh -s "$zsh_path" "$user"
       log "Set login shell to zsh for $user ($zsh_path)."
     fi
@@ -247,7 +242,7 @@ set_login_shell() {
 
 cmd_container() {
   check_deps
-  HM_CONFIG="${HM_CONFIG:-root@container}"
+  HM_CONFIG="root@container"
   ensure_nix single
   ensure_flakes
   clone_repo
@@ -274,7 +269,7 @@ EOF
 
 cmd_server() {
   check_deps
-  HM_CONFIG="${HM_CONFIG:-alexis@server}"
+  HM_CONFIG="alexis@server"
   ensure_nix daemon
   ensure_flakes
   clone_repo
@@ -312,18 +307,6 @@ main() {
     case "$1" in
     -y | --yes) ASSUME_YES=1 ;;
     -n | --no-nix) INSTALL_NIX=0 ;;
-    -d | --dir)
-      INSTALL_DIR="$2"
-      shift
-      ;;
-    -u | --url)
-      REPO_URL="$2"
-      shift
-      ;;
-    -c | --config)
-      HM_CONFIG="$2"
-      shift
-      ;;
     -h | --help)
       usage
       exit 0
