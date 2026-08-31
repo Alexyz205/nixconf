@@ -51,7 +51,8 @@ let
     ];
   };
   # Extras for interactive desktop hosts (macos, linux, RNSL).
-  desktopExtras = extras.yubikey ++ extras.ghostty ++ extras.containers;
+  desktopExtras = extras.sops ++ extras.yubikey ++ extras.ghostty ++ extras.containers;
+
   # Required for standalone home-manager on non-NixOS Linux: wires nix.sh into
   # the shell config so $HOME/.nix-profile/bin lands on PATH in managed shells.
   genericLinux = {
@@ -116,7 +117,7 @@ in
       system = "x86_64-linux";
       username = "alexis.pigeon";
       homeDirectory = "/home/alexis.pigeon";
-      extra = desktopExtras;
+      extra = desktopExtras ++ extras.gitlab;
     };
     # Headless Ubuntu server: terminal-only, no YubiKey / sops / GUI.
     "alexis@server" = mkHome {
