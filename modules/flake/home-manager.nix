@@ -94,9 +94,9 @@ let
         };
       # Any non-darwin target is a non-NixOS Linux host, so genericLinux is
       # always part of the module set (see comment above).
-      linuxModules = inputs.nixpkgs.lib.optionals (
-        inputs.nixpkgs.lib.hasSuffix "linux" system
-      ) [ genericLinux ];
+      linuxModules = inputs.nixpkgs.lib.optionals (inputs.nixpkgs.lib.hasSuffix "linux" system) [
+        genericLinux
+      ];
     in
     inputs.home-manager.lib.homeManagerConfiguration {
       pkgs = inputs.nixpkgs.legacyPackages.${system};
