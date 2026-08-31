@@ -11,17 +11,10 @@
 #   server               Bootstrap a new server / image: install Nix
 #                        (multi-user daemon), clone the repo, activate the
 #                        server home-manager profile.
-#   devpod [DIR]         Scaffold a devenv devcontainer into a project. The
-#                        devcontainer bootstraps via this same install script,
-#                        so it works on any base image you can't change.
 #
 # Usage:  ./scripts/install.sh [command] [options]
 # =========================================================
 set -euo pipefail
-
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-TEMPLATE_DIR="$REPO_ROOT/examples/dev-env"
 
 NIX_CONF="${NIXCONF:-$HOME/repos/personal/nixconf}"
 REPO_URL="${NIXCONF_REPO_URL:-https://github.com/Alexyz205/nixconf.git}"
@@ -29,7 +22,6 @@ INSTALL_DIR="${NIX_CONF}"
 
 INSTALL_NIX=1
 ASSUME_YES=0
-FORCE=0
 COMMAND="container"
 HM_CONFIG=""
 
@@ -43,8 +35,6 @@ Commands:
                        (full dotfiles: zsh, starship, tmux, tools, aliases).
   server               Bootstrap a new server/image: multi-user Nix (daemon),
                        clone repo, activate the server home-manager profile.
-  devpod [DIR]         Scaffold a devenv devcontainer into a project; it
-                       bootstraps via this same install script on \`devpod up\`.
   -h, --help           Show this help message
 
 Options:
@@ -55,7 +45,6 @@ Options:
   -n, --no-nix         Skip the Nix installer (Nix already present)
   -d, --dir DIR        Clone target dir (default: \$HOME/repos/personal/nixconf)
   -u, --url URL        Repo URL to clone (default: github.com/Alexyz205/nixconf)
-  -f, --force          Overwrite existing files (devpod mode)
 
 Exit codes: 0=success 1=error 2=usage 3=dependencies
 EOF
@@ -152,7 +141,7 @@ ensure_nix() {
       if [ ! -e /etc/nix/nix.conf ]; then
         log "Disabling build-users-group in /etc/nix/nix.conf (no nixbld group)..."
         mkdir -p /etc/nix
-        printf 'build-users-group =\n' > /etc/nix/nix.conf
+        printf 'build-users-group =\n' >/etc/nix/nix.conf
       fi
     fi
     log "Running installer (single-user, no daemon — container mode)..."
@@ -276,106 +265,12 @@ EOF
 }
 
 # -----------------------------------------------------------
-# devpod mode
-# -----------------------------------------------------------
-
-check_devenv() {
-  command -v nix >/dev/null 2>&1 || {
-    err "Nix is required. Install it first:"
-    err "  $REPO_ROOT/scripts/install.sh server"
-    exit 3
-  }
-  command -v devenv >/dev/null 2>&1 || {
-    err "devenv is required. Install it, e.g.:"
-    err "  nix profile install nixpkgs#devenv"
-    exit 3
-  }
-}
-
-copy_template() {
-  local dest
-  mkdir -p "$PROJECT_DIR/.devcontainer"
-
-  if [ -e "$PROJECT_DIR/devenv.nix" ] && [ "$FORCE" != "1" ]; then
-    warn "devenv.nix already exists; leaving it in place (use -f to overwrite)."
-  else
-    if [ -e "$PROJECT_DIR/devenv.nix" ] && ! confirm "Overwrite $PROJECT_DIR/devenv.nix?"; then
-      warn "Skipping devenv.nix."
-    else
-      cp "$TEMPLATE_DIR/devenv.nix" "$PROJECT_DIR/devenv.nix"
-      log "Copied devenv.nix -> $PROJECT_DIR/devenv.nix"
-    fi
-  fi
-
-  dest="$PROJECT_DIR/.devcontainer/devcontainer.json"
-  if [ -e "$dest" ] && [ "$FORCE" != "1" ]; then
-    warn "$dest already exists; leaving it in place (use -f to overwrite)."
-  else
-    if [ -e "$dest" ] && ! confirm "Overwrite $dest?"; then
-      warn "Skipping devcontainer.json."
-    else
-      cp "$TEMPLATE_DIR/.devcontainer/devcontainer.json" "$dest"
-      log "Copied devcontainer.json -> $dest"
-    fi
-  fi
-
-  # Ship the installer inside the project so the devcontainer can run it
-  # without knowing the repo URL (works on any base image).
-  cp "$SCRIPT_DIR/install.sh" "$PROJECT_DIR/.devcontainer/install.sh"
-  chmod +x "$PROJECT_DIR/.devcontainer/install.sh"
-  log "Copied install.sh -> $PROJECT_DIR/.devcontainer/install.sh"
-}
-
-validate() {
-  log "Running 'devenv test' in $PROJECT_DIR..."
-  # shellcheck disable=SC2016
-  (cd "$PROJECT_DIR" && devenv test)
-}
-
-cmd_devpod() {
-  check_devenv
-
-  if [ ! -d "$TEMPLATE_DIR" ]; then
-    err "Template not found at $TEMPLATE_DIR — is this the nixconf repo?"
-    exit 1
-  fi
-
-  copy_template
-  validate
-
-  cat <<EOF
-
-Devcontainer ready in $PROJECT_DIR.
-
-What was set up:
-  - devenv.nix                       PROJECT-SPECIFIC tooling only (languages, LSPs, tasks)
-  - .devcontainer/devcontainer.json  base image + runs .devcontainer/install.sh on start
-  - .devcontainer/install.sh         the nixconf installer (container mode)
-
-How it works:
-  - \`devpod up .\` starts the base image you chose (edit .devcontainer/
-    devcontainer.json), then runs this installer, which sets up the FULL
-    nixconf dotfiles inside the container (zsh + starship + tmux + tools),
-    exactly like a server. No image customization needed.
-  - The devenv.nix only adds project-specific LSPs/languages on top.
-
-Use it with devpod:
-  cd "$PROJECT_DIR"
-  devpod up .                 # or the 'du' alias
-  devpod ssh .                # or 'ds'
-
-Or with VS Code Dev Containers:
-  code .  ->  Reopen in Container
-EOF
-}
-
-# -----------------------------------------------------------
 # arg parsing
 # -----------------------------------------------------------
 
 main() {
   # First positional arg selects the command; the rest are flags / dirs.
-  if [[ $# -gt 0 ]] && [[ $1 == "container" || $1 == "server" || $1 == "devpod" ]]; then
+  if [[ $# -gt 0 ]] && [[ $1 == "container" || $1 == "server" ]]; then
     COMMAND="$1"
     shift
   fi
@@ -396,7 +291,6 @@ main() {
       HM_CONFIG="$2"
       shift
       ;;
-    -f | --force) FORCE=1 ;;
     -h | --help)
       usage
       exit 0
@@ -406,7 +300,6 @@ main() {
       usage >&2
       exit 2
       ;;
-    *) PROJECT_DIR="$1" ;;
     esac
     shift
   done
@@ -414,10 +307,6 @@ main() {
   case "$COMMAND" in
   container) cmd_container ;;
   server) cmd_server ;;
-  devpod)
-    PROJECT_DIR="${PROJECT_DIR:-.}"
-    cmd_devpod
-    ;;
   esac
 }
 

@@ -85,20 +85,6 @@ let
           }
         '';
         configFiles = toString ../../config/lazyvim;
-        extraPackages = with pkgs; [
-          marksman
-          yaml-language-server
-          vscode-json-languageserver
-          basedpyright
-          taplo
-          ruff
-          prettierd
-          markdownlint-cli
-          nil
-          nixfmt
-          shfmt
-          statix
-        ];
       };
     };
 in
@@ -120,21 +106,6 @@ in
         };
       };
       config = lib.mkIf config.modules.lazyvim.enable {
-        environment.systemPackages = with pkgs; [
-          neovim
-          marksman
-          yaml-language-server
-          vscode-json-languageserver
-          basedpyright
-          taplo
-          ruff
-          prettierd
-          markdownlint-cli
-          nil
-          nixfmt
-          shfmt
-          statix
-        ];
         home-manager.users.${config.modules.users.userName} = lazyvimCfg {
           inherit (inputs) lazyvim;
           inherit pkgs;

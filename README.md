@@ -23,7 +23,7 @@ platform-specific rebuild aliases (`nr`/`hm`/`dr` sets), gated per platform
 
 ```
 flake.nix               # Entry point: flake-parts + import-tree
-devenv.nix / devenv.yaml# Dev environment for this repo (test tooling)
+devenv.nix / devenv.yaml# Dev environment for this repo (LSPs, formatters, test tooling)
 modules/
 ├── flake/              # options.nix (option types), home-manager.nix (standalone configs), tools.nix (.#tools profile)
 ├── hosts/              # One file per machine / image
@@ -32,8 +32,7 @@ modules/
 ├── desktop/            # brave, claude, discord, hidden-apps, niri, noctalia, steam, youtube-music
 └── dev/                # containers, devenv, git, gitlab, lazygit, lazyvim, opencode, packages
 config/                 # Dotfiles & static assets referenced from feature modules
-examples/dev-env/       # Per-project devenv + devcontainer template
-scripts/                # install-linux.sh, install-devcontainer.sh, test-all.sh, build-iso.sh
+scripts/                # install.sh, test-all.sh, build-iso.sh
 secrets/                # sops-encrypted secrets
 ```
 
@@ -42,40 +41,19 @@ secrets/                # sops-encrypted secrets
 Two standalone bootstrap scripts let anyone get the nixconf tooling without
 installing a full host config or home-manager.
 
-### `scripts/install-linux.sh` — standalone Nix + tools on any Linux box
+### `scripts/install.sh` — container / server bootstrap
 
-Bootstraps a fresh Linux machine (or Docker host) with Nix and the dev-tools
-stack. No home-manager, no system config — just the tools, installed as a
-user profile from the repo's `.#tools` output (a `symlinkJoin` of all tool
-binaries: git, neovim, lazygit, gh, ripgrep, fd, bat, eza, zoxide, starship,
-tmux, yazi, btop, delta, sops, devenv, …).
+Bootstrap a container or server with the full nixconf dotfiles (zsh, starship,
+tmux, tools, aliases) from a standalone home-manager profile:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Alexyz205/nixconf/main/scripts/install-linux.sh -o install-linux.sh
-bash install-linux.sh            # interactive; add -y to assume yes
+./scripts/install.sh container   # default: single-user Nix in a container/devpod
+./scripts/install.sh server      # multi-user Nix (daemon) on a server/image
 ```
 
 It installs Nix via the official installer (downloaded to a temp file — never
-`curl | sh`), enables flakes in `~/.config/nix/nix.conf`, clones this repo to
-`$HOME/repos/personal/nixconf`, and runs `nix profile install .#tools`.
-
-### `scripts/install-devcontainer.sh` — devenv devcontainer for devpod
-
-Scaffolds a devenv dev environment + Dev Container into any project, so
-`devpod up .` (or VS Code Dev Containers) gives you the exact same toolset as
-the local dev shell. Uses the official devenv base image; the tool list comes
-from the copied `devenv.nix` template.
-
-```bash
-./scripts/install-devcontainer.sh [project-dir]   # defaults to .
-cd project-dir && devpod up .
-```
-
-Requires `nix` + `devenv` on PATH (both come with `install-linux.sh`, or via
-`nix profile install nixpkgs#devenv`). It copies `examples/dev-env/`, runs
-`devenv test` to validate and regenerate `.devcontainer/devcontainer.json`
-(the template sets `devcontainer.enable = true`), then prints devpod next
-steps.
+`curl | sh`), clones this repo, and activates the matching home-manager config
+(`root@container` / `alexis@server`).
 
 ## Hosts
 
@@ -183,7 +161,12 @@ repository you start.
 
 `devenv.nix` at the root installs what `scripts/test-all.sh` requires
 (`disko` for the disko test, `shellcheck` for linting) and enables the Nix
-language shell. Enter it with:
+language shell. It also owns the LSPs and formatters that LazyVim picks up
+from `$PATH` (see [For a new project](#for-a-new--other-project)): `marksman`,
+`yaml-language-server`, `vscode-json-languageserver`, `taplo`, `ruff`,
+`prettierd`, `markdownlint-cli`, `nixfmt`, plus `nil`, `basedpyright` and
+`shfmt`/`shellcheck` via the `languages.nix`/`languages.python`/
+`languages.shell` batteries. Enter it with:
 
 ```bash
 devenv shell        # drop into the dev shell
@@ -197,20 +180,25 @@ for standalone home-manager profiles.)
 
 ### For a new / other project
 
-Copy the template into any repo root:
+This repo's own `devenv.nix` is the reference template — copy it into any new
+repo root and trim to taste:
 
 ```bash
-cp -r $NIXCONF/examples/dev-env/. $REPO/
+cp $NIXCONF/devenv.nix $REPO/devenv.nix
 devenv shell        # now enter that repo's dev environment
 ```
 
-The template ships `devenv.nix` + `.devcontainer/devcontainer.json` and wires
-up LazyVim auto-detection:
+The mental model: LazyVim itself (the `lazyvim` feature) only provides
+neovim + config + aliases — **LSPs and formatters live in each repo's
+`devenv.nix`**, so they're available from `$PATH` inside the activated dev shell:
 
-- **`packages`** — raw nixpkgs tools (neovim, git, lazygit, gh, LSPs …).
+- **`packages`** — raw nixpkgs tools (neovim, git, lazygit, gh) plus the LSP
+  baseline with no language battery: `marksman`, `yaml-language-server`,
+  `vscode-json-languageserver`, `taplo`, `ruff`, `prettierd`, `markdownlint-cli`.
 - **`languages`** — real compiler/runtime + matching LSP batteries. Enable only
-  what the repo uses: `nix`, `python`, `node`, `typescript`, `c`, `cpp`,
-  `rust`, `go`, … LazyVim finds the LSP from `$PATH`.
+  what the repo uses: `nix` (→ `nil`, `statix`, `deadnix`), `python` (→
+  `basedpyright`), `shell` (→ `shfmt`, `shellcheck`), `node`, `typescript`, `c`,
+  `cpp`, `rust`, `go`, … LazyVim finds the LSP from `$PATH`.
 - **`env`** — shell environment variables (kept in sync with
   `devcontainer.json`).
 - **`enterShell`** — runs when entering `devenv shell`.
@@ -219,6 +207,7 @@ up LazyVim auto-detection:
 
 Anything that's not already global on NixOS (C++/Rust/Go toolchains, language-
 specific compiler versions) belongs in the repo's `devenv.nix`, not in nixconf.
+The LazyVim LSPs are _not_ global either — each repo owns its own via devenv.
 
 ## Secrets
 
