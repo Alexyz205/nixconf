@@ -6,7 +6,7 @@ SELF="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$(basename "${BASH_SOURCE[0]
 cd "$SCRIPT_DIR"
 
 NIXOS_HOSTS=(workstation headless-worker proxmox-vm installer-iso)
-HOME_CONFIGS=("alexis@linux" "alexis.pigeon@RNSL-APIGEON5")
+HOME_CONFIGS=("alexis@linux" "alexis.pigeon@RNSL-APIGEON5" "alexis@server" "root@container")
 DISKO_HOSTS=(workstation headless-worker)
 ALL_TESTS=(flake eval disko iso vm shellcheck)
 
