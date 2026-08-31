@@ -19,7 +19,6 @@ let
   gitlabCfg = { pkgs }: {
     home.packages = [
       pkgs.glab
-      pkgs.go
     ];
     programs.git.settings.credential."https://git.dxyz.pro".helper = [
       ""
@@ -43,7 +42,6 @@ in
       config = lib.mkIf config.modules.gitlab.enable {
         environment.systemPackages = [
           pkgs.glab
-          pkgs.go
         ];
         programs.git.config.credential."https://git.dxyz.pro".helper = [
           ""

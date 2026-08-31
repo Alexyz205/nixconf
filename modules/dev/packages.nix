@@ -27,9 +27,6 @@ let
           gnupg
         ];
         devTools = [
-          delta
-          diff-so-fancy
-          gh
           fabric-ai
           lazydocker
         ];

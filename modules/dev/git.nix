@@ -37,7 +37,7 @@ let
       pager = {
         branch = false;
         tag = false;
-        diff = "diff-so-fancy | \$PAGER";
+        diff = "delta";
       };
       delta = {
         features = "catppuccin-mocha";
@@ -118,9 +118,7 @@ in
         environment.systemPackages = with pkgs; [
           git
           delta
-          diff-so-fancy
           gh
-          lazygit
         ];
         programs.git = {
           enable = true;
@@ -137,6 +135,11 @@ in
     { pkgs, ... }:
     gitWorkConfig
     // {
+      home.packages = with pkgs; [
+        git
+        delta
+        gh
+      ];
       programs.git = gitCfg { inherit pkgs; };
       programs.zsh.shellAliases = gitAliases;
     };

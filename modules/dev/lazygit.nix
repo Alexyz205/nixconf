@@ -48,6 +48,7 @@ in
     {
       options.modules.lazygit.enable = lib.mkEnableOption "Lazygit";
       config = lib.mkIf config.modules.lazygit.enable {
+        environment.systemPackages = [ pkgs.lazygit ];
         home-manager.users.${config.modules.users.userName} = {
           programs.lazygit = lazygitCfg;
           programs.zsh.shellAliases = lazygitAliases;
@@ -55,8 +56,14 @@ in
       };
     };
 
-  flake.modules.homeManager.lazygit = { ... }: {
-    programs.lazygit = lazygitCfg;
-    programs.zsh.shellAliases = lazygitAliases;
-  };
+  flake.modules.homeManager.lazygit =
+    {
+      pkgs,
+      ...
+    }:
+    {
+      home.packages = [ pkgs.lazygit ];
+      programs.lazygit = lazygitCfg;
+      programs.zsh.shellAliases = lazygitAliases;
+    };
 }
