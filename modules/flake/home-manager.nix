@@ -54,6 +54,9 @@ let
 
   # Required for standalone home-manager on non-NixOS Linux: wires nix.sh into
   # the shell config so $HOME/.nix-profile/bin lands on PATH in managed shells.
+  # Every non-darwin standalone config targets a non-NixOS host (Ubuntu desktop,
+  # server, container, RNSL), so this is auto-derived from the system instead of
+  # hand-listed per host — any future Linux profile gets it for free.
   genericLinux = {
     targets.genericLinux.enable = true;
   };
@@ -89,13 +92,18 @@ let
           home.packages = [ pkgs.nixfmt ];
           gtk.gtk4.theme = null;
         };
+      # Any non-darwin target is a non-NixOS Linux host, so genericLinux is
+      # always part of the module set (see comment above).
+      linuxModules = inputs.nixpkgs.lib.optionals (
+        inputs.nixpkgs.lib.hasSuffix "linux" system
+      ) [ genericLinux ];
     in
     inputs.home-manager.lib.homeManagerConfiguration {
       pkgs = inputs.nixpkgs.legacyPackages.${system};
       extraSpecialArgs = {
         inherit (inputs) lazyvim;
       };
-      modules = [ baseModule ] ++ modules ++ extra;
+      modules = [ baseModule ] ++ modules ++ extra ++ linuxModules;
     };
 in
 {
@@ -110,7 +118,7 @@ in
       system = "x86_64-linux";
       username = "alexis";
       homeDirectory = "/home/alexis";
-      extra = desktopExtras ++ [ genericLinux ];
+      extra = desktopExtras;
     };
     "alexis.pigeon@RNSL-APIGEON5" = mkHome {
       system = "x86_64-linux";
@@ -123,14 +131,14 @@ in
       system = "x86_64-linux";
       username = "alexis";
       homeDirectory = "/home/alexis";
-      extra = [ genericLinux ];
+      extra = [ ];
     };
     # Root-based container (devpod / docker, single-user nix): terminal-only.
     "root@container" = mkHome {
       system = "x86_64-linux";
       username = "root";
       homeDirectory = "/root";
-      extra = [ genericLinux ];
+      extra = [ ];
     };
   };
 }
