@@ -88,6 +88,8 @@ let
           config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/repos/personal/nixconf/config/opencode/agents";
         ".config/opencode/skills".source =
           config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/repos/personal/nixconf/config/opencode/skills";
+        ".config/opencode/plugins".source =
+          config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/repos/personal/nixconf/config/opencode/plugins";
         ".config/delta/catppuccin.gitconfig".source =
           config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/repos/personal/nixconf/config/delta/catppuccin.gitconfig";
         ".config/git/config-personal".source =

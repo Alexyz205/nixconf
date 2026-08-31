@@ -1,6 +1,12 @@
 ---
-
-## name: docker-build description: Dockerfile best practices - multi-stage builds, layer optimization, security hardening license: MIT compatibility: opencode metadata: audience: developers workflow: containers
+name: docker-build
+description: Dockerfile best practices - multi-stage builds, layer optimization, security hardening
+license: MIT
+compatibility: opencode
+metadata:
+  audience: developers
+  workflow: containers
+---
 
 ## Purpose
 

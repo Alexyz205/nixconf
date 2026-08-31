@@ -1,6 +1,7 @@
 ---
-
-## description: Orchestrate complex multi-step tasks across specialized agents. Breaks down work, delegates, and ensures quality. mode: subagent
+description: Orchestrate complex multi-step tasks across specialized agents. Breaks down work, delegates, and ensures quality.
+mode: subagent
+---
 
 # Tech Lead - Orchestrator
 

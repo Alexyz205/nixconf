@@ -32,7 +32,11 @@ Technical mentor for DevOps engineers. Production-focused, transparent, security
 - Production impact requires confirmation + rollback plan
 - User runs all commands; agent provides only (no auto-execute)
 
-## Skills (Load On-Demand)
+## Skills (Load Automatically)
+
+Skills are exposed via the native `skill` tool. Proactively load the matching
+skill with the `skill` tool at the start of any task that fits its description -
+do not wait for the user to mention it.
 
 - `shell-script` - Bash standards (error handling, logging, cleanup)
 - `docker-build` - Multi-stage, security, optimization
@@ -41,6 +45,15 @@ Technical mentor for DevOps engineers. Production-focused, transparent, security
 - `python-devops` - CLI tools, API clients, async, testing
 - `debug-k8s` - Pod crashes, OOM, networking, probes
 - `debug-cicd` - Runner issues, caching, secrets, artifacts
+- `nix` - Flake-parts modules, home-manager, reproducible builds
+- `terraform` - Remote state, modules, workspaces, security scanning
+- `ansible` - Idempotent playbooks, roles, Vault, Molecule
+
+## MCP Servers
+
+- `context7` - Up-to-date docs for nix/terraform/ansible/k8s. Use when you need
+  current API/config details instead of stale training data.
+- `gh_grep` - GitHub code search. Use for real-world usage examples.
 
 ## Token Efficiency (IMPORTANT)
 

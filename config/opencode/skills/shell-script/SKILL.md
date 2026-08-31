@@ -1,6 +1,12 @@
 ---
-
-## name: shell-script description: Production shell script standards - error handling, logging, argument parsing, cleanup license: MIT compatibility: opencode metadata: audience: developers workflow: automation
+name: shell-script
+description: Production shell script standards - error handling, logging, argument parsing, cleanup
+license: MIT
+compatibility: opencode
+metadata:
+  audience: developers
+  workflow: automation
+---
 
 ## Purpose
 

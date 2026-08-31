@@ -1,6 +1,14 @@
 ---
-
-## description: Create README, architecture docs, runbooks following DevOps best practices mode: subagent model: github-copilot/gemini-3-flash-preview temperature: 0.3 permission: edit: ask bash: "\*": allow "rm \*": deny
+description: Create README, architecture docs, runbooks following DevOps best practices
+mode: subagent
+model: opencode-go/deepseek-v4-flash
+temperature: 0.3
+permission:
+  edit: ask
+  bash:
+    "*": allow
+    "rm *": deny
+---
 
 # Documentation Agent
 

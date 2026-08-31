@@ -1,6 +1,12 @@
 ---
-
-## name: debug-cicd description: CI/CD pipeline debugging - runner issues, caching, secrets, artifacts, stage failures license: MIT compatibility: opencode metadata: audience: developers workflow: ci-cd
+name: debug-cicd
+description: CI/CD pipeline debugging - runner issues, caching, secrets, artifacts, stage failures
+license: MIT
+compatibility: opencode
+metadata:
+  audience: developers
+  workflow: ci-cd
+---
 
 ## Purpose
 

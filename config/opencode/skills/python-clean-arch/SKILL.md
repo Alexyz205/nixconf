@@ -1,6 +1,12 @@
 ---
-
-## name: python-clean-arch description: Python Clean Architecture patterns - project structure, layers, DI, FastAPI/Flask integration, testing license: MIT compatibility: opencode metadata: audience: developers workflow: python
+name: python-clean-arch
+description: Python Clean Architecture patterns - project structure, layers, DI, FastAPI/Flask integration, testing
+license: MIT
+compatibility: opencode
+metadata:
+  audience: developers
+  workflow: python
+---
 
 ## Purpose
 

@@ -1,6 +1,12 @@
 ---
-
-## name: debug-k8s description: Kubernetes debugging - pod crashes, OOM, networking, DNS, probe failures, resource issues license: MIT compatibility: opencode metadata: audience: on-call-engineers workflow: kubernetes
+name: debug-k8s
+description: Kubernetes debugging - pod crashes, OOM, networking, DNS, probe failures, resource issues
+license: MIT
+compatibility: opencode
+metadata:
+  audience: on-call-engineers
+  workflow: kubernetes
+---
 
 ## Purpose
 

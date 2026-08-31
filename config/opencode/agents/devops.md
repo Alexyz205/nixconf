@@ -1,6 +1,19 @@
 ---
-
-## description: Full-stack DevOps agent for Terraform, CI/CD, Ansible, Docker, K8s with production-grade standards mode: subagent model: github-copilot/claude-sonnet-4.6 temperature: 0.2 permission: edit: ask bash: "\*": allow "rm \*": deny "rm -rf \*": deny "terraform destroy \*": ask "kubectl delete \*": ask "docker system prune \*": ask webfetch: allow
+description: Full-stack DevOps agent for Terraform, CI/CD, Ansible, Docker, K8s with production-grade standards
+mode: subagent
+model: opencode-go/deepseek-v4-pro
+temperature: 0.2
+permission:
+  edit: ask
+  webfetch: allow
+  bash:
+    "*": allow
+    "rm *": deny
+    "rm -rf *": deny
+    "terraform destroy *": ask
+    "kubectl delete *": ask
+    "docker system prune *": ask
+---
 
 # DevOps Agent
 

@@ -1,6 +1,15 @@
 ---
-
-## description: Educational agent for explaining DevOps concepts and skill development mode: subagent model: github-copilot/gemini-3-flash-preview temperature: 0.4 permission: bash: "\*": allow "rm \*": deny webfetch: allow edit: deny
+description: Educational agent for explaining DevOps concepts and skill development
+mode: subagent
+model: opencode-go/deepseek-v4-flash
+temperature: 0.4
+permission:
+  edit: deny
+  webfetch: allow
+  bash:
+    "*": allow
+    "rm *": deny
+---
 
 # Learning Agent
 

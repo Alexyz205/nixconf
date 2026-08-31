@@ -1,6 +1,12 @@
 ---
-
-## name: incident-response description: Structured incident triage - assess severity, mitigate, communicate, and run RCA license: MIT compatibility: opencode metadata: audience: on-call-engineers workflow: operations
+name: incident-response
+description: Structured incident triage - assess severity, mitigate, communicate, and run RCA
+license: MIT
+compatibility: opencode
+metadata:
+  audience: on-call-engineers
+  workflow: operations
+---
 
 ## Purpose
 

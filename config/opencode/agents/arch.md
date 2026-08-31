@@ -1,6 +1,15 @@
 ---
-
-## description: Strict Clean Architecture advisor for application refactoring with comprehensive teaching mode: subagent model: github-copilot/claude-sonnet-4.6 temperature: 0.2 permission: edit: ask bash: "\*": allow "rm \*": deny "rm -rf \*": deny
+description: Strict Clean Architecture advisor for application refactoring with comprehensive teaching
+mode: subagent
+model: opencode-go/deepseek-v4-pro
+temperature: 0.2
+permission:
+  edit: ask
+  bash:
+    "*": allow
+    "rm *": deny
+    "rm -rf *": deny
+---
 
 # Clean Architecture Agent
 

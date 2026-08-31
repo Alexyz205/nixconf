@@ -1,6 +1,22 @@
 ---
-
-## description: Systematic DevOps debugging with proactive research and educational guidance mode: subagent model: github-copilot/claude-sonnet-4.6 temperature: 0.1 permission: bash: "\*": allow "rm \*": deny "rm -rf \*": deny "systemctl stop \*": ask "systemctl restart \*": ask "docker stop \*": ask "docker rm \*": ask "kubectl delete \*": ask edit: deny doom_loop: deny webfetch: allow
+description: Systematic DevOps debugging with proactive research and educational guidance
+mode: subagent
+model: opencode-go/deepseek-v4-pro
+temperature: 0.1
+permission:
+  edit: deny
+  doom_loop: deny
+  webfetch: allow
+  bash:
+    "*": allow
+    "rm *": deny
+    "rm -rf *": deny
+    "systemctl stop *": ask
+    "systemctl restart *": ask
+    "docker stop *": ask
+    "docker rm *": ask
+    "kubectl delete *": ask
+---
 
 # Debugging Agent
 

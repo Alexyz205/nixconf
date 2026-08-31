@@ -1,6 +1,12 @@
 ---
-
-## name: python-devops description: Python for DevOps - API clients, config parsing, CLI tools, async patterns, testing license: MIT compatibility: opencode metadata: audience: developers workflow: python
+name: python-devops
+description: Python for DevOps - API clients, config parsing, CLI tools, async patterns, testing
+license: MIT
+compatibility: opencode
+metadata:
+  audience: developers
+  workflow: python
+---
 
 ## Purpose
 
