@@ -215,21 +215,25 @@ set_login_shell() {
     warn "zsh not found in the home-manager profile; keeping the default shell."
     return 0
   }
+  # Root needs no sudo; the non-root `vscode` user (devcontainer base images)
+  # has passwordless sudo for the privileged bits (symlink, /etc/shells, chsh).
+  local sudo=""
+  [[ "$(id -u)" == "0" ]] || sudo="sudo"
   local zsh_path=/usr/local/bin/zsh
   if [[ ! -d /usr/local/bin ]]; then
     zsh_path=/usr/bin/zsh
   fi
-  ln -sf "$zsh" "$zsh_path"
+  $sudo ln -sf "$zsh" "$zsh_path"
   local user
   user="$(id -un)"
   if command -v chsh >/dev/null 2>&1; then
-    grep -qs "^${zsh_path}$" /etc/shells 2>/dev/null || echo "$zsh_path" >>/etc/shells
+    grep -qs "^${zsh_path}$" /etc/shells 2>/dev/null || $sudo sh -c "echo '$zsh_path' >> /etc/shells"
     if [[ "$(getent passwd "$user" 2>/dev/null | cut -d: -f7)" != "$zsh_path" ]]; then
-      chsh -s "$zsh_path" "$user"
+      $sudo chsh -s "$zsh_path" "$user"
       log "Set login shell to zsh for $user ($zsh_path)."
     fi
   elif command -v usermod >/dev/null 2>&1; then
-    usermod -s "$zsh_path" "$user"
+    $sudo usermod -s "$zsh_path" "$user"
     log "Set login shell to zsh for $user ($zsh_path)."
   else
     warn "No chsh/usermod available — run 'zsh' manually until you set the shell."
@@ -242,7 +246,9 @@ set_login_shell() {
 
 cmd_container() {
   check_deps
-  HM_CONFIG="root@container"
+  # The flake ships `${user}@container` profiles for root and the non-root
+  # `vscode` user devcontainer base images run as — pick whichever we are.
+  HM_CONFIG="$(id -un)@container"
   ensure_nix single
   ensure_flakes
   clone_repo

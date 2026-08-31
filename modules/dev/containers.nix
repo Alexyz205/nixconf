@@ -18,17 +18,20 @@ let
   dotfilesScript = "scripts/install.sh";
   # Idempotent devpod setup script - re-applying the same values is a no-op,
   # but keeps stale context options (e.g. an old DOTFILES_SCRIPT) in sync.
-  devpodEnsure = ''
+  # Uses the store path directly: home-manager activation runs with a minimal
+  # PATH (no ~/.nix-profile/bin), so `command -v devpod` would silently skip.
+  devpodEnsure = pkgs: ''
     ensure_devpod() {
-      command -v devpod >/dev/null 2>&1 || return 0
-      devpod context set-options \
+      local devpod="${pkgs.devpod}/bin/devpod"
+      [ -x "$devpod" ] || return 0
+      "$devpod" context set-options \
         -o DOTFILES_URL='${dotfilesUrl}' \
         -o DOTFILES_SCRIPT='${dotfilesScript}' \
         -o SSH_CONFIG_PATH='~/.config/devpod/ssh_config' >/dev/null 2>&1 || true
-      if ! devpod provider list 2>/dev/null | grep -q docker; then
-        devpod provider add docker >/dev/null 2>&1 || true
+      if ! "$devpod" provider list 2>/dev/null | grep -q docker; then
+        "$devpod" provider add docker >/dev/null 2>&1 || true
       fi
-      devpod provider use docker >/dev/null 2>&1 || true
+      "$devpod" provider use docker >/dev/null 2>&1 || true
     }
     ensure_devpod
   '';
@@ -44,7 +47,7 @@ let
         docker-compose
       ];
       programs.zsh.shellAliases = containerAliases;
-      home.activation.setupDevpod = devpodEnsure;
+      home.activation.setupDevpod = devpodEnsure pkgs;
     };
 in
 {
@@ -58,10 +61,8 @@ in
     {
       options.modules.containers.enable = lib.mkEnableOption "Container tooling (devpod, docker-compose)";
       config = lib.mkIf config.modules.containers.enable {
-        # Rootless podman (docker provider) needs the tun module for
-        # slirp4netns/pasta networking, and unqualified-search-registries so
-        # short image names (ubuntu:24.04) resolve.
-        boot.kernelModules = [ "tun" ];
+        # unqualified-search-registries so short image names (ubuntu:24.04)
+        # resolve when devpod pulls via the podman docker provider.
         virtualisation.containers.registries.settings.unqualified-search-registries = [ "docker.io" ];
         environment.systemPackages = with pkgs; [
           devpod

@@ -134,10 +134,19 @@ in
       extra = [ ];
     };
     # Root-based container (devpod / docker, single-user nix): terminal-only.
+    # Plain images run as root; devcontainer base images run as their non-root
+    # `vscode` user, so both get a profile. install.sh picks `${user}@container`
+    # at runtime via `id -un`.
     "root@container" = mkHome {
       system = "x86_64-linux";
       username = "root";
       homeDirectory = "/root";
+      extra = [ ];
+    };
+    "vscode@container" = mkHome {
+      system = "x86_64-linux";
+      username = "vscode";
+      homeDirectory = "/home/vscode";
       extra = [ ];
     };
   };
