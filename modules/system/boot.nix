@@ -1,5 +1,5 @@
-{lib, ...}: {
-  flake.modules.nixos.boot = {...}: {
+{ lib, ... }: {
+  flake.modules.nixos.boot = { ... }: {
     boot.loader.systemd-boot.enable = true;
     boot.loader.efi.canTouchEfiVariables = true;
 
@@ -16,6 +16,6 @@
     # local kernel build for every nixpkgs bump). Loading the module at boot
     # achieves the same guarantee while keeping the stock (cache-substituted)
     # kernel. The NIC itself (Realtek RTL8125 on MSI, r8169) needs no patch.
-    boot.kernelModules = ["af_packet"];
+    boot.kernelModules = [ "af_packet" ];
   };
 }

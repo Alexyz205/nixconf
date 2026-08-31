@@ -1,7 +1,10 @@
-{lib, ...}: {
-  flake.modules.nixos.security = {...}: {
+{ lib, ... }: {
+  flake.modules.nixos.security = { ... }: {
     security.lockKernelModules = true;
-    boot.kernelModules = ["uas" "usb_storage"];
+    boot.kernelModules = [
+      "uas"
+      "usb_storage"
+    ];
     systemd.coredump.enable = false;
     boot.kernel.sysctl = {
       "kernel.dmesg_restrict" = 1;

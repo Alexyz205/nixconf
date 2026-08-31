@@ -3,7 +3,8 @@
   inputs,
   lib,
   ...
-}: let
+}:
+let
   system = "x86_64-linux";
   yubiPub = ../../config/ssh/id_ed25519_sk_rk_alexis-perso.pub;
   features = with config.flake.modules.nixos; [
@@ -31,29 +32,31 @@
     tv
   ];
 
-  mkServer = {
-    hostName,
-    diskDevice ? "/dev/sda",
-  }:
+  mkServer =
+    {
+      hostName,
+      diskDevice ? "/dev/sda",
+    }:
     inputs.nixpkgs.lib.nixosSystem {
-      modules =
-        [
-          { nixpkgs.hostPlatform = system; }
-          inputs.disko.nixosModules.disko
-          inputs.sops-nix.nixosModules.sops
-          inputs.home-manager.nixosModules.home-manager
-        ]
-        ++ features
-        ++ [
-          ({
+      modules = [
+        { nixpkgs.hostPlatform = system; }
+        inputs.disko.nixosModules.disko
+        inputs.sops-nix.nixosModules.sops
+        inputs.home-manager.nixosModules.home-manager
+      ]
+      ++ features
+      ++ [
+        (
+          {
             config,
             pkgs,
             lib,
             ...
-          }: {
+          }:
+          {
             system.stateVersion = "24.11";
             networking.hostName = hostName;
-            networking.firewall.allowedTCPPorts = [];
+            networking.firewall.allowedTCPPorts = [ ];
             disko.devices.disk.main.device = diskDevice;
             disko.devices.disk.main.content = lib.mkForce {
               type = "gpt";
@@ -65,26 +68,35 @@
                     type = "filesystem";
                     format = "vfat";
                     mountpoint = "/boot";
-                    mountOptions = ["umask=0077"];
+                    mountOptions = [ "umask=0077" ];
                   };
                 };
                 root = {
                   size = "100%";
                   content = {
                     type = "btrfs";
-                    extraArgs = ["-f"];
+                    extraArgs = [ "-f" ];
                     subvolumes = {
                       "/root" = {
                         mountpoint = "/";
-                        mountOptions = ["compress=zstd" "noatime"];
+                        mountOptions = [
+                          "compress=zstd"
+                          "noatime"
+                        ];
                       };
                       "/home" = {
                         mountpoint = "/home";
-                        mountOptions = ["compress=zstd" "noatime"];
+                        mountOptions = [
+                          "compress=zstd"
+                          "noatime"
+                        ];
                       };
                       "/nix" = {
                         mountpoint = "/nix";
-                        mountOptions = ["compress=zstd" "noatime"];
+                        mountOptions = [
+                          "compress=zstd"
+                          "noatime"
+                        ];
                       };
                       "/swap" = {
                         mountpoint = "/.swapvol";
@@ -109,7 +121,10 @@
             services.resolved.enable = true;
 
             # SSH key from existing YubiKey pub (no hardware needed at runtime)
-            modules.users.extraGroups = ["wheel" "podman"];
+            modules.users.extraGroups = [
+              "wheel"
+              "podman"
+            ];
             users.users.${config.modules.users.userName}.openssh.authorizedKeys.keys = [
               (lib.trim (builtins.readFile yubiPub))
             ];
@@ -136,7 +151,9 @@
 
             home-manager = {
               useGlobalPkgs = true;
-              extraSpecialArgs = {lazyvim = inputs.lazyvim;};
+              extraSpecialArgs = {
+                lazyvim = inputs.lazyvim;
+              };
               users.${config.modules.users.userName} = {
                 home.stateVersion = "24.11";
                 nix.package = lib.mkForce pkgs.nix;
@@ -149,15 +166,17 @@
               dates = "weekly";
               options = "--delete-older-than 30d";
             };
-            boot.kernelParams = ["quiet"];
+            boot.kernelParams = [ "quiet" ];
 
             hardware.enableRedistributableFirmware = true;
             time.timeZone = "Europe/Paris";
             i18n.defaultLocale = "en_US.UTF-8";
-          })
-        ];
+          }
+        )
+      ];
     };
-in {
+in
+{
   flake.nixosConfigurations.headless-worker = mkServer {
     hostName = "headless-worker";
   };

@@ -1,7 +1,8 @@
 {
   lib,
   ...
-}: let
+}:
+let
   gitlabLua = builtins.readFile ../../config/gitlab/gitlab.lua;
   gitlabAliases = {
     gm = "glab mr";
@@ -15,36 +16,55 @@
     gciv = "glab ci view";
   };
 
-  gitlabCfg = {pkgs}: {
-    home.packages = [pkgs.glab pkgs.go];
-    programs.git.settings.credential."https://git.dxyz.pro".helper = ["" "!\${pkgs.glab}/bin/glab auth git-credential"];
+  gitlabCfg = { pkgs }: {
+    home.packages = [
+      pkgs.glab
+      pkgs.go
+    ];
+    programs.git.settings.credential."https://git.dxyz.pro".helper = [
+      ""
+      "!\${pkgs.glab}/bin/glab auth git-credential"
+    ];
     programs.lazyvim.plugins.gitlab = gitlabLua;
     programs.zsh.shellAliases = gitlabAliases;
-    sops.secrets.GITLAB_TOKEN = {};
+    sops.secrets.GITLAB_TOKEN = { };
   };
-in {
-  flake.modules.nixos.gitlab = {
-    config,
-    lib,
-    pkgs,
-    ...
-  }: {
-    options.modules.gitlab.enable = lib.mkEnableOption "GitLab (glab, gitlab.nvim, GITLAB_TOKEN)";
-    config = lib.mkIf config.modules.gitlab.enable {
-      environment.systemPackages = [pkgs.glab pkgs.go];
-      programs.git.config.credential."https://git.dxyz.pro".helper = ["" "!\${pkgs.glab}/bin/glab auth git-credential"];
-      sops.secrets.GITLAB_TOKEN = {};
-      home-manager.users.${config.modules.users.userName} = gitlabCfg {inherit pkgs;};
+in
+{
+  flake.modules.nixos.gitlab =
+    {
+      config,
+      lib,
+      pkgs,
+      ...
+    }:
+    {
+      options.modules.gitlab.enable = lib.mkEnableOption "GitLab (glab, gitlab.nvim, GITLAB_TOKEN)";
+      config = lib.mkIf config.modules.gitlab.enable {
+        environment.systemPackages = [
+          pkgs.glab
+          pkgs.go
+        ];
+        programs.git.config.credential."https://git.dxyz.pro".helper = [
+          ""
+          "!\${pkgs.glab}/bin/glab auth git-credential"
+        ];
+        sops.secrets.GITLAB_TOKEN = { };
+        home-manager.users.${config.modules.users.userName} = gitlabCfg { inherit pkgs; };
+      };
     };
-  };
 
-  flake.modules.homeManager.gitlab = {
-    config,
-    lib,
-    pkgs,
-    ...
-  }: {
-    options.modules.gitlab.enable = lib.mkEnableOption "GitLab (glab, gitlab.nvim, GITLAB_TOKEN)";
-    config = lib.mkIf config.modules.gitlab.enable (gitlabCfg {inherit pkgs;});
-  };
+  flake.modules.homeManager.gitlab =
+    {
+      config,
+      lib,
+      pkgs,
+      ...
+    }:
+    {
+      options.modules.gitlab.enable = lib.mkEnableOption "GitLab (glab, gitlab.nvim, GITLAB_TOKEN)";
+      config = lib.mkIf config.modules.gitlab.enable (gitlabCfg {
+        inherit pkgs;
+      });
+    };
 }

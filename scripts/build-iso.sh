@@ -22,11 +22,25 @@ MOUNTED_BY_US=0
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    -d|--dest-dir) DEST_DIR="$2"; shift ;;
-    -e|--eject)   EJECT=1 ;;
-    -h|--help)    usage; exit 0 ;;
-    -*)           echo "Unknown option: $1" >&2; usage >&2; exit 2 ;;
-    *)            echo "Unexpected argument: $1" >&2; usage >&2; exit 2 ;;
+  -d | --dest-dir)
+    DEST_DIR="$2"
+    shift
+    ;;
+  -e | --eject) EJECT=1 ;;
+  -h | --help)
+    usage
+    exit 0
+    ;;
+  -*)
+    echo "Unknown option: $1" >&2
+    usage >&2
+    exit 2
+    ;;
+  *)
+    echo "Unexpected argument: $1" >&2
+    usage >&2
+    exit 2
+    ;;
   esac
   shift
 done
@@ -36,7 +50,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 cleanup() {
   rm -f "$SCRIPT_DIR/result" "$SCRIPT_DIR/.sha256.src" "$SCRIPT_DIR/.sha256.dst"
   if [ "$MOUNTED_BY_US" = "1" ] && [ -n "${DEST_DIR:-}" ] &&
-     [ "${EJECT:-0}" != "1" ]; then
+    [ "${EJECT:-0}" != "1" ]; then
     umount "$DEST_DIR" 2>/dev/null || true
     rmdir "$DEST_DIR" 2>/dev/null || true
   fi
@@ -53,7 +67,7 @@ is_ventoy_mount() {
   parent="$(lsblk -no PKNAME "$dev" 2>/dev/null || true)"
   if [ -n "$parent" ]; then
     partlabel="$(lsblk -no PARTLABEL "$parent" 2>/dev/null || true)"
-    [[ "$partlabel" == *VTOYEFI* ]] && return 0
+    [[ $partlabel == *VTOYEFI* ]] && return 0
   fi
   return 1
 }
@@ -62,7 +76,7 @@ find_ventoy_mount() {
   local target source label tran
   while IFS= read -r target source label; do
     [ -d "$target" ] || continue
-    [[ "$source" == /dev/* ]] || continue
+    [[ $source == /dev/* ]] || continue
     tran="$(lsblk -no TRAN "$source" 2>/dev/null || true)"
     [ "$tran" = "usb" ] || continue
     if is_ventoy_mount "$target" "$label" "$source"; then
@@ -135,7 +149,10 @@ nix build "$ISO_BUILD"
 
 ISO_OUT="$(readlink -f result)"
 ISO_SRC="$(find "$ISO_OUT" -name '*.iso' -type f | head -1)"
-[ -n "$ISO_SRC" ] || { log "Error: no .iso found in $ISO_OUT" >&2; exit 1; }
+[ -n "$ISO_SRC" ] || {
+  log "Error: no .iso found in $ISO_OUT" >&2
+  exit 1
+}
 ISO_NAME="$(basename "$ISO_SRC")"
 
 if [ -z "$DEST_DIR" ]; then
@@ -151,13 +168,19 @@ fi
 
 DEST_ISO="$DEST_DIR/$ISO_NAME"
 
-[ -d "$DEST_DIR" ] || { log "Error: $DEST_DIR not found (is the USB mounted?)" >&2; exit 1; }
+[ -d "$DEST_DIR" ] || {
+  log "Error: $DEST_DIR not found (is the USB mounted?)" >&2
+  exit 1
+}
 
 DEV="$(findmnt -no SOURCE "$DEST_DIR")"
 LABEL="$(findmnt -no LABEL "$DEST_DIR")"
 
 is_ventoy_mount "$DEST_DIR" "$LABEL" "$DEV" ||
-  { log "Error: $DEST_DIR is not a Ventoy USB (label: ${LABEL:-none})" >&2; exit 1; }
+  {
+    log "Error: $DEST_DIR is not a Ventoy USB (label: ${LABEL:-none})" >&2
+    exit 1
+  }
 
 log "Source:     $ISO_SRC"
 
@@ -165,8 +188,8 @@ log "Copying $ISO_NAME -> $DEST_ISO..."
 cp --reflink=never "$ISO_SRC" "$DEST_ISO"
 
 log "Computing checksums..."
-sha256sum "$ISO_SRC" > .sha256.src
-sha256sum "$DEST_ISO" > .sha256.dst
+sha256sum "$ISO_SRC" >.sha256.src
+sha256sum "$DEST_ISO" >.sha256.dst
 
 SRC_SUM="$(awk '{print $1}' .sha256.src)"
 DST_SUM="$(awk '{print $1}' .sha256.dst)"

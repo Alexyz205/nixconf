@@ -23,13 +23,13 @@ Note: JSON has no comments, so anything else goes in this README.
 
 Used with `devenv up` / `devenv shell` / `devenv tasks run <task>`. Sections:
 
-| Section | Purpose | Edit to |
-|---------|---------|---------|
-| `packages` | Raw nixpkgs packages in the env | Add LSPs like `clang-tools`, `gopls` |
-| `languages` | Compiler/runtime + LSP batteries | Enable `cpp`, `rust`, `go`, ... |
-| `env` | Shell env vars (mirrors devcontainer.json) | Add `DATABASE_URL`, etc. |
-| `enterShell` | Runs on entering the shell | Print hints, run setup scripts |
-| `tasks` | Repo commands via `devenv tasks run` | Your real `dev`/`test`/`build` |
+| Section      | Purpose                                    | Edit to                              |
+| ------------ | ------------------------------------------ | ------------------------------------ |
+| `packages`   | Raw nixpkgs packages in the env            | Add LSPs like `clang-tools`, `gopls` |
+| `languages`  | Compiler/runtime + LSP batteries           | Enable `cpp`, `rust`, `go`, ...      |
+| `env`        | Shell env vars (mirrors devcontainer.json) | Add `DATABASE_URL`, etc.             |
+| `enterShell` | Runs on entering the shell                 | Print hints, run setup scripts       |
+| `tasks`      | Repo commands via `devenv tasks run`       | Your real `dev`/`test`/`build`       |
 
 ### Mental model (see modules/shell/lazyvim.nix)
 

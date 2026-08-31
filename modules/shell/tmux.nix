@@ -1,11 +1,12 @@
-{lib, ...}: let
+{ lib, ... }:
+let
   tmuxAliases = {
     t = "tmux new-session -A -s dev";
   };
-  tmuxCfg = {pkgs}: {
+  tmuxCfg = { pkgs }: {
     enable = true;
     plugins = with pkgs.tmuxPlugins; [
-      {plugin = vim-tmux-navigator;}
+      { plugin = vim-tmux-navigator; }
       {
         plugin = resurrect;
         extraConfig = ''
@@ -88,27 +89,32 @@
       set -g status-right "#{E:@catppuccin_status_user}#{E:@catppuccin_status_host}#{E:@catppuccin_status_session}"
     '';
   };
-in {
-  flake.modules.nixos.tmux = {
-    config,
-    lib,
-    pkgs,
-    ...
-  }: {
-    options.modules.tmux.enable = lib.mkEnableOption "Tmux";
-    config = lib.mkIf config.modules.tmux.enable {
-      home-manager.users.${config.modules.users.userName} = {
-        programs.tmux = tmuxCfg {inherit pkgs;};
-        programs.zsh.shellAliases = tmuxAliases;
+in
+{
+  flake.modules.nixos.tmux =
+    {
+      config,
+      lib,
+      pkgs,
+      ...
+    }:
+    {
+      options.modules.tmux.enable = lib.mkEnableOption "Tmux";
+      config = lib.mkIf config.modules.tmux.enable {
+        home-manager.users.${config.modules.users.userName} = {
+          programs.tmux = tmuxCfg { inherit pkgs; };
+          programs.zsh.shellAliases = tmuxAliases;
+        };
       };
     };
-  };
 
-  flake.modules.homeManager.tmux = {
-    pkgs,
-    ...
-  }: {
-    programs.tmux = tmuxCfg {inherit pkgs;};
-    programs.zsh.shellAliases = tmuxAliases;
-  };
+  flake.modules.homeManager.tmux =
+    {
+      pkgs,
+      ...
+    }:
+    {
+      programs.tmux = tmuxCfg { inherit pkgs; };
+      programs.zsh.shellAliases = tmuxAliases;
+    };
 }

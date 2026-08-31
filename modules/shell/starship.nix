@@ -1,4 +1,5 @@
-{lib, ...}: let
+{ lib, ... }:
+let
   starshipCfg = {
     enable = true;
     enableZshIntegration = true;
@@ -215,24 +216,28 @@
       };
     };
   };
-in {
-  flake.modules.nixos.starship = {
-    config,
-    lib,
-    pkgs,
-    ...
-  }: {
-    options.modules.starship.enable = lib.mkEnableOption "Starship prompt";
-    config = lib.mkIf config.modules.starship.enable {
-      home-manager.users.${config.modules.users.userName} = {
-        programs.starship = starshipCfg;
-      } // lib.optionalAttrs (config ? stylix) {
-        stylix.targets.starship.enable = false;
+in
+{
+  flake.modules.nixos.starship =
+    {
+      config,
+      lib,
+      pkgs,
+      ...
+    }:
+    {
+      options.modules.starship.enable = lib.mkEnableOption "Starship prompt";
+      config = lib.mkIf config.modules.starship.enable {
+        home-manager.users.${config.modules.users.userName} = {
+          programs.starship = starshipCfg;
+        }
+        // lib.optionalAttrs (config ? stylix) {
+          stylix.targets.starship.enable = false;
+        };
       };
     };
-  };
 
-  flake.modules.homeManager.starship = {...}: {
+  flake.modules.homeManager.starship = { ... }: {
     programs.starship = starshipCfg;
   };
 }

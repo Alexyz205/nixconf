@@ -74,8 +74,8 @@ confirm() {
   printf '%s [y/N] ' "$prompt" >&2
   read -r reply
   case "$reply" in
-    y|Y|yes|YES) return 0 ;;
-    *) return 1 ;;
+  y | Y | yes | YES) return 0 ;;
+  *) return 1 ;;
   esac
 }
 
@@ -342,33 +342,49 @@ EOF
 
 main() {
   # First positional arg selects the command; the rest are flags / dirs.
-  if [[ $# -gt 0 ]] && [[ "$1" == "container" || "$1" == "server" || "$1" == "devpod" ]]; then
+  if [[ $# -gt 0 ]] && [[ $1 == "container" || $1 == "server" || $1 == "devpod" ]]; then
     COMMAND="$1"
     shift
   fi
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      -y|--yes)    ASSUME_YES=1 ;;
-      -n|--no-nix) INSTALL_NIX=0 ;;
-      -d|--dir)    INSTALL_DIR="$2"; shift ;;
-      -u|--url)    REPO_URL="$2"; shift ;;
-      -c|--config) HM_CONFIG="$2"; shift ;;
-      -f|--force)  FORCE=1 ;;
-      -h|--help)   usage; exit 0 ;;
-      -*)          err "Unknown option: $1"; usage >&2; exit 2 ;;
-      *)           PROJECT_DIR="$1" ;;
+    -y | --yes) ASSUME_YES=1 ;;
+    -n | --no-nix) INSTALL_NIX=0 ;;
+    -d | --dir)
+      INSTALL_DIR="$2"
+      shift
+      ;;
+    -u | --url)
+      REPO_URL="$2"
+      shift
+      ;;
+    -c | --config)
+      HM_CONFIG="$2"
+      shift
+      ;;
+    -f | --force) FORCE=1 ;;
+    -h | --help)
+      usage
+      exit 0
+      ;;
+    -*)
+      err "Unknown option: $1"
+      usage >&2
+      exit 2
+      ;;
+    *) PROJECT_DIR="$1" ;;
     esac
     shift
   done
 
   case "$COMMAND" in
-    container) cmd_container ;;
-    server) cmd_server ;;
-    devpod)
-      PROJECT_DIR="${PROJECT_DIR:-.}"
-      cmd_devpod
-      ;;
+  container) cmd_container ;;
+  server) cmd_server ;;
+  devpod)
+    PROJECT_DIR="${PROJECT_DIR:-.}"
+    cmd_devpod
+    ;;
   esac
 }
 

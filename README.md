@@ -79,21 +79,21 @@ steps.
 
 ## Hosts
 
-| Host | Platform | Type | Key Features |
-|------|----------|------|-------------|
-| `macbook` | aarch64-darwin | Laptop | nix-darwin, Homebrew, Ghostty |
-| `workstation` | x86_64-linux | Desktop | Niri WM, Catppuccin (stylix), greetd, pipewire, YubiKey LUKS + sudo |
-| `headless-worker` | x86_64-linux | Server | systemd-networkd, btrfs disko, SSH via YubiKey key, weekly GC |
-| `proxmox-vm` | x86_64-linux | VM | cloud-init, Proxmox image, qemu-guest, minimal |
-| `installer-iso` | x86_64-linux | USB ISO | Guided installer script with YubiKey auth |
+| Host              | Platform       | Type    | Key Features                                                        |
+| ----------------- | -------------- | ------- | ------------------------------------------------------------------- |
+| `macbook`         | aarch64-darwin | Laptop  | nix-darwin, Homebrew, Ghostty                                       |
+| `workstation`     | x86_64-linux   | Desktop | Niri WM, Catppuccin (stylix), greetd, pipewire, YubiKey LUKS + sudo |
+| `headless-worker` | x86_64-linux   | Server  | systemd-networkd, btrfs disko, SSH via YubiKey key, weekly GC       |
+| `proxmox-vm`      | x86_64-linux   | VM      | cloud-init, Proxmox image, qemu-guest, minimal                      |
+| `installer-iso`   | x86_64-linux   | USB ISO | Guided installer script with YubiKey auth                           |
 
 Standalone home-manager profiles (`flake.homeConfigurations`):
 
-| Config | Username | Platform | Notes |
-|--------|----------|----------|-------|
-| `alexis@macos` | alexis | aarch64-darwin | macOS profile |
-| `alexis@linux` | alexis | x86_64-linux | Linux profile |
-| `alexis.pigeon@RNSL-APIGEON5` | alexis.pigeon | x86_64-linux | Professional machine profile |
+| Config                        | Username      | Platform       | Notes                        |
+| ----------------------------- | ------------- | -------------- | ---------------------------- |
+| `alexis@macos`                | alexis        | aarch64-darwin | macOS profile                |
+| `alexis@linux`                | alexis        | x86_64-linux   | Linux profile                |
+| `alexis.pigeon@RNSL-APIGEON5` | alexis.pigeon | x86_64-linux   | Professional machine profile |
 
 Hosts are referenced by their flake attribute: `nixosConfigurations.workstation`,
 `darwinConfigurations.macbook`, `homeConfigurations."alexis@linux"`, etc.
@@ -144,16 +144,16 @@ hmc  # home-manager build --flake $NIXCONF --check
 
 Each tool module ships its own `enable` flag, packages, and aliases:
 
-| Module | Aliases |
-|--------|---------|
-| `eza` | `ls`, `la`, `ll`, `lt`, `lta`, `ltl`, `ldir`, `lm`, `lz` |
-| `git` | `g`, `ga`, `gc`, `gcm`, `gco`, `gd`, `gl`, `gp`, `gP`, `gs` |
-| `lazygit` | `lg` |
-| `tmux` | `t` (`new-session -A -s dev`) |
-| `lazyvim` | `v` |
-| `containers` | `d`, `dc`, `ld`, `dru`, `ds`, `du` |
+| Module               | Aliases                                                        |
+| -------------------- | -------------------------------------------------------------- |
+| `eza`                | `ls`, `la`, `ll`, `lt`, `lta`, `ltl`, `ldir`, `lm`, `lz`       |
+| `git`                | `g`, `ga`, `gc`, `gcm`, `gco`, `gd`, `gl`, `gp`, `gP`, `gs`    |
+| `lazygit`            | `lg`                                                           |
+| `tmux`               | `t` (`new-session -A -s dev`)                                  |
+| `lazyvim`            | `v`                                                            |
+| `containers`         | `d`, `dc`, `ld`, `dru`, `ds`, `du`                             |
 | `gitlab` (RNSL only) | `gm`, `gml`, `gmv`, `gmc`, `gma`, `gmm`, `gci`, `gcil`, `gciv` |
-| `shell` | `nf`, `repos`, `f`, `p`, `e`, `c`, `reload` |
+| `shell`              | `nf`, `repos`, `f`, `p`, `e`, `c`, `reload`                    |
 
 ## Test suite
 
@@ -165,14 +165,14 @@ Each tool module ships its own `enable` flag, packages, and aliases:
 ./scripts/test-all.sh -l        # list available tests
 ```
 
-| Test | What it does |
-|------|--------------|
-| `flake` | `nix flake check` (all configs, options, checks) |
-| `eval` | Dry-run builds every NixOS + home-manager config |
-| `disko` | Disko dry-run for workstation & headless-worker |
-| `iso` | Builds the `installer-iso` ISO image |
-| `vm` | Builds the Proxmox VM image (`.#proxmox-vm`) |
-| `shellcheck` | Lints `scripts/*.sh` |
+| Test         | What it does                                     |
+| ------------ | ------------------------------------------------ |
+| `flake`      | `nix flake check` (all configs, options, checks) |
+| `eval`       | Dry-run builds every NixOS + home-manager config |
+| `disko`      | Disko dry-run for workstation & headless-worker  |
+| `iso`        | Builds the `installer-iso` ISO image             |
+| `vm`         | Builds the Proxmox VM image (`.#proxmox-vm`)     |
+| `shellcheck` | Lints `scripts/*.sh`                             |
 
 ## Dev environment (devenv)
 
@@ -257,14 +257,14 @@ Boot from the `installer-iso` USB (Ventoy) and run `nixos-installer` — a guide
 flow that:
 
 1. Lets you select the host to install (`headless-worker` / `workstation`).
-2. Detects your YubiKey (workstation) and offers FIDO2 enrollment for LUKS +
+1. Detects your YubiKey (workstation) and offers FIDO2 enrollment for LUKS +
    sudo.
-3. Lists disks with `lsblk` and prompts with `gum choose` (with a data-loss
+1. Lists disks with `lsblk` and prompts with `gum choose` (with a data-loss
    warning).
-4. Checks network, prompts for the user password, and shows a summary.
-5. Generates a disko config for the selected host, partitions with
+1. Checks network, prompts for the user password, and shows a summary.
+1. Generates a disko config for the selected host, partitions with
    `disko --mode destroy,format,mount`, then installs with `nixos-install`.
-6. Copies the flake into `/etc/nixos` and provisions the YubiKey PAM mapping
+1. Copies the flake into `/etc/nixos` and provisions the YubiKey PAM mapping
    for login/sudo.
 
 To build and copy the ISO to a Ventoy USB:

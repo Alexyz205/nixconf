@@ -2,7 +2,8 @@
   config,
   inputs,
   ...
-}: let
+}:
+let
   system = "x86_64-linux";
   features = with config.flake.modules.nixos; [
     boot
@@ -42,32 +43,35 @@
     youtubeMusic
   ];
 
-  mkWorkstation = {
-    hostName,
-    diskDevice ? "/dev/sda",
-  }:
+  mkWorkstation =
+    {
+      hostName,
+      diskDevice ? "/dev/sda",
+    }:
     inputs.nixpkgs.lib.nixosSystem {
-      modules =
-        [
-          { nixpkgs.hostPlatform = system; }
-          inputs.disko.nixosModules.disko
-          inputs.sops-nix.nixosModules.sops
-          inputs.stylix.nixosModules.stylix
-          inputs.home-manager.nixosModules.home-manager
-        ]
-        ++ features
-        ++ [
-          ({
+      modules = [
+        { nixpkgs.hostPlatform = system; }
+        inputs.disko.nixosModules.disko
+        inputs.sops-nix.nixosModules.sops
+        inputs.stylix.nixosModules.stylix
+        inputs.home-manager.nixosModules.home-manager
+      ]
+      ++ features
+      ++ [
+        (
+          {
             config,
             pkgs,
             lib,
             ...
-          }: {
+          }:
+          {
             system.stateVersion = "24.11";
             networking.hostName = hostName;
-            networking.firewall.allowedTCPPorts = [];
+            networking.firewall.allowedTCPPorts = [ ];
 
-            nixpkgs.config.allowUnfreePredicate = pkg:
+            nixpkgs.config.allowUnfreePredicate =
+              pkg:
               builtins.elem (lib.getName pkg) [
                 "brave"
                 "steam"
@@ -82,7 +86,7 @@
             services.xserver.enable = true;
             # Required for hardware.nvidia to actually activate: the module is
             # gated on "nvidia" being listed here (nvidia.nix: nvidiaEnabled).
-            services.xserver.videoDrivers = ["nvidia"];
+            services.xserver.videoDrivers = [ "nvidia" ];
             # Disable TTS service: the graphical-desktop default enables
             # speech-dispatcher (pulls mbrola/espeak/flite, ~890MB, unused here).
             services.speechd.enable = false;
@@ -138,7 +142,12 @@
             ];
 
             modules = {
-              users.extraGroups = ["wheel" "networkmanager" "podman" "video"];
+              users.extraGroups = [
+                "wheel"
+                "networkmanager"
+                "podman"
+                "video"
+              ];
               packages = {
                 basic = true;
                 security = true;
@@ -174,39 +183,41 @@
               youtubeMusic.enable = true;
             };
 
-              home-manager = {
-                useGlobalPkgs = true;
-                extraSpecialArgs = {lazyvim = inputs.lazyvim;};
-                users.${config.modules.users.userName} = {
-                  home.stateVersion = "24.11";
-                  nix.package = lib.mkForce pkgs.nix;
-                  services.cliphist = {
-                    enable = true;
-                    allowImages = true;
-                  };
-                  # Stylix targets for apps not present in this repo/configuration.
-                  # AutoEnable would otherwise generate theme config for them.
-                  # btop is themed explicitly by modules/shell/btop.nix, so Stylix's
-                  # auto-enabled btop target must be disabled: its generated "stylix"
-                  # theme conflicts with the repo's color_theme = "catppuccin_mocha".
-                  stylix.targets = {
-                    ghostty.enable = false;
-                    btop.enable = false;
-                    blender.enable = false;
-                    forge.enable = false;
-                    gdu.enable = false;
-                    gedit.enable = false;
-                    gnome.enable = false;
-                    gnome-text-editor.enable = false;
-                    gtksourceview.enable = false;
-                    kde.enable = false;
-                    rofi.enable = false;
-                    vencord.enable = false;
-                    nixcord.enable = false;
-                    qt.enable = false;
-                  };
+            home-manager = {
+              useGlobalPkgs = true;
+              extraSpecialArgs = {
+                lazyvim = inputs.lazyvim;
+              };
+              users.${config.modules.users.userName} = {
+                home.stateVersion = "24.11";
+                nix.package = lib.mkForce pkgs.nix;
+                services.cliphist = {
+                  enable = true;
+                  allowImages = true;
+                };
+                # Stylix targets for apps not present in this repo/configuration.
+                # AutoEnable would otherwise generate theme config for them.
+                # btop is themed explicitly by modules/shell/btop.nix, so Stylix's
+                # auto-enabled btop target must be disabled: its generated "stylix"
+                # theme conflicts with the repo's color_theme = "catppuccin_mocha".
+                stylix.targets = {
+                  ghostty.enable = false;
+                  btop.enable = false;
+                  blender.enable = false;
+                  forge.enable = false;
+                  gdu.enable = false;
+                  gedit.enable = false;
+                  gnome.enable = false;
+                  gnome-text-editor.enable = false;
+                  gtksourceview.enable = false;
+                  kde.enable = false;
+                  rofi.enable = false;
+                  vencord.enable = false;
+                  nixcord.enable = false;
+                  qt.enable = false;
                 };
               };
+            };
 
             services.pipewire = {
               enable = true;
@@ -225,15 +236,17 @@
               };
             };
             security.rtkit.enable = true;
-            fonts.packages = with pkgs; [nerd-fonts.jetbrains-mono];
+            fonts.packages = with pkgs; [ nerd-fonts.jetbrains-mono ];
             time.timeZone = "Europe/Paris";
             i18n.defaultLocale = "en_US.UTF-8";
             xdg.portal.enable = true;
-            xdg.portal.extraPortals = [pkgs.xdg-desktop-portal-gtk];
-          })
-        ];
+            xdg.portal.extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
+          }
+        )
+      ];
     };
-in {
+in
+{
   flake.nixosConfigurations.workstation = mkWorkstation {
     hostName = "workstation";
   };

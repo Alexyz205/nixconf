@@ -1,12 +1,6 @@
 ---
-name: python-clean-arch
-description: Python Clean Architecture patterns - project structure, layers, DI, FastAPI/Flask integration, testing
-license: MIT
-compatibility: opencode
-metadata:
-  audience: developers
-  workflow: python
----
+
+## name: python-clean-arch description: Python Clean Architecture patterns - project structure, layers, DI, FastAPI/Flask integration, testing license: MIT compatibility: opencode metadata: audience: developers workflow: python
 
 ## Purpose
 
@@ -59,12 +53,12 @@ Constructor injection. Wire in composition root.
 
 ## Testing Strategy
 
-| Layer | Mocks? | I/O? |
-|-------|--------|------|
-| Domain | None | No |
-| Use Cases | Mock ports (ABC) | No |
-| Adapters | Test doubles / real infra | Yes |
-| Integration | Minimal | Yes |
+| Layer       | Mocks?                    | I/O? |
+| ----------- | ------------------------- | ---- |
+| Domain      | None                      | No   |
+| Use Cases   | Mock ports (ABC)          | No   |
+| Adapters    | Test doubles / real infra | Yes  |
+| Integration | Minimal                   | Yes  |
 
 ## Anti-patterns
 

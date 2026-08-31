@@ -10,8 +10,8 @@ HOME_CONFIGS=("alexis@linux" "alexis.pigeon@RNSL-APIGEON5")
 DISKO_HOSTS=(workstation headless-worker)
 ALL_TESTS=(flake eval disko iso vm shellcheck)
 
-log()  { printf '==> %s\n' "$*"; }
-ok()   { printf '    ok: %s\n' "$*"; }
+log() { printf '==> %s\n' "$*"; }
+ok() { printf '    ok: %s\n' "$*"; }
 fail() { printf '    FAIL: %s\n' "$*" >&2; }
 
 usage() {
@@ -99,18 +99,24 @@ main() {
   else
     for arg in "$@"; do
       case "$arg" in
-        -h|--help) usage; exit 0 ;;
-        -l|--list) printf '%s\n' "${ALL_TESTS[@]}"; exit 0 ;;
-        all) tests=("${ALL_TESTS[@]}") ;;
-        *)
-          if [[ " ${ALL_TESTS[*]} " == *" $arg "* ]]; then
-            tests+=("$arg")
-          else
-            echo "Unknown test: $arg" >&2
-            usage >&2
-            exit 2
-          fi
-          ;;
+      -h | --help)
+        usage
+        exit 0
+        ;;
+      -l | --list)
+        printf '%s\n' "${ALL_TESTS[@]}"
+        exit 0
+        ;;
+      all) tests=("${ALL_TESTS[@]}") ;;
+      *)
+        if [[ " ${ALL_TESTS[*]} " == *" $arg "* ]]; then
+          tests+=("$arg")
+        else
+          echo "Unknown test: $arg" >&2
+          usage >&2
+          exit 2
+        fi
+        ;;
       esac
     done
   fi

@@ -1,5 +1,6 @@
-{lib, ...}: let
-  gitCfg = {pkgs, ...}: {
+{ lib, ... }:
+let
+  gitCfg = { pkgs, ... }: {
     enable = true;
     settings = {
       user = {
@@ -65,8 +66,14 @@
       tag.sort = "-taggerdate";
       url."git@github.com:".insteadOf = "gh:";
       url."git@git.dxyz.pro:".insteadOf = "gl:";
-      credential."https://github.com".helper = ["" "!\${pkgs.gh}/bin/gh auth git-credential"];
-      credential."https://gist.github.com".helper = ["" "!\${pkgs.gh}/bin/gh auth git-credential"];
+      credential."https://github.com".helper = [
+        ""
+        "!\${pkgs.gh}/bin/gh auth git-credential"
+      ];
+      credential."https://gist.github.com".helper = [
+        ""
+        "!\${pkgs.gh}/bin/gh auth git-credential"
+      ];
     };
     includes = [
       {
@@ -76,7 +83,7 @@
     ];
   };
 
-    gitAliases = {
+  gitAliases = {
     g = "git";
     ga = "git add";
     gc = "git commit";
@@ -96,30 +103,41 @@
         email = "alexis.pigeon@take2games.com"
     '';
   };
-in {
-  flake.modules.nixos.git = {
-    config,
-    lib,
-    pkgs,
-    ...
-  }: {
-    options.modules.git.enable = lib.mkEnableOption "Git with delta, lazygit, gh";
-    config = lib.mkIf config.modules.git.enable {
-      environment.systemPackages = with pkgs; [git delta diff-so-fancy gh lazygit];
-      programs.git = {
-        enable = true;
-        config.init.defaultBranch = "main";
-      };
-      home-manager.users.${config.modules.users.userName} = gitWorkConfig // {
-        programs.git = gitCfg {inherit pkgs;};
-        programs.zsh.shellAliases = gitAliases;
+in
+{
+  flake.modules.nixos.git =
+    {
+      config,
+      lib,
+      pkgs,
+      ...
+    }:
+    {
+      options.modules.git.enable = lib.mkEnableOption "Git with delta, lazygit, gh";
+      config = lib.mkIf config.modules.git.enable {
+        environment.systemPackages = with pkgs; [
+          git
+          delta
+          diff-so-fancy
+          gh
+          lazygit
+        ];
+        programs.git = {
+          enable = true;
+          config.init.defaultBranch = "main";
+        };
+        home-manager.users.${config.modules.users.userName} = gitWorkConfig // {
+          programs.git = gitCfg { inherit pkgs; };
+          programs.zsh.shellAliases = gitAliases;
+        };
       };
     };
-  };
 
-  flake.modules.homeManager.git = {pkgs, ...}:
-    gitWorkConfig // {
-      programs.git = gitCfg {inherit pkgs;};
+  flake.modules.homeManager.git =
+    { pkgs, ... }:
+    gitWorkConfig
+    // {
+      programs.git = gitCfg { inherit pkgs; };
       programs.zsh.shellAliases = gitAliases;
     };
 }

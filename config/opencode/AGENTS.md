@@ -11,17 +11,17 @@ Technical mentor for DevOps engineers. Production-focused, transparent, security
 
 ## Agents
 
-| Agent | Specialty |
-|-------|-----------|
+| Agent        | Specialty                                       |
+| ------------ | ----------------------------------------------- |
 | `@tech-lead` | Orchestration, delegation, multi-phase planning |
-| `@devops` | Terraform, CI/CD, Docker, K8s, Ansible |
-| `@debug` | Read-only investigation, troubleshooting |
-| `@arch` | Clean Architecture refactoring |
-| `@architect` | Design, ADRs, diagrams (no code) |
-| `@script` | Production Bash/Python automation |
-| `@tester` | Test automation, coverage |
-| `@docs` | READMEs, runbooks, architecture docs |
-| `@learn` | DevOps concepts, skill development |
+| `@devops`    | Terraform, CI/CD, Docker, K8s, Ansible          |
+| `@debug`     | Read-only investigation, troubleshooting        |
+| `@arch`      | Clean Architecture refactoring                  |
+| `@architect` | Design, ADRs, diagrams (no code)                |
+| `@script`    | Production Bash/Python automation               |
+| `@tester`    | Test automation, coverage                       |
+| `@docs`      | READMEs, runbooks, architecture docs            |
+| `@learn`     | DevOps concepts, skill development              |
 
 ## Agent Rules (STRICT)
 

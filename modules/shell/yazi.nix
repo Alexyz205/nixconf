@@ -1,4 +1,5 @@
-{lib, ...}: let
+{ lib, ... }:
+let
   yaziCfg = {
     enable = true;
     shellWrapperName = "y";
@@ -12,7 +13,9 @@
 
     theme = {
       mgr = {
-        cwd = {fg = "#94e2d5";};
+        cwd = {
+          fg = "#94e2d5";
+        };
         find_keyword = {
           fg = "#f9e2af";
           bold = true;
@@ -54,7 +57,9 @@
           bg = "#f9e2af";
         };
         border_symbol = "│";
-        border_style = {fg = "#7f849c";};
+        border_style = {
+          fg = "#7f849c";
+        };
       };
       tabs = {
         active = {
@@ -97,11 +102,21 @@
         };
       };
       status = {
-        perm_sep = {fg = "#7f849c";};
-        perm_type = {fg = "#89b4fa";};
-        perm_read = {fg = "#f9e2af";};
-        perm_write = {fg = "#f38ba8";};
-        perm_exec = {fg = "#a6e3a1";};
+        perm_sep = {
+          fg = "#7f849c";
+        };
+        perm_type = {
+          fg = "#89b4fa";
+        };
+        perm_read = {
+          fg = "#f9e2af";
+        };
+        perm_write = {
+          fg = "#f38ba8";
+        };
+        perm_exec = {
+          fg = "#a6e3a1";
+        };
         progress_label = {
           fg = "#ffffff";
           bold = true;
@@ -116,39 +131,63 @@
         };
       };
       pick = {
-        border = {fg = "#89b4fa";};
+        border = {
+          fg = "#89b4fa";
+        };
         active = {
           fg = "#f5c2e7";
           bold = true;
         };
-        inactive = {};
+        inactive = { };
       };
       input = {
-        border = {fg = "#89b4fa";};
-        title = {};
-        value = {};
-        selected = {reversed = true;};
+        border = {
+          fg = "#89b4fa";
+        };
+        title = { };
+        value = { };
+        selected = {
+          reversed = true;
+        };
       };
-      cmp.border = {fg = "#89b4fa";};
+      cmp.border = {
+        fg = "#89b4fa";
+      };
       tasks = {
-        border = {fg = "#89b4fa";};
-        title = {};
+        border = {
+          fg = "#89b4fa";
+        };
+        title = { };
         hovered = {
           fg = "#f5c2e7";
           bold = true;
         };
       };
       which = {
-        mask = {bg = "#313244";};
-        cand = {fg = "#94e2d5";};
-        rest = {fg = "#9399b2";};
-        desc = {fg = "#f5c2e7";};
+        mask = {
+          bg = "#313244";
+        };
+        cand = {
+          fg = "#94e2d5";
+        };
+        rest = {
+          fg = "#9399b2";
+        };
+        desc = {
+          fg = "#f5c2e7";
+        };
         separator = "  ";
-        separator_style = {fg = "#585b70";};
+        separator_style = {
+          fg = "#585b70";
+        };
       };
       help = {
-        on = {fg = "#94e2d5";};
-        run = {fg = "#f5c2e7";};
+        on = {
+          fg = "#94e2d5";
+        };
+        run = {
+          fg = "#f5c2e7";
+        };
         hovered = {
           reversed = true;
           bold = true;
@@ -159,18 +198,30 @@
         };
       };
       spot = {
-        border = {fg = "#89b4fa";};
-        title = {fg = "#89b4fa";};
-        tbl_col = {fg = "#94e2d5";};
+        border = {
+          fg = "#89b4fa";
+        };
+        title = {
+          fg = "#89b4fa";
+        };
+        tbl_col = {
+          fg = "#94e2d5";
+        };
         tbl_cell = {
           fg = "#f5c2e7";
           bg = "#45475a";
         };
       };
       notify = {
-        title_info = {fg = "#a6e3a1";};
-        title_warn = {fg = "#f9e2af";};
-        title_error = {fg = "#f38ba8";};
+        title_info = {
+          fg = "#a6e3a1";
+        };
+        title_warn = {
+          fg = "#f9e2af";
+        };
+        title_error = {
+          fg = "#f38ba8";
+        };
       };
       filetype.rules = [
         {
@@ -338,24 +389,28 @@
       ];
     };
   };
-in {
-  flake.modules.nixos.yazi = {
-    config,
-    lib,
-    pkgs,
-    ...
-  }: {
-    options.modules.yazi.enable = lib.mkEnableOption "Yazi (terminal file manager)";
-    config = lib.mkIf config.modules.yazi.enable {
-      home-manager.users.${config.modules.users.userName} = {
-        programs.yazi = yaziCfg;
-      } // lib.optionalAttrs (config ? stylix) {
-        stylix.targets.yazi.enable = false;
+in
+{
+  flake.modules.nixos.yazi =
+    {
+      config,
+      lib,
+      pkgs,
+      ...
+    }:
+    {
+      options.modules.yazi.enable = lib.mkEnableOption "Yazi (terminal file manager)";
+      config = lib.mkIf config.modules.yazi.enable {
+        home-manager.users.${config.modules.users.userName} = {
+          programs.yazi = yaziCfg;
+        }
+        // lib.optionalAttrs (config ? stylix) {
+          stylix.targets.yazi.enable = false;
+        };
       };
     };
-  };
 
-  flake.modules.homeManager.yazi = {...}: {
+  flake.modules.homeManager.yazi = { ... }: {
     programs.yazi = yaziCfg;
   };
 }

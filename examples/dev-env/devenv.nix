@@ -7,7 +7,7 @@
 #   - Anything extra (C++, Rust, Go, ...) or language SPECIFIC VERSIONS belongs here,
 #     per repo. `devenv shell` puts it on $PATH and LazyVim auto-detects the LSP.
 #   - TODO stubs below are safe no-ops you can edit per project.
-{pkgs, ...}: {
+{ pkgs, ... }: {
   # Raw nixpkgs packages installed into the dev environment.
   packages = with pkgs; [
     # Static tools (same role as in ~/.config/shell aliases)

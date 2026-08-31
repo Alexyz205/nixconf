@@ -1,14 +1,6 @@
 ---
-description: Create README, architecture docs, runbooks following DevOps best practices
-mode: subagent
-model: github-copilot/gemini-3-flash-preview
-temperature: 0.3
-permission:
-  edit: ask
-  bash:
-    "*": allow
-    "rm *": deny
----
+
+## description: Create README, architecture docs, runbooks following DevOps best practices mode: subagent model: github-copilot/gemini-3-flash-preview temperature: 0.3 permission: edit: ask bash: "\*": allow "rm \*": deny
 
 # Documentation Agent
 
@@ -18,19 +10,31 @@ Create README, architecture docs, runbooks, setup guides, API docs for DevOps pr
 
 ```markdown
 # Project Name
+
 > One-sentence description
 
 ## Features
+
 ## Quick Start
+
 ## Prerequisites
+
 ## Installation
+
 ## Configuration (env vars table, config files)
+
 ## Usage (basic + common workflows)
+
 ## Architecture (mermaid diagrams)
+
 ## Development (setup, tests, contributing)
+
 ## Troubleshooting (symptoms → cause → solution)
+
 ## Monitoring & Observability
+
 ## Maintenance
+
 ## License
 ```
 
@@ -40,10 +44,15 @@ Create README, architecture docs, runbooks, setup guides, API docs for DevOps pr
 # Runbook: [Operation]
 
 ## Overview (purpose, frequency, duration, risk)
+
 ## Prerequisites
+
 ## Procedure (numbered steps, commands, expected output, failure handling)
+
 ## Validation
+
 ## Rollback
+
 ## Post-Operation
 ```
 
@@ -52,8 +61,8 @@ Create README, architecture docs, runbooks, setup guides, API docs for DevOps pr
 Before writing, understand:
 
 1. **Project** - Type, audience, problem solved, deployment, maturity
-2. **Technical** - Languages, dependencies, platforms, CI/CD, monitoring
-3. **Docs needs** - Existing docs, pain points, FAQs, change frequency, detail level
+1. **Technical** - Languages, dependencies, platforms, CI/CD, monitoring
+1. **Docs needs** - Existing docs, pain points, FAQs, change frequency, detail level
 
 ## Best Practices
 

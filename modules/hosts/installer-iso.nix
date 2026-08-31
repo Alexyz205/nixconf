@@ -2,339 +2,348 @@
   inputs,
   self,
   ...
-}: let
+}:
+let
   diskoPkg = inputs.disko.packages.x86_64-linux.disko;
-in {
+in
+{
   flake.nixosConfigurations.installer-iso = inputs.nixpkgs.lib.nixosSystem {
     system = "x86_64-linux";
     specialArgs = { inherit diskoPkg; };
     modules = [
       "${inputs.nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix"
-      ({
-        lib,
-        pkgs,
-        diskoPkg,
-        ...
-      }: let
-        installerScript = pkgs.writeShellScriptBin "nixos-installer" ''
-          set -Eeuo pipefail
-          export VERBOSE="''${VERBOSE:-0}"
-          LOGFILE="''${LOGFILE:-/tmp/nixos-installer.log}"
-          if [[ "$VERBOSE" = 1 ]]; then set -x; fi
+      (
+        {
+          lib,
+          pkgs,
+          diskoPkg,
+          ...
+        }:
+        let
+          installerScript = pkgs.writeShellScriptBin "nixos-installer" ''
+              set -Eeuo pipefail
+              export VERBOSE="''${VERBOSE:-0}"
+              LOGFILE="''${LOGFILE:-/tmp/nixos-installer.log}"
+              if [[ "$VERBOSE" = 1 ]]; then set -x; fi
 
-          if [[ "$(id -u)" -ne 0 ]]; then
-            echo "Error: nixos-installer must be run as root (try: sudo nixos-installer)" >&2
-            exit 1
-          fi
+              if [[ "$(id -u)" -ne 0 ]]; then
+                echo "Error: nixos-installer must be run as root (try: sudo nixos-installer)" >&2
+                exit 1
+              fi
 
-          FLAKE_DIR="/iso/nixconf"
+              FLAKE_DIR="/iso/nixconf"
 
-          info() {
-            gum log --level info --structured "$*"
-          }
-          warn() {
-            gum log --level warn --structured "$*"
-          }
-          error() {
-            gum log --level error --structured "$*" >&2
-          }
+              info() {
+                gum log --level info --structured "$*"
+              }
+              warn() {
+                gum log --level warn --structured "$*"
+              }
+              error() {
+                gum log --level error --structured "$*" >&2
+              }
 
-          step() {
-            info "  • $*"
-          }
-          ok() {
-            info "OK: $*"
-          }
-          fail() {
-            error "$*"
-            echo "Error: $*" >>"$LOGFILE"
-            exit 1
-          }
+              step() {
+                info "  • $*"
+              }
+              ok() {
+                info "OK: $*"
+              }
+              fail() {
+                error "$*"
+                echo "Error: $*" >>"$LOGFILE"
+                exit 1
+              }
 
-          trap 'e=$?; error "Failed at line $LINENO: $BASH_COMMAND (exit $e)" >&2; echo "FAILED line $LINENO: $BASH_COMMAND (exit $e)" >>"$LOGFILE"; exit $e' ERR
+              trap 'e=$?; error "Failed at line $LINENO: $BASH_COMMAND (exit $e)" >&2; echo "FAILED line $LINENO: $BASH_COMMAND (exit $e)" >>"$LOGFILE"; exit $e' ERR
 
-          echo
-          echo "Installer log: $LOGFILE." >&2
-          echo
+              echo
+              echo "Installer log: $LOGFILE." >&2
+              echo
 
-          gum style \
-            --foreground 212 --border-foreground 212 --border double \
-            --align center --width 60 \
-            "nixconf installer"
+              gum style \
+                --foreground 212 --border-foreground 212 --border double \
+                --align center --width 60 \
+                "nixconf installer"
 
-          echo
+              echo
 
-          step "Selecting host"
-          HOST=$(gum choose --header "Which host to install?" headless-worker workstation)
-          ok "Selected host: $HOST"
+              step "Selecting host"
+              HOST=$(gum choose --header "Which host to install?" headless-worker workstation)
+              ok "Selected host: $HOST"
 
-          USERNAME=$(nix eval "$FLAKE_DIR#$HOST.config.modules.users.userName" --raw 2>/dev/null || echo "alexis")
+              USERNAME=$(nix eval "$FLAKE_DIR#$HOST.config.modules.users.userName" --raw 2>/dev/null || echo "alexis")
 
-          echo
-          if [[ "$HOST" == "workstation" ]]; then
-            step "YubiKey setup"
-            USE_YUBIKEY=$(gum choose --header "Use YubiKey for disk encryption and login?" "No" "Yes")
-            if [[ "$USE_YUBIKEY" == "Yes" ]]; then
-              warn "Plug in your YubiKey now"
-              info "Waiting for YubiKey..."
+              echo
+              if [[ "$HOST" == "workstation" ]]; then
+                step "YubiKey setup"
+                USE_YUBIKEY=$(gum choose --header "Use YubiKey for disk encryption and login?" "No" "Yes")
+                if [[ "$USE_YUBIKEY" == "Yes" ]]; then
+                  warn "Plug in your YubiKey now"
+                  info "Waiting for YubiKey..."
+                  for i in $(seq 1 30); do
+                    if lsusb 2>/dev/null | grep -qi yubico || compgen -G '/dev/hidraw*' >/dev/null; then
+                      info "YubiKey detected"
+                      break
+                    fi
+                    if [[ "$i" -ge 30 ]]; then
+                      fail "YubiKey not detected after 30s"
+                    fi
+                    sleep 1
+                  done
+                  ENROLL_FIDO2="true"
+                else
+                  info "Skipping YubiKey — password-only LUKS and sudo"
+                  ENROLL_FIDO2="false"
+                fi
+              else
+                info "Skipping YubiKey — not used on headless servers"
+                USE_YUBIKEY="No"
+                ENROLL_FIDO2="false"
+              fi
+
+              echo
+              step "Listing disks"
+              DISK_INFO=$(lsblk -d -n -o NAME,SIZE,TYPE,MODEL 2>/dev/null | grep -v loop | grep -v ram || true)
+              if [[ -z "$DISK_INFO" ]]; then
+                fail "No disks found"
+              fi
+
+              DISK_NAME=$(echo "$DISK_INFO" | gum choose --header "Select target disk:" | awk '{print $1}')
+              DISK="/dev/$DISK_NAME"
+              ok "Target disk: $DISK"
+
+              echo
+              gum style --foreground 3 --bold "WARNING"
+              gum style --foreground 3 "ALL DATA on $DISK will be DESTROYED."
+
+              gum confirm "Are you sure?" || fail "Aborted by user"
+
+              echo
+              step "Checking flake"
+              if [[ ! -d "$FLAKE_DIR" ]]; then
+                fail "Flake directory $FLAKE_DIR not found. ISO may be misconfigured."
+              fi
+              ok "Flake pre-baked in ISO"
+
+              echo
+              step "Checking network"
+              info "Waiting for network..."
               for i in $(seq 1 30); do
-                if lsusb 2>/dev/null | grep -qi yubico || compgen -G '/dev/hidraw*' >/dev/null; then
-                  info "YubiKey detected"
+                if ping -c 1 -W 1 github.com >/dev/null 2>&1; then
                   break
                 fi
                 if [[ "$i" -ge 30 ]]; then
-                  fail "YubiKey not detected after 30s"
+                  error "No network after 30s"
+                  fail "No network. Connect Ethernet and retry."
                 fi
                 sleep 1
               done
-              ENROLL_FIDO2="true"
-            else
-              info "Skipping YubiKey — password-only LUKS and sudo"
-              ENROLL_FIDO2="false"
-            fi
-          else
-            info "Skipping YubiKey — not used on headless servers"
-            USE_YUBIKEY="No"
-            ENROLL_FIDO2="false"
-          fi
+              ok "Network reachable"
 
-          echo
-          step "Listing disks"
-          DISK_INFO=$(lsblk -d -n -o NAME,SIZE,TYPE,MODEL 2>/dev/null | grep -v loop | grep -v ram || true)
-          if [[ -z "$DISK_INFO" ]]; then
-            fail "No disks found"
-          fi
+              echo
+              step "User password"
+              PASSWD=""
+              for i in 1 2 3; do
+                P1=$(gum input --password --placeholder "Enter password for $USERNAME")
+                P2=$(gum input --password --placeholder "Confirm password")
+                if [[ "$P1" == "$P2" && -n "$P1" ]]; then
+                  PASSWD="$P1"
+                  ok "Password accepted"
+                  break
+                fi
+                error "Passwords do not match or empty (attempt $i/3)"
+                [[ "$i" -ge 3 ]] && fail "Failed to set password after 3 attempts"
+              done
 
-          DISK_NAME=$(echo "$DISK_INFO" | gum choose --header "Select target disk:" | awk '{print $1}')
-          DISK="/dev/$DISK_NAME"
-          ok "Target disk: $DISK"
+              echo
+              step "Confirming installation"
+              gum style --foreground 212 --bold "Installation Summary"
+              echo "  Host:      $HOST"
+              echo "  Disk:      $DISK"
+              echo "  User:      $USERNAME"
+              echo "  YubiKey:   $USE_YUBIKEY"
+              echo "  Source:    $FLAKE_DIR#$HOST"
+              echo
 
-          echo
-          gum style --foreground 3 --bold "WARNING"
-          gum style --foreground 3 "ALL DATA on $DISK will be DESTROYED."
+              gum confirm "Begin installation?" || fail "Aborted by user"
 
-          gum confirm "Are you sure?" || fail "Aborted by user"
+              echo
+              step "Partitioning and formatting disk"
+              info "Generating disk layout for $DISK..."
 
-          echo
-          step "Checking flake"
-          if [[ ! -d "$FLAKE_DIR" ]]; then
-            fail "Flake directory $FLAKE_DIR not found. ISO may be misconfigured."
-          fi
-          ok "Flake pre-baked in ISO"
-
-          echo
-          step "Checking network"
-          info "Waiting for network..."
-          for i in $(seq 1 30); do
-            if ping -c 1 -W 1 github.com >/dev/null 2>&1; then
-              break
-            fi
-            if [[ "$i" -ge 30 ]]; then
-              error "No network after 30s"
-              fail "No network. Connect Ethernet and retry."
-            fi
-            sleep 1
-          done
-          ok "Network reachable"
-
-          echo
-          step "User password"
-          PASSWD=""
-          for i in 1 2 3; do
-            P1=$(gum input --password --placeholder "Enter password for $USERNAME")
-            P2=$(gum input --password --placeholder "Confirm password")
-            if [[ "$P1" == "$P2" && -n "$P1" ]]; then
-              PASSWD="$P1"
-              ok "Password accepted"
-              break
-            fi
-            error "Passwords do not match or empty (attempt $i/3)"
-            [[ "$i" -ge 3 ]] && fail "Failed to set password after 3 attempts"
-          done
-
-          echo
-          step "Confirming installation"
-          gum style --foreground 212 --bold "Installation Summary"
-          echo "  Host:      $HOST"
-          echo "  Disk:      $DISK"
-          echo "  User:      $USERNAME"
-          echo "  YubiKey:   $USE_YUBIKEY"
-          echo "  Source:    $FLAKE_DIR#$HOST"
-          echo
-
-          gum confirm "Begin installation?" || fail "Aborted by user"
-
-          echo
-          step "Partitioning and formatting disk"
-          info "Generating disk layout for $DISK..."
-
-          cat > /tmp/disko-config.nix << 'NIXEOF'
-          { device, enrollFido2 ? false, lib, ... }:
-          let
-            flake = builtins.getFlake "/iso/nixconf";
-            cfg = flake.nixosConfigurations."__HOST__".config.disko;
-            main = lib.filterAttrsRecursive (n: _: !lib.hasPrefix "_" n && n != "device") cfg.devices.disk.main;
-            parts = main.content.partitions;
-            hasLuks = parts ? luks;
-            contentOverride = if hasLuks then main.content // {
-              partitions = parts // {
-                luks = parts.luks // {
-                  content = parts.luks.content // {
-                    inherit enrollFido2;
-                    enrollRecovery = enrollFido2;
+              cat > /tmp/disko-config.nix << 'NIXEOF'
+              { device, enrollFido2 ? false, lib, ... }:
+              let
+                flake = builtins.getFlake "/iso/nixconf";
+                cfg = flake.nixosConfigurations."__HOST__".config.disko;
+                main = lib.filterAttrsRecursive (n: _: !lib.hasPrefix "_" n && n != "device") cfg.devices.disk.main;
+                parts = main.content.partitions;
+                hasLuks = parts ? luks;
+                contentOverride = if hasLuks then main.content // {
+                  partitions = parts // {
+                    luks = parts.luks // {
+                      content = parts.luks.content // {
+                        inherit enrollFido2;
+                        enrollRecovery = enrollFido2;
+                      };
+                    };
                   };
+                } else main.content;
+              in {
+                disko.devices.disk.main = {
+                  inherit (main) type;
+                  device = device;
+                  content = contentOverride;
                 };
-              };
-            } else main.content;
-          in {
-            disko.devices.disk.main = {
-              inherit (main) type;
-              device = device;
-              content = contentOverride;
-            };
-          }
-        NIXEOF
-          sed -i "s/__HOST__/$HOST/" /tmp/disko-config.nix
+              }
+            NIXEOF
+              sed -i "s/__HOST__/$HOST/" /tmp/disko-config.nix
 
-          info "Running disko (this will take a while)..."
-          disko --mode destroy,format,mount /tmp/disko-config.nix \
-            --argstr device "$DISK" \
-            --arg enrollFido2 "$ENROLL_FIDO2" \
-            --yes-wipe-all-disks \
-            2>&1 | tee -a "$LOGFILE"
-          ok "Disk partitioned and mounted"
+              info "Running disko (this will take a while)..."
+              disko --mode destroy,format,mount /tmp/disko-config.nix \
+                --argstr device "$DISK" \
+                --arg enrollFido2 "$ENROLL_FIDO2" \
+                --yes-wipe-all-disks \
+                2>&1 | tee -a "$LOGFILE"
+              ok "Disk partitioned and mounted"
 
-          echo
-          step "Installing NixOS"
-          info "Building system..."
+              echo
+              step "Installing NixOS"
+              info "Building system..."
 
-          cat > /tmp/build-system.nix << 'NIXEOF'
-          { device, withYubiKey ? true, ... }:
-          let
-            flake = builtins.getFlake "/iso/nixconf";
-            original = flake.nixosConfigurations."__HOST__";
-            hasYubiKey = original.options.modules ? yubikey;
-          in
-            (original.extendModules {
-              modules = [
-                ({ lib, ... }: {
-                  disko.devices.disk.main.device = lib.mkForce device;
-                  boot.loader.efi.canTouchEfiVariables = lib.mkForce true;
-                } // lib.optionalAttrs (!withYubiKey && hasYubiKey) {
-                  modules.yubikey.luksUnlock = lib.mkForce false;
-                  modules.yubikey.sudoAuth = lib.mkForce false;
-                })
-              ];
-            }).config.system.build.toplevel
-        NIXEOF
-          sed -i "s/__HOST__/$HOST/" /tmp/build-system.nix
+              cat > /tmp/build-system.nix << 'NIXEOF'
+              { device, withYubiKey ? true, ... }:
+              let
+                flake = builtins.getFlake "/iso/nixconf";
+                original = flake.nixosConfigurations."__HOST__";
+                hasYubiKey = original.options.modules ? yubikey;
+              in
+                (original.extendModules {
+                  modules = [
+                    ({ lib, ... }: {
+                      disko.devices.disk.main.device = lib.mkForce device;
+                      boot.loader.efi.canTouchEfiVariables = lib.mkForce true;
+                    } // lib.optionalAttrs (!withYubiKey && hasYubiKey) {
+                      modules.yubikey.luksUnlock = lib.mkForce false;
+                      modules.yubikey.sudoAuth = lib.mkForce false;
+                    })
+                  ];
+                }).config.system.build.toplevel
+            NIXEOF
+              sed -i "s/__HOST__/$HOST/" /tmp/build-system.nix
 
-          YUBI_NIX_ARG=$([ "$USE_YUBIKEY" = "Yes" ] && echo "--arg withYubiKey true" || echo "--arg withYubiKey false")
-          SYSTEM=$(nix-build --extra-experimental-features 'nix-command flakes' \
-            /tmp/build-system.nix \
-            --argstr device "$DISK" \
-            $YUBI_NIX_ARG \
-            --no-out-link)
+              YUBI_NIX_ARG=$([ "$USE_YUBIKEY" = "Yes" ] && echo "--arg withYubiKey true" || echo "--arg withYubiKey false")
+              SYSTEM=$(nix-build --extra-experimental-features 'nix-command flakes' \
+                /tmp/build-system.nix \
+                --argstr device "$DISK" \
+                $YUBI_NIX_ARG \
+                --no-out-link)
 
-          info "Running nixos-install..."
-          nixos-install --no-root-passwd --system "$SYSTEM" --root /mnt 2>&1 | tee -a "$LOGFILE"
-          ok "NixOS installed"
+              info "Running nixos-install..."
+              nixos-install --no-root-passwd --system "$SYSTEM" --root /mnt 2>&1 | tee -a "$LOGFILE"
+              ok "NixOS installed"
 
-          echo
-          step "Copying flake to installed system"
-          cp -a "$FLAKE_DIR" /mnt/etc/nixos
-          USER_UID=$(awk -F: -v u="$USERNAME" '$1 == u {print $3}' /mnt/etc/passwd)
-          USER_GID=$(awk -F: -v u="$USERNAME" '$1 == u {print $4}' /mnt/etc/passwd)
-          if [[ -n "$USER_UID" && -n "$USER_GID" ]]; then
-            chown -R "$USER_UID:$USER_GID" /mnt/etc/nixos
-          fi
-          ok "Flake copied to /mnt/etc/nixos"
+              echo
+              step "Copying flake to installed system"
+              cp -a "$FLAKE_DIR" /mnt/etc/nixos
+              USER_UID=$(awk -F: -v u="$USERNAME" '$1 == u {print $3}' /mnt/etc/passwd)
+              USER_GID=$(awk -F: -v u="$USERNAME" '$1 == u {print $4}' /mnt/etc/passwd)
+              if [[ -n "$USER_UID" && -n "$USER_GID" ]]; then
+                chown -R "$USER_UID:$USER_GID" /mnt/etc/nixos
+              fi
+              ok "Flake copied to /mnt/etc/nixos"
 
-          echo
-          step "Setting password for $USERNAME"
-          echo "$USERNAME:$PASSWD" | chpasswd -R /mnt
-          ok "Password set for $USERNAME"
+              echo
+              step "Setting password for $USERNAME"
+              echo "$USERNAME:$PASSWD" | chpasswd -R /mnt
+              ok "Password set for $USERNAME"
 
-          echo
-          step "Making sure home directory is owned by $USERNAME"
-          mkdir -p "/mnt/home/$USERNAME/.config"
-          chown -R "$USER_UID:$USER_GID" "/mnt/home/$USERNAME"
-          ok "Home directory owned by $USERNAME ($USER_UID:$USER_GID)"
+              echo
+              step "Making sure home directory is owned by $USERNAME"
+              mkdir -p "/mnt/home/$USERNAME/.config"
+              chown -R "$USER_UID:$USER_GID" "/mnt/home/$USERNAME"
+              ok "Home directory owned by $USERNAME ($USER_UID:$USER_GID)"
 
-          if [[ "$USE_YUBIKEY" == "Yes" ]]; then
-            echo
-            step "Provisioning YubiKey PAM mapping for login/sudo"
-            U2F_SRC="$FLAKE_DIR/config/Yubico/u2f_keys"
-            U2F_DIR="/mnt/home/$USERNAME/.config/Yubico"
-            U2F_KEYS="$U2F_DIR/u2f_keys"
-            if [[ ! -f "$U2F_SRC" ]]; then
-              fail "Missing $U2F_SRC - this ISO is bound to one YubiKey. Register once with: pamu2fcfg -u $USERNAME -o pam://localhost > config/Yubico/u2f_keys"
-            fi
-            mkdir -p "$U2F_DIR"
-            cp "$U2F_SRC" "$U2F_KEYS"
-            UID_GID=$(awk -F: -v u="$USERNAME" '$1==u{print $3":"$4}' /mnt/etc/passwd)
-            if [[ -z "$UID_GID" ]]; then
-              fail "Could not resolve uid:gid for $USERNAME in /mnt/etc/passwd"
-            fi
-            chown "$UID_GID" "$U2F_DIR" "$U2F_KEYS"
-            chmod 700 "$U2F_DIR"
-            chmod 600 "$U2F_KEYS"
-            ok "YubiKey PAM mapping provisioned (bound to the key registered in the repo)"
-          fi
+              if [[ "$USE_YUBIKEY" == "Yes" ]]; then
+                echo
+                step "Provisioning YubiKey PAM mapping for login/sudo"
+                U2F_SRC="$FLAKE_DIR/config/Yubico/u2f_keys"
+                U2F_DIR="/mnt/home/$USERNAME/.config/Yubico"
+                U2F_KEYS="$U2F_DIR/u2f_keys"
+                if [[ ! -f "$U2F_SRC" ]]; then
+                  fail "Missing $U2F_SRC - this ISO is bound to one YubiKey. Register once with: pamu2fcfg -u $USERNAME -o pam://localhost > config/Yubico/u2f_keys"
+                fi
+                mkdir -p "$U2F_DIR"
+                cp "$U2F_SRC" "$U2F_KEYS"
+                UID_GID=$(awk -F: -v u="$USERNAME" '$1==u{print $3":"$4}' /mnt/etc/passwd)
+                if [[ -z "$UID_GID" ]]; then
+                  fail "Could not resolve uid:gid for $USERNAME in /mnt/etc/passwd"
+                fi
+                chown "$UID_GID" "$U2F_DIR" "$U2F_KEYS"
+                chmod 700 "$U2F_DIR"
+                chmod 600 "$U2F_KEYS"
+                ok "YubiKey PAM mapping provisioned (bound to the key registered in the repo)"
+              fi
 
-          echo
-          gum style \
-            --foreground 2 --border-foreground 2 --border double \
-            --align center --width 60 \
-            "Installation complete."
+              echo
+              gum style \
+                --foreground 2 --border-foreground 2 --border double \
+                --align center --width 60 \
+                "Installation complete."
 
-          echo
-          info "Remove the USB drive and reboot."
-          info "Login as '$USERNAME' with the password you just set."
-          if [[ "$USE_YUBIKEY" == "Yes" ]]; then
-            info "YubiKey is configured for LUKS unlock and sudo auth."
-          fi
-        '';
-      in {
-        nixpkgs.hostPlatform = "x86_64-linux";
-        isoImage = {
-          edition = "custom-iso";
-          contents = [
-            {
-              source = self.sourceInfo.outPath;
-              target = "/nixconf";
-            }
+              echo
+              info "Remove the USB drive and reboot."
+              info "Login as '$USERNAME' with the password you just set."
+              if [[ "$USE_YUBIKEY" == "Yes" ]]; then
+                info "YubiKey is configured for LUKS unlock and sudo auth."
+              fi
+          '';
+        in
+        {
+          nixpkgs.hostPlatform = "x86_64-linux";
+          isoImage = {
+            edition = "custom-iso";
+            contents = [
+              {
+                source = self.sourceInfo.outPath;
+                target = "/nixconf";
+              }
+            ];
+          };
+
+          nix.settings.experimental-features = [
+            "nix-command"
+            "flakes"
           ];
-        };
 
-        nix.settings.experimental-features = [ "nix-command" "flakes" ];
+          services.openssh.enable = true;
+          users.users.root = {
+            password = "nixos";
+          };
 
-        services.openssh.enable = true;
-        users.users.root = {
-          password = "nixos";
-        };
+          environment.etc."yubi-age-identity".source = ../../config/sops/yubi-age-identity;
 
-        environment.etc."yubi-age-identity".source = ../../config/sops/yubi-age-identity;
+          services.udev.packages = [ pkgs.yubikey-personalization ];
 
-        services.udev.packages = [pkgs.yubikey-personalization];
+          environment.systemPackages = [
+            pkgs.gum
+            pkgs.libfido2
+            pkgs.pam_u2f
+            pkgs.usbutils
+            diskoPkg
+            installerScript
+          ];
 
-        environment.systemPackages = [
-          pkgs.gum
-          pkgs.libfido2
-          pkgs.pam_u2f
-          pkgs.usbutils
-          diskoPkg
-          installerScript
-        ];
+          users.motd = ''
+            ============================================
+            nixconf installer
+            ============================================
 
-        users.motd = ''
-          ============================================
-          nixconf installer
-          ============================================
-
-          Run 'nixos-installer' to begin installation.
-        '';
-      })
+            Run 'nixos-installer' to begin installation.
+          '';
+        }
+      )
     ];
   };
 }

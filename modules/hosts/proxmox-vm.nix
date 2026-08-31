@@ -3,7 +3,8 @@
   inputs,
   lib,
   ...
-}: let
+}:
+let
   system = "x86_64-linux";
   yubiPub = ../../config/ssh/id_ed25519_sk_rk_alexis-perso.pub;
   features = with config.flake.modules.nixos; [
@@ -11,49 +12,50 @@
     users
     nix
   ];
-in {
+in
+{
   flake.nixosConfigurations.proxmox-vm = inputs.nixpkgs.lib.nixosSystem {
-    modules =
-      [
-        { nixpkgs.hostPlatform = system; }
-      ]
-      ++ features
-      ++ [
-        ({ pkgs, modulesPath, ... }: {
-          system.stateVersion = "24.11";
+    modules = [
+      { nixpkgs.hostPlatform = system; }
+    ]
+    ++ features
+    ++ [
+      ({ pkgs, modulesPath, ... }: {
+        system.stateVersion = "24.11";
 
-          modules.users.userName = "alexis";
+        modules.users.userName = "alexis";
 
-          users.users.alexis.openssh.authorizedKeys.keys = [
-            (lib.trim (builtins.readFile yubiPub))
-          ];
+        users.users.alexis.openssh.authorizedKeys.keys = [
+          (lib.trim (builtins.readFile yubiPub))
+        ];
 
-          security.sudo.wheelNeedsPassword = lib.mkForce false;
+        security.sudo.wheelNeedsPassword = lib.mkForce false;
 
-          services.qemuGuest.enable = true;
+        services.qemuGuest.enable = true;
 
-          services.cloud-init = {
-            enable = true;
-            network.enable = true;
-          };
+        services.cloud-init = {
+          enable = true;
+          network.enable = true;
+        };
 
-          environment.systemPackages = with pkgs; [
-            vim
-            git
-            curl
-            wget
-          ];
+        environment.systemPackages = with pkgs; [
+          vim
+          git
+          curl
+          wget
+        ];
 
-          imports = [
-            (modulesPath + "/profiles/qemu-guest.nix")
-            (modulesPath + "/virtualisation/proxmox-image.nix")
-          ];
-        })
-      ];
+        imports = [
+          (modulesPath + "/profiles/qemu-guest.nix")
+          (modulesPath + "/virtualisation/proxmox-image.nix")
+        ];
+      })
+    ];
   };
 
-  perSystem = { system, ... }: lib.mkIf (system == "x86_64-linux") {
-    packages.proxmox-vm =
-      config.flake.nixosConfigurations.proxmox-vm.config.system.build.VMA;
-  };
+  perSystem =
+    { system, ... }:
+    lib.mkIf (system == "x86_64-linux") {
+      packages.proxmox-vm = config.flake.nixosConfigurations.proxmox-vm.config.system.build.VMA;
+    };
 }

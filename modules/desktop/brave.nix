@@ -1,12 +1,13 @@
 {
   lib,
   ...
-}: let
+}:
+let
   extensions = [
-    {id = "mnjggcdmjocbbbhaepohbliplgamfdfc";} # SponsorBlock
-    {id = "eimadpbcbfnmbkopoojfekhnkhdbieeh";} # Dark Reader
-    {id = "dbepggeogbaibhgnhhndojpepiihcmeb";} # Vimium
-    {id = "bkkmolkhemgaeaeggcmfbghljjjoofoh";} # Catppuccin Mocha theme
+    { id = "mnjggcdmjocbbbhaepohbliplgamfdfc"; } # SponsorBlock
+    { id = "eimadpbcbfnmbkopoojfekhnkhdbieeh"; } # Dark Reader
+    { id = "dbepggeogbaibhgnhhndojpepiihcmeb"; } # Vimium
+    { id = "bkkmolkhemgaeaeggcmfbghljjjoofoh"; } # Catppuccin Mocha theme
   ];
   bookmarks = [
     {
@@ -28,11 +29,13 @@
   ];
 
   # Deterministic GUID from a bookmark name.
-  guid = name: let
-    h = builtins.hashString "sha1" name;
-    fmt = a: b:
-      lib.substring a b h;
-  in "${fmt 0 8}-${fmt 8 4}-${fmt 12 4}-${fmt 16 4}-${fmt 20 12}";
+  guid =
+    name:
+    let
+      h = builtins.hashString "sha1" name;
+      fmt = a: b: lib.substring a b h;
+    in
+    "${fmt 0 8}-${fmt 8 4}-${fmt 12 4}-${fmt 16 4}-${fmt 20 12}";
 
   # Bookmarks.json timestamps are microseconds since 1601-01-01.
   dateAdded = "13326774450786953";
@@ -42,7 +45,9 @@
     date_last_used = "0";
     guid = guid b.name;
     id = builtins.toString (i + 3);
-    meta_info = {power_bookmark_meta = "";};
+    meta_info = {
+      power_bookmark_meta = "";
+    };
     name = b.name;
     type = "url";
     url = b.url;
@@ -60,7 +65,7 @@
   };
 
   mkEmpty = name: guid': id: {
-    children = [];
+    children = [ ];
     date_added = dateAdded;
     date_last_used = "0";
     date_modified = "0";
@@ -80,32 +85,37 @@
     version = 1;
   };
 
-  braveCfg = {
-    pkgs,
-    config,
-    ...
-  }: {
-    programs.brave = {
-      enable = true;
-      package = pkgs.brave;
-      inherit extensions;
+  braveCfg =
+    {
+      pkgs,
+      config,
+      ...
+    }:
+    {
+      programs.brave = {
+        enable = true;
+        package = pkgs.brave;
+        inherit extensions;
+      };
+      home.file.".config/BraveSoftware/Brave-Browser/Default/Bookmarks" = {
+        text = bookmarksJson;
+        force = true;
+      };
     };
-    home.file.".config/BraveSoftware/Brave-Browser/Default/Bookmarks" = {
-      text = bookmarksJson;
-      force = true;
+in
+{
+  flake.modules.nixos.brave =
+    {
+      config,
+      lib,
+      ...
+    }:
+    {
+      options.modules.brave.enable = lib.mkEnableOption "Brave browser with Catppuccin Mocha theme";
+      config = lib.mkIf config.modules.brave.enable {
+        home-manager.users.${config.modules.users.userName} = braveCfg;
+      };
     };
-  };
-in {
-  flake.modules.nixos.brave = {
-    config,
-    lib,
-    ...
-  }: {
-    options.modules.brave.enable = lib.mkEnableOption "Brave browser with Catppuccin Mocha theme";
-    config = lib.mkIf config.modules.brave.enable {
-      home-manager.users.${config.modules.users.userName} = braveCfg;
-    };
-  };
 
   flake.modules.homeManager.brave = braveCfg;
 }

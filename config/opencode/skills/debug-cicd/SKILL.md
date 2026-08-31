@@ -1,12 +1,6 @@
 ---
-name: debug-cicd
-description: CI/CD pipeline debugging - runner issues, caching, secrets, artifacts, stage failures
-license: MIT
-compatibility: opencode
-metadata:
-  audience: developers
-  workflow: ci-cd
----
+
+## name: debug-cicd description: CI/CD pipeline debugging - runner issues, caching, secrets, artifacts, stage failures license: MIT compatibility: opencode metadata: audience: developers workflow: ci-cd
 
 ## Purpose
 
@@ -15,9 +9,9 @@ Systematic CI/CD pipeline debugging for GitLab CI and GitHub Actions.
 ## Triage Order
 
 1. Which stage/job failed? Read the error.
-2. Flaky or consistent? Retry once, check history.
-3. What changed? Recent commits, config, deps.
-4. Same locally? Reproduce in dev.
+1. Flaky or consistent? Retry once, check history.
+1. What changed? Recent commits, config, deps.
+1. Same locally? Reproduce in dev.
 
 ## Common Failures
 
@@ -77,10 +71,10 @@ artifacts:
 ## Debugging Techniques
 
 1. `set -x` in shell steps, `--verbose` flags
-2. SSH into self-hosted runners
-3. Run locally: `act` (GitHub Actions), `gitlab-runner exec` (GitLab)
-4. Compare with last green run
-5. Check pipeline dependency graph
+1. SSH into self-hosted runners
+1. Run locally: `act` (GitHub Actions), `gitlab-runner exec` (GitLab)
+1. Compare with last green run
+1. Check pipeline dependency graph
 
 ## When to Use
 

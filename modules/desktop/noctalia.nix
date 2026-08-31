@@ -2,8 +2,9 @@
   inputs,
   self,
   ...
-}: {
-  perSystem = {pkgs, ...}: {
+}:
+{
+  perSystem = { pkgs, ... }: {
     packages.noctalia-shell = inputs.wrapper-modules.wrappers.noctalia-shell.wrap {
       inherit pkgs;
 
@@ -22,17 +23,20 @@
                 labelMode = "name";
                 characterCount = 7;
               }
-              {id = "SystemMonitor";}
+              { id = "SystemMonitor"; }
             ];
-            center = [];
+            center = [ ];
             right = [
-              {id = "MediaMini"; hideMode = "hidden";}
-              {id = "Volume";}
-              {id = "Network";}
-              {id = "Battery";}
-              {id = "Clock";}
-              {id = "NotificationHistory";}
-              {id = "ControlCenter";}
+              {
+                id = "MediaMini";
+                hideMode = "hidden";
+              }
+              { id = "Volume"; }
+              { id = "Network"; }
+              { id = "Battery"; }
+              { id = "Clock"; }
+              { id = "NotificationHistory"; }
+              { id = "ControlCenter"; }
             ];
           };
         };
@@ -126,15 +130,17 @@
     };
   };
 
-  flake.modules.nixos.noctalia = {
-    config,
-    lib,
-    pkgs,
-    ...
-  }: {
-    options.modules.noctalia.enable = lib.mkEnableOption "Noctalia Shell bar";
-    config = lib.mkIf config.modules.noctalia.enable {
-      environment.systemPackages = [self.packages.${pkgs.stdenv.hostPlatform.system}.noctalia-shell];
+  flake.modules.nixos.noctalia =
+    {
+      config,
+      lib,
+      pkgs,
+      ...
+    }:
+    {
+      options.modules.noctalia.enable = lib.mkEnableOption "Noctalia Shell bar";
+      config = lib.mkIf config.modules.noctalia.enable {
+        environment.systemPackages = [ self.packages.${pkgs.stdenv.hostPlatform.system}.noctalia-shell ];
+      };
     };
-  };
 }

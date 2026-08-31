@@ -3,7 +3,8 @@
   config,
   lib,
   ...
-}: let
+}:
+let
   # Terminal-only tooling: the default for every host. Nothing GUI, hardware,
   # secret, or platform-specific lives here — those are opt-in extras.
   baseModules = with config.flake.modules.homeManager; [
@@ -30,67 +31,69 @@
     sops = [
       inputs.sops-nix.homeManagerModules.sops
       sops
-      {modules.sops.enable = true;}
+      { modules.sops.enable = true; }
     ];
     yubikey = [
       yubikey
-      {modules.yubikey.enable = true;}
+      { modules.yubikey.enable = true; }
     ];
     ghostty = [
       ghostty
-      {modules.ghostty.enable = true;}
+      { modules.ghostty.enable = true; }
     ];
     containers = [
       containers
-      {modules.containers.enable = true;}
+      { modules.containers.enable = true; }
     ];
     gitlab = [
       gitlab
-      {modules.gitlab.enable = true;}
+      { modules.gitlab.enable = true; }
     ];
   };
   # Extras for interactive desktop hosts (macos, linux, RNSL).
-  desktopExtras = extras.sops ++ extras.yubikey ++ extras.ghostty ++ extras.containers;
+  desktopExtras = extras.yubikey ++ extras.ghostty ++ extras.containers;
 
-  mkHome = {
-    system,
-    username,
-    homeDirectory,
-    modules ? baseModules,
-    extra ? [],
-  }: let
-    baseModule = {
-      pkgs,
-      ...
-    }: {
-      home = {
-        inherit username homeDirectory;
-        stateVersion = "24.11";
-      };
-      # Replaces the old `.#tools` profile: every standalone home-manager
-      # config ships the terminal tool stack (shell + basic + security
-      # + devTools) plus tv.
-      modules.packages = {
-        basic = true;
-        security = true;
-        devTools = true;
-      };
-      modules.tv.enable = true;
-      home.packages = [pkgs.nixfmt-rfc-style];
-      gtk.gtk4.theme = null;
-    };
-  in
+  mkHome =
+    {
+      system,
+      username,
+      homeDirectory,
+      modules ? baseModules,
+      extra ? [ ],
+    }:
+    let
+      baseModule =
+        {
+          pkgs,
+          ...
+        }:
+        {
+          home = {
+            inherit username homeDirectory;
+            stateVersion = "24.11";
+          };
+          # Replaces the old `.#tools` profile: every standalone home-manager
+          # config ships the terminal tool stack (shell + basic + security
+          # + devTools) plus tv.
+          modules.packages = {
+            basic = true;
+            security = true;
+            devTools = true;
+          };
+          modules.tv.enable = true;
+          home.packages = [ pkgs.nixfmt ];
+          gtk.gtk4.theme = null;
+        };
+    in
     inputs.home-manager.lib.homeManagerConfiguration {
       pkgs = inputs.nixpkgs.legacyPackages.${system};
       extraSpecialArgs = {
         lazyvim = inputs.lazyvim;
       };
-      modules =
-        [baseModule]
-        ++ modules
-        ++ extra;
+      modules = [ baseModule ] ++ modules ++ extra;
     };
-in {
+in
+{
   flake.homeConfigurations = {
     "alexis@macos" = mkHome {
       system = "aarch64-darwin";
@@ -108,7 +111,7 @@ in {
       system = "x86_64-linux";
       username = "alexis.pigeon";
       homeDirectory = "/home/alexis.pigeon";
-      extra = desktopExtras ++ extras.gitlab;
+      extra = desktopExtras;
     };
     # Headless Ubuntu server: terminal-only, no YubiKey / sops / GUI.
     "alexis@server" = mkHome {
