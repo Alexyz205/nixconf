@@ -12,7 +12,7 @@
     age-plugin-yubikey
   ];
 
-  languages.nix.enable = true;
+  delta.enable = true;
 
   # Repo-wide formatters (nix / markdown / bash) via treefmt. Same tools LazyVim
   # uses: nixfmt (nix), prettierd (markdown), shfmt (sh). Run `treefmt` in

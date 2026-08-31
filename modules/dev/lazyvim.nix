@@ -22,9 +22,6 @@ let
         pluginSource = "nixpkgs";
         extras = {
           coding.mini-surround.enable = true;
-          # lang.* extras are enabled but LazyVim lazy-loads their plugins per
-          # filetype — nix tools only activate when a .nix file is opened, so
-          # they stay dormant in unrelated repos (nothing is forced).
           lang = {
             docker.enable = true;
             json.enable = true;

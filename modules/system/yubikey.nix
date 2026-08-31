@@ -36,6 +36,9 @@ let
       programs.ssh = {
         enable = true;
         enableDefaultConfig = false;
+        # devpod keeps its Host *.devpod entries in its own writable file
+        # (SSH_CONFIG_PATH) because this config is a read-only store symlink.
+        includes = [ "~/.config/devpod/ssh_config" ];
         settings."*" = {
           IdentityFile = "~/.ssh/${yubiKey}";
           IdentitiesOnly = "yes";

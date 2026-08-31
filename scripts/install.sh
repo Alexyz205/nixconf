@@ -70,6 +70,11 @@ confirm() {
   if [ "$ASSUME_YES" = "1" ]; then
     return 0
   fi
+  # Non-interactive stdin (devpod / CI bootstrap): assume yes instead of
+  # letting `read` fail on EOF and skipping the setup.
+  if [ ! -t 0 ]; then
+    return 0
+  fi
   local reply
   printf '%s [y/N] ' "$prompt" >&2
   read -r reply
@@ -125,7 +130,7 @@ ensure_nix() {
 
   local tmp
   tmp="$(mktemp "${TMPDIR:-/tmp}/nix-install.XXXXXX.sh")"
-  trap 'rm -f "$tmp"' EXIT
+  trap 'rm -f "${tmp:-}"' EXIT
 
   log "Downloading official Nix installer..."
   if ! curl -fsSL https://nixos.org/nix/install -o "$tmp"; then
@@ -134,6 +139,22 @@ ensure_nix() {
   fi
 
   if [ "$mode" = "single" ]; then
+    # Running as root in a container: the installer wants `sudo` (absent) to
+    # create /nix, and Nix hardcodes `build-users-group = nixbld` when run as
+    # root (no such group in the image). Pre-create /nix and pin an empty
+    # build-users-group so neither is needed — no extra packages required.
+    if [ "$(id -u)" = "0" ]; then
+      if [ ! -d /nix ]; then
+        log "Pre-creating /nix (running as root, no sudo available)..."
+        mkdir -m 0755 /nix
+        chown root /nix
+      fi
+      if [ ! -e /etc/nix/nix.conf ]; then
+        log "Disabling build-users-group in /etc/nix/nix.conf (no nixbld group)..."
+        mkdir -p /etc/nix
+        printf 'build-users-group =\n' > /etc/nix/nix.conf
+      fi
+    fi
     log "Running installer (single-user, no daemon — container mode)..."
     if ! sh "$tmp" --no-daemon; then
       err "Nix installer failed."
@@ -141,6 +162,9 @@ ensure_nix() {
     fi
     # shellcheck disable=SC1091
     [ -e "$HOME/.nix-profile/etc/profile.d/nix.sh" ] && . "$HOME/.nix-profile/etc/profile.d/nix.sh"
+    # nix.sh no-ops unless USER is exported (not set in containers) — put the
+    # profile bin on PATH explicitly so nix is usable in this same shell.
+    export PATH="$HOME/.nix-profile/bin:$PATH"
     log "Nix installed (single-user). PATH is active in this shell."
   else
     log "Running installer (multi-user, daemon mode)..."
@@ -158,12 +182,12 @@ ensure_nix() {
 }
 
 ensure_flakes() {
-  local nix_conf="$HOME/.config/nix/nix.conf"
-  if ! grep -q '^experimental-features' "$nix_conf" 2>/dev/null; then
-    log "Enabling flakes + nix-command in $nix_conf"
-    mkdir -p "$(dirname "$nix_conf")"
-    printf '\nexperimental-features = nix-command flakes\n' >>"$nix_conf"
-  fi
+  # Every home-manager profile ships the `nix` module, which manages
+  # ~/.config/nix/nix.conf (experimental-features, substituters, ssl-cert-file,
+  # ...). Pre-writing it here would make activation refuse to clobber it, so
+  # leave it to home-manager; `nix run` below passes --extra-experimental-
+  # features explicitly for this session.
+  :
 }
 
 clone_repo() {
@@ -182,6 +206,15 @@ activate_home() {
   if ! confirm "Activate home-manager config '$cfg' now?"; then
     warn "Skipped. Re-run with: nix run '$INSTALL_DIR#homeConfigurations.$cfg.activationPackage'"
     return 0
+  fi
+  # Containers often lack a USER/LOGNAME export (home-manager activation needs
+  # them) and sit behind a TLS-intercepting proxy whose CA is in the system
+  # bundle — point nix's git fetches at it so corporate CAs are honoured.
+  export USER="${USER:-$(id -un)}"
+  export LOGNAME="${LOGNAME:-$USER}"
+  if [ -e /etc/ssl/certs/ca-certificates.crt ]; then
+    export NIX_SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
+    export NIX_GIT_SSL_CAINFO=/etc/ssl/certs/ca-certificates.crt
   fi
   # shellcheck disable=SC2016
   (cd "$INSTALL_DIR" && nix --extra-experimental-features "nix-command flakes" run "$INSTALL_DIR#homeConfigurations.$cfg.activationPackage")
