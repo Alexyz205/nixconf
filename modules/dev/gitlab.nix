@@ -19,6 +19,9 @@ let
   gitlabCfg = { pkgs }: {
     home.packages = [
       pkgs.glab
+      # gitlab.nvim builds its bundled Go server on load, so the toolchain is
+      # required (>= 1.25.1) for the build step to succeed.
+      pkgs.go
     ];
     programs.git.settings.credential."https://git.dxyz.pro".helper = [
       ""
@@ -42,6 +45,7 @@ in
       config = lib.mkIf config.modules.gitlab.enable {
         environment.systemPackages = [
           pkgs.glab
+          pkgs.go
         ];
         programs.git.config.credential."https://git.dxyz.pro".helper = [
           ""
