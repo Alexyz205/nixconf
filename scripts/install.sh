@@ -51,7 +51,7 @@ err() { printf '[ERROR] %s\n' "$*" >&2; }
 
 confirm() {
   local prompt="$1"
-  if [[ "$ASSUME_YES" = "1" ]]; then
+  if [[ $ASSUME_YES == "1" ]]; then
     return 0
   fi
   # Non-interactive stdin (devpod / CI bootstrap): assume yes instead of
@@ -73,11 +73,11 @@ check_deps() {
   for cmd in curl git; do
     command -v "$cmd" >/dev/null 2>&1 || missing+=("$cmd")
   done
-  if [[ "${#missing[@]}" -eq 0 ]]; then
+  if [[ ${#missing[@]} -eq 0 ]]; then
     return 0
   fi
 
-  if [[ "$COMMAND" = "container" ]] && command -v apt-get >/dev/null 2>&1; then
+  if [[ $COMMAND == "container" ]] && command -v apt-get >/dev/null 2>&1; then
     log "Installing missing base deps with apt: ${missing[*]}"
     apt-get update -qq
     apt-get install -y -qq "${missing[@]}" >/dev/null 2>&1 || {
@@ -102,7 +102,7 @@ ensure_nix() {
     log "Nix already installed ($(nix --version))"
     return 0
   fi
-  if [[ "$INSTALL_NIX" = "0" ]]; then
+  if [[ $INSTALL_NIX == "0" ]]; then
     err "Nix is required but not found; pass without --no-nix to install it."
     exit 3
   fi
@@ -122,12 +122,12 @@ ensure_nix() {
     exit 1
   fi
 
-  if [[ "$mode" = "single" ]]; then
+  if [[ $mode == "single" ]]; then
     # Running as root in a container: the installer wants `sudo` (absent) to
     # create /nix, and Nix hardcodes `build-users-group = nixbld` when run as
     # root (no such group in the image). Pre-create /nix and pin an empty
     # build-users-group so neither is needed — no extra packages required.
-    if [[ "$(id -u)" = "0" ]]; then
+    if [[ "$(id -u)" == "0" ]]; then
       if [[ ! -d /nix ]]; then
         log "Pre-creating /nix (running as root, no sudo available)..."
         mkdir -m 0755 /nix
@@ -211,7 +211,7 @@ activate_home() {
 # zsh must be reachable by name, so symlink it into /usr/local/bin.
 set_login_shell() {
   local zsh="$HOME/.nix-profile/bin/zsh"
-  [[ -x "$zsh" ]] || {
+  [[ -x $zsh ]] || {
     warn "zsh not found in the home-manager profile; keeping the default shell."
     return 0
   }
