@@ -81,15 +81,30 @@ let
             inherit username homeDirectory;
             stateVersion = "26.05";
           };
-          # Replaces the old `.#tools` profile: every standalone home-manager
-          # config ships the terminal tool stack (shell + basic + security
-          # + devTools) plus tv.
-          modules.packages = {
-            basic = true;
-            security = true;
-            devTools = true;
+          # List of all Modules for home-manager profile
+          modules = {
+            packages = {
+              basic = true;
+              security = true;
+              devTools = true;
+            };
+            nix.enable = true;
+            shell.enable = true;
+            ssh.enable = true;
+            git.enable = true;
+            bat.enable = true;
+            eza.enable = true;
+            zoxide.enable = true;
+            starship.enable = true;
+            tmux.enable = true;
+            yazi.enable = true;
+            lazygit.enable = true;
+            lazyvim.enable = true;
+            btop.enable = true;
+            tv.enable = true;
+            devenv.enable = true;
+            opencode.enable = true;
           };
-          modules.tv.enable = true;
           home.packages = [ pkgs.nixfmt ];
           gtk.gtk4.theme = null;
         };

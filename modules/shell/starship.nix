@@ -237,7 +237,16 @@ in
       };
     };
 
-  flake.modules.homeManager.starship = { ... }: {
-    programs.starship = starshipCfg;
-  };
+  flake.modules.homeManager.starship =
+    {
+      config,
+      lib,
+      ...
+    }:
+    {
+      options.modules.starship.enable = lib.mkEnableOption "Starship prompt";
+      config = lib.mkIf config.modules.starship.enable {
+        programs.starship = starshipCfg;
+      };
+    };
 }

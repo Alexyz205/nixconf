@@ -114,11 +114,16 @@ in
 
   flake.modules.homeManager.tmux =
     {
+      config,
+      lib,
       pkgs,
       ...
     }:
     {
-      programs.tmux = tmuxCfg { inherit pkgs; };
-      programs.zsh.shellAliases = tmuxAliases;
+      options.modules.tmux.enable = lib.mkEnableOption "Tmux";
+      config = lib.mkIf config.modules.tmux.enable {
+        programs.tmux = tmuxCfg { inherit pkgs; };
+        programs.zsh.shellAliases = tmuxAliases;
+      };
     };
 }

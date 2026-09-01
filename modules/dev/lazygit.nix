@@ -3,6 +3,10 @@ let
   lazygitAliases = {
     lg = "lazygit";
   };
+  homeCfg = {
+    programs.lazygit = lazygitCfg;
+    programs.zsh.shellAliases = lazygitAliases;
+  };
   lazygitCfg = {
     enable = true;
     settings = {
@@ -49,21 +53,24 @@ in
       options.modules.lazygit.enable = lib.mkEnableOption "Lazygit";
       config = lib.mkIf config.modules.lazygit.enable {
         environment.systemPackages = [ pkgs.lazygit ];
-        home-manager.users.${config.modules.users.userName} = {
-          programs.lazygit = lazygitCfg;
-          programs.zsh.shellAliases = lazygitAliases;
-        };
+        home-manager.users.${config.modules.users.userName} = homeCfg;
       };
     };
 
   flake.modules.homeManager.lazygit =
     {
+      config,
+      lib,
       pkgs,
       ...
     }:
     {
-      home.packages = [ pkgs.lazygit ];
-      programs.lazygit = lazygitCfg;
-      programs.zsh.shellAliases = lazygitAliases;
+      options.modules.lazygit.enable = lib.mkEnableOption "Lazygit";
+      config = lib.mkIf config.modules.lazygit.enable (
+        homeCfg
+        // {
+          home.packages = [ pkgs.lazygit ];
+        }
+      );
     };
 }

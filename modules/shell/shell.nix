@@ -146,13 +146,23 @@ in
     };
 
   flake.modules.homeManager.shell =
-    args@{ lib, pkgs, ... }:
-    let
-      aliases =
-        baseAliases
-        // nixAliases
-        // hmAliases
-        // lib.optionalAttrs pkgs.stdenv.hostPlatform.isDarwin darwinAliases;
-    in
-    mkShellCfg aliases args;
+    args@{
+      config,
+      lib,
+      pkgs,
+      ...
+    }:
+    {
+      options.modules.shell.enable = lib.mkEnableOption "Shell (Zsh + env)";
+      config = lib.mkIf config.modules.shell.enable (
+        let
+          aliases =
+            baseAliases
+            // nixAliases
+            // hmAliases
+            // lib.optionalAttrs pkgs.stdenv.hostPlatform.isDarwin darwinAliases;
+        in
+        mkShellCfg aliases args
+      );
+    };
 }

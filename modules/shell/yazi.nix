@@ -410,7 +410,16 @@ in
       };
     };
 
-  flake.modules.homeManager.yazi = { ... }: {
-    programs.yazi = yaziCfg;
-  };
+  flake.modules.homeManager.yazi =
+    {
+      config,
+      lib,
+      ...
+    }:
+    {
+      options.modules.yazi.enable = lib.mkEnableOption "Yazi (terminal file manager)";
+      config = lib.mkIf config.modules.yazi.enable {
+        programs.yazi = yaziCfg;
+      };
+    };
 }

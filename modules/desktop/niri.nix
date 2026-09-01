@@ -262,6 +262,10 @@
             };
           };
           cursor.xcursor-size = 24;
+          # The MSI MAG401QR reports 60 Hz as its preferred mode, so force the
+          # 155 Hz mode explicitly. The refresh rate must match `niri msg outputs`
+          # exactly, down to three decimals.
+          outputs."DP-3".mode = "3440x1440@155.000";
           layer-rules = [
             {
               matches = [ { namespace = "^swaybg$"; } ];

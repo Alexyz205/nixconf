@@ -39,6 +39,7 @@ let
         users.${config.modules.users.userName} = {
           home.stateVersion = stateVersion;
           nix.package = lib.mkForce pkgs.nix;
+          modules.ssh.enable = true;
         };
       };
     };
@@ -72,7 +73,7 @@ in
         ++ (with features; [
           boot
           disko
-          sops
+          # sops
           podman
           containers
         ]);

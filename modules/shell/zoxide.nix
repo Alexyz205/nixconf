@@ -20,7 +20,16 @@ in
       };
     };
 
-  flake.modules.homeManager.zoxide = { ... }: {
-    programs.zoxide = zoxideCfg;
-  };
+  flake.modules.homeManager.zoxide =
+    {
+      config,
+      lib,
+      ...
+    }:
+    {
+      options.modules.zoxide.enable = lib.mkEnableOption "Zoxide";
+      config = lib.mkIf config.modules.zoxide.enable {
+        programs.zoxide = zoxideCfg;
+      };
+    };
 }

@@ -132,15 +132,25 @@ in
     };
 
   flake.modules.homeManager.git =
-    { pkgs, ... }:
-    gitWorkConfig
-    // {
-      home.packages = with pkgs; [
-        git
-        delta
-        gh
-      ];
-      programs.git = gitCfg { inherit pkgs; };
-      programs.zsh.shellAliases = gitAliases;
+    {
+      config,
+      lib,
+      pkgs,
+      ...
+    }:
+    {
+      options.modules.git.enable = lib.mkEnableOption "Git with delta, lazygit, gh";
+      config = lib.mkIf config.modules.git.enable (
+        gitWorkConfig
+        // {
+          home.packages = with pkgs; [
+            git
+            delta
+            gh
+          ];
+          programs.git = gitCfg { inherit pkgs; };
+          programs.zsh.shellAliases = gitAliases;
+        }
+      );
     };
 }

@@ -14,7 +14,6 @@ let
       autoFormatOnSave ? true,
     }:
     {
-      imports = [ lazyvim.homeManagerModules.default ];
       programs.zsh.shellAliases = lazyvimAliases;
       programs.lazyvim = {
         enable = true;
@@ -182,7 +181,10 @@ in
         };
       };
       config = lib.mkIf config.modules.lazyvim.enable {
-        home-manager.users.${config.modules.users.userName} = lazyvimCfg {
+        home-manager.users.${config.modules.users.userName} = {
+          imports = [ inputs.lazyvim.homeManagerModules.default ];
+        }
+        // lazyvimCfg {
           inherit (inputs) lazyvim;
           inherit pkgs;
           autoFormatOnSave = config.modules.lazyvim.autoFormatOnSave;
@@ -192,9 +194,25 @@ in
 
   flake.modules.homeManager.lazyvim =
     {
+      config,
+      lib,
       lazyvim,
       pkgs,
       ...
     }:
-    lazyvimCfg { inherit lazyvim pkgs; };
+    {
+      imports = [ lazyvim.homeManagerModules.default ];
+      options.modules.lazyvim = {
+        enable = lib.mkEnableOption "LazyVim";
+        autoFormatOnSave = lib.mkOption {
+          type = lib.types.bool;
+          default = true;
+          description = "Format buffer automatically on save.";
+        };
+      };
+      config = lib.mkIf config.modules.lazyvim.enable (lazyvimCfg {
+        inherit lazyvim pkgs;
+        autoFormatOnSave = config.modules.lazyvim.autoFormatOnSave;
+      });
+    };
 }

@@ -15,6 +15,10 @@ let
     lm = "eza --icons=auto --sort=modified";
     lz = "eza --icons=auto --sort=size";
   };
+  homeCfg = {
+    programs.eza = ezaCfg;
+    programs.zsh.shellAliases = ezaAliases;
+  };
 in
 { lib, ... }: {
   flake.modules.nixos.eza =
@@ -28,15 +32,18 @@ in
       options.modules.eza.enable = lib.mkEnableOption "Eza";
       config = lib.mkIf config.modules.eza.enable {
         environment.systemPackages = [ pkgs.eza ];
-        home-manager.users.${config.modules.users.userName} = {
-          programs.eza = ezaCfg;
-          programs.zsh.shellAliases = ezaAliases;
-        };
+        home-manager.users.${config.modules.users.userName} = homeCfg;
       };
     };
 
-  flake.modules.homeManager.eza = { ... }: {
-    programs.eza = ezaCfg;
-    programs.zsh.shellAliases = ezaAliases;
-  };
+  flake.modules.homeManager.eza =
+    {
+      config,
+      lib,
+      ...
+    }:
+    {
+      options.modules.eza.enable = lib.mkEnableOption "Eza";
+      config = lib.mkIf config.modules.eza.enable homeCfg;
+    };
 }

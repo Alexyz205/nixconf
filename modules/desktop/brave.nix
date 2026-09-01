@@ -117,5 +117,17 @@ in
       };
     };
 
-  flake.modules.homeManager.brave = braveCfg;
+  flake.modules.homeManager.brave =
+    {
+      config,
+      lib,
+      pkgs,
+      ...
+    }:
+    {
+      options.modules.brave.enable = lib.mkEnableOption "Brave browser with Catppuccin Mocha theme";
+      config = lib.mkIf config.modules.brave.enable (braveCfg {
+        inherit pkgs config;
+      });
+    };
 }

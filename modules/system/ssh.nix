@@ -11,12 +11,15 @@ let
       ...
     }:
     {
-      options.modules.ssh.identityFiles = lib.mkOption {
-        type = lib.types.listOf lib.types.str;
-        default = [ ];
-        description = "Extra identity files appended after the default ~/.ssh/id_ed25519";
+      options.modules.ssh = {
+        enable = lib.mkEnableOption "SSH client config";
+        identityFiles = lib.mkOption {
+          type = lib.types.listOf lib.types.str;
+          default = [ ];
+          description = "Extra identity files appended after the default ~/.ssh/id_ed25519";
+        };
       };
-      config = {
+      config = lib.mkIf config.modules.ssh.enable {
         programs.ssh = {
           enable = true;
           enableDefaultConfig = false;

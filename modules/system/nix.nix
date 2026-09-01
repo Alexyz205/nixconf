@@ -35,8 +35,18 @@ in
       };
   };
 
-  flake.modules.homeManager.nix = { pkgs, ... }: {
-    nix.package = pkgs.nix;
-    nix.settings = userSettings;
-  };
+  flake.modules.homeManager.nix =
+    {
+      config,
+      lib,
+      pkgs,
+      ...
+    }:
+    {
+      options.modules.nix.enable = lib.mkEnableOption "Nix settings";
+      config = lib.mkIf config.modules.nix.enable {
+        nix.package = pkgs.nix;
+        nix.settings = userSettings;
+      };
+    };
 }

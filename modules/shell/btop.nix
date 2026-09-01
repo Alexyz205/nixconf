@@ -39,5 +39,17 @@ in
       };
     };
 
-  flake.modules.homeManager.btop = btopCfg;
+  flake.modules.homeManager.btop =
+    {
+      config,
+      lib,
+      pkgs,
+      ...
+    }:
+    {
+      options.modules.btop.enable = lib.mkEnableOption "Btop";
+      config = lib.mkIf config.modules.btop.enable (btopCfg {
+        inherit pkgs config lib;
+      });
+    };
 }

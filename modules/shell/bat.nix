@@ -28,7 +28,16 @@ in
       };
     };
 
-  flake.modules.homeManager.bat = { ... }: {
-    programs.bat = batCfg;
-  };
+  flake.modules.homeManager.bat =
+    {
+      config,
+      lib,
+      ...
+    }:
+    {
+      options.modules.bat.enable = lib.mkEnableOption "Bat";
+      config = lib.mkIf config.modules.bat.enable {
+        programs.bat = batCfg;
+      };
+    };
 }
