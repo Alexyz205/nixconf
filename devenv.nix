@@ -17,38 +17,94 @@
   };
 
   packages = with pkgs; [
+    # Repo tooling (test suite prerequisites)
     disko
-    shellcheck
+    shellcheck # bash linter (also a test-suite prerequisite)
     sops
     age-plugin-yubikey
 
-    # LSPs / formatters that have no devenv `languages.*` module.
+    # markdown: LSP marksman, formatter prettierd, linter markdownlint-cli2
     marksman
-    yaml-language-server
-    vscode-json-languageserver
-    taplo
-    ruff
     prettierd
-    markdownlint-cli
+    markdownlint-cli2
+
+    # yaml: LSP yaml-language-server
+    yaml-language-server
+
+    # json: LSP vscode-json-languageserver
+    vscode-json-languageserver
+
+    # toml: LSP taplo
+    taplo
+
+    # nix: formatter nixfmt (LSP nil + linter statix via languages.nix)
     nixfmt
+
+    # python: linter + formatter ruff (LSP basedpyright via languages.python)
+    ruff
+
+    # lua: formatter stylua, linter luacheck (LSP lua-language-server via languages.lua)
+    stylua
+    luaPackages.luacheck
+
+    # terraform: linter tflint (LSP terraform-ls + formatter terraform fmt via languages.terraform)
+    tflint
+
+    # docker: LSP dockerfile-language-server-nodejs + docker-compose-language-service, linter hadolint
+    dockerfile-language-server-nodejs
+    docker-compose-language-service
+    hadolint
+
+    # cmake: LSP cmake-language-server, formatter gersemi (linter gersemi --check)
+    cmake-language-server
+    gersemi
+
+    # arduino: build tool arduino-cli (LSP clangd + formatter clang-format + linter clang-tidy
+    # come from languages.c/cplusplus below, applied to .ino via the clangd extra)
+    arduino-cli
   ];
 
   delta.enable = true;
 
-  # Language toolchains: compiler/runtime + matching LSP.
-  # nix → statix, deadnix, vulnix + nil (override from default nixd).
-  # python → python + pip + basedpyright (override from default pyright).
-  # shell → shellcheck, shfmt, bats + bash-language-server.
+  # Language toolchains: compiler/runtime + matching LSP/linter/formatter.
+  # Each `languages.*` battery pulls in the compiler/runtime AND its LSP;
+  # linters/formatters that live in `packages` above are cross-referenced here.
   languages = {
+    # nix: LSP nil, linter statix + deadnix (formatter nixfmt via packages)
     nix = {
       enable = true;
       lsp.package = pkgs.nil;
     };
+
+    # python: LSP basedpyright (linter + formatter ruff via packages)
     python = {
       enable = true;
       lsp.package = pkgs.basedpyright;
     };
+
+    # shell / bash: LSP bash-language-server, linter shellcheck, formatter shfmt
     shell.enable = true;
+
+    # c: LSP clangd, formatter clang-format, linter clang-tidy (clang-tools)
+    c = {
+      enable = true;
+      lsp.enable = false;
+    };
+
+    # c++: LSP clangd, formatter clang-format, linter clang-tidy; adds cmake + clang
+    cplusplus = {
+      enable = true;
+      lsp.enable = false;
+    };
+
+    # lua: LSP lua-language-server (formatter stylua + linter luacheck via packages)
+    lua.enable = true;
+
+    # terraform: LSP terraform-ls, formatter terraform fmt, validate (linter tflint via packages)
+    terraform.enable = true;
+
+    # ansible: LSP ansible-language-server, linter ansible-lint
+    ansible.enable = true;
   };
 
   # Repo-wide formatters (nix / markdown / bash) via treefmt. Same tools LazyVim
@@ -98,50 +154,13 @@
       description = "nix flake check (all configs, options, checks)";
       exec = "nix flake check";
     };
-    "test:eval" = {
-      description = "Dry-run eval every NixOS + home-manager config";
-      exec = "./scripts/test-all.sh eval";
-    };
-    "test:disko" = {
-      description = "Disko dry-run for workstation & headless-worker";
-      exec = "./scripts/test-all.sh disko";
-    };
     "test:iso" = {
       description = "Build the installer-iso image";
       exec = "./scripts/test-all.sh iso";
-    };
-    "test:vm" = {
-      description = "Build the Proxmox VM image (.#proxmox-vm)";
-      exec = "./scripts/test-all.sh vm";
-    };
-    "test:shellcheck" = {
-      description = "Lint scripts/*.sh with shellcheck";
-      exec = "./scripts/test-all.sh shellcheck";
     };
     "repo:fmt" = {
       description = "Format the repo (nixfmt, shfmt, prettierd via treefmt)";
       exec = "treefmt";
     };
-    "repo:fmt-check" = {
-      description = "Verify formatting without applying (CI-style)";
-      exec = "treefmt --fail-on-change";
-    };
-    "repo:lint" = {
-      description = "Static analysis: statix, deadnix, shellcheck";
-      exec = "statix check && deadnix -f . && shellcheck -S warning scripts/*.sh";
-    };
-    "repo:update" = {
-      description = "Update flake lockfile inputs (nix flake update)";
-      exec = "nix flake update";
-    };
-    "repo:lock" = {
-      description = "Refresh the flake lock without updating inputs";
-      exec = "nix flake lock";
-    };
   };
-
-  enterShell = ''
-    echo "nixconf dev environment — run 'devenv tasks run <name>':"
-    echo "  test:all, test:{flake,eval,disko,iso,vm,shellcheck}  repo:{fmt,fmt-check,lint,update,lock}"
-  '';
 }

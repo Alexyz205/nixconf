@@ -23,11 +23,31 @@ let
         extras = {
           coding.mini-surround.enable = true;
           lang = {
+            ansible.enable = true;
+            clangd.enable = true;
+            cmake.enable = true;
             docker.enable = true;
             json.enable = true;
-            markdown.enable = true;
+            markdown = {
+              enable = true;
+              config = ''
+                return {
+                  {
+                    "stevearc/conform.nvim",
+                    optional = true,
+                    opts = {
+                      formatters_by_ft = {
+                        markdown = { "prettierd", "markdownlint-cli2" },
+                        ["markdown.mdx"] = { "prettierd", "markdownlint-cli2" },
+                      },
+                    },
+                  },
+                }
+              '';
+            };
             nix.enable = true;
             python.enable = true;
+            terraform.enable = true;
             toml.enable = true;
             yaml.enable = true;
           };
@@ -39,12 +59,14 @@ let
             opt.colorcolumn = "80"; opt.signcolumn = "yes"
             opt.scrolloff = 8; opt.termguicolors = true
             g.snacks_animate = false; opt.wrap = false
+            g.lazyvim_python_lsp = "basedpyright"
             opt.tabstop = 2; opt.softtabstop = 2; opt.shiftwidth = 2
             opt.expandtab = true; opt.smartindent = true
             opt.hlsearch = false; opt.incsearch = true
             opt.swapfile = false; opt.backup = false; opt.undofile = true
             opt.updatetime = 50; vim.opt.clipboard = "unnamedplus"
             vim.g.clipboard = "osc52"
+            vim.filetype.add({ extension = { ino = "cpp" } })
             ${lib.optionalString (!autoFormatOnSave) "g.autoformat = false"}
           '';
           keymaps = ''
