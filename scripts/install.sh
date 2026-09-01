@@ -79,8 +79,10 @@ check_deps() {
 
   if [[ $COMMAND == "container" ]] && command -v apt-get >/dev/null 2>&1; then
     log "Installing missing base deps with apt: ${missing[*]}"
-    apt-get update -qq
-    apt-get install -y -qq "${missing[@]}" >/dev/null 2>&1 || {
+    local sudo=""
+    [[ "$(id -u)" == "0" ]] || sudo="sudo"
+    $sudo apt-get update -qq
+    $sudo apt-get install -y -qq "${missing[@]}" >/dev/null 2>&1 || {
       err "apt failed to install: ${missing[*]}"
       exit 3
     }
@@ -215,6 +217,7 @@ activate_home() {
 # zsh must be reachable by name, so symlink it into /usr/local/bin.
 set_login_shell() {
   local zsh="$HOME/.nix-profile/bin/zsh"
+  [[ -x $zsh ]] || zsh="$(command -v zsh 2>/dev/null || true)"
   [[ -x $zsh ]] || {
     warn "zsh not found in the home-manager profile; keeping the default shell."
     return 0
