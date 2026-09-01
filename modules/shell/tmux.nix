@@ -32,7 +32,6 @@ let
           set -g @catppuccin_status_left_separator ""
           set -g @catppuccin_status_right_separator ""
           set -g @catppuccin_status_connect_separator "no"
-          set -g @catppuccin_pane_active_border_style "fg=#{@thm_peach}"
         '';
       }
     ];
@@ -45,6 +44,7 @@ let
       set -g default-shell "${pkgs.zsh}/bin/zsh"
       set -g default-command "${pkgs.zsh}/bin/zsh -l"
       set -g pane-border-lines simple
+      set -g pane-active-border-style "fg=#fab387"
       set -g renumber-windows on
       set -sg escape-time 0
       set -g history-limit 50000
