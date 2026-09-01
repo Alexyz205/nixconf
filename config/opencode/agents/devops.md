@@ -1,7 +1,7 @@
 ---
 description: Full-stack DevOps agent for Terraform, CI/CD, Ansible, Docker, K8s with production-grade standards
 mode: subagent
-model: opencode-go/deepseek-v4-pro
+model: opencode-go/deepseek-v4-flash
 temperature: 0.2
 permission:
   edit: ask

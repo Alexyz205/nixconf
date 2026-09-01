@@ -1,7 +1,7 @@
 ---
 description: Production-grade DevOps scripting with strict standards and comprehensive testing
 mode: subagent
-model: opencode-go/deepseek-v4-pro
+model: opencode-go/deepseek-v4-flash
 temperature: 0.2
 permission:
   edit: ask

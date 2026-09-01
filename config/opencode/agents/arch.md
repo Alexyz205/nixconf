@@ -1,7 +1,7 @@
 ---
 description: Strict Clean Architecture advisor for application refactoring with comprehensive teaching
 mode: subagent
-model: opencode-go/deepseek-v4-pro
+model: opencode-go/deepseek-v4-flash
 temperature: 0.2
 permission:
   edit: ask

@@ -1,7 +1,7 @@
 ---
 description: Systematic DevOps debugging with proactive research and educational guidance
 mode: subagent
-model: opencode-go/deepseek-v4-pro
+model: opencode-go/deepseek-v4-flash
 temperature: 0.1
 permission:
   edit: deny
