@@ -33,4 +33,17 @@ return {
       explorer = { enabled = false },
     },
   },
+
+  -- dressing.nvim (deprecated) is pulled in as a gitlab.nvim dependency. It
+  -- hijacks vim.ui.* and overrides snacks' picker/input, which is why
+  -- `checkhealth snacks` reports vim.ui.select/input not wired to Snacks.
+  -- Disable its vim.ui overrides (gitlab works fine via vim.ui.select on any
+  -- backend, snacks handles it here).
+  {
+    "stevearc/dressing.nvim",
+    opts = {
+      input = { enabled = false },
+      select = { enabled = false },
+    },
+  },
 }

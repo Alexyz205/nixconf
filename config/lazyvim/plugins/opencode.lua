@@ -15,10 +15,12 @@
 --   - Commit message generation
 --
 -- Keybindings:
---   <leader>oc : Toggle OpenCode interface
---   <leader>oa : Ask OpenCode (normal/visual mode)
---   <leader>op : Select from predefined prompts
---   <leader>on : Start new OpenCode session
+--   <C-a>    : Ask opencode about the current buffer/selection
+--   <C-x>    : Open opencode actions selector
+--   <C-.>    : Toggle opencode interface (normal/terminal)
+--   go / goo : Send range / line to opencode (operator, dot-repeatable)
+--   <S-C-u> / <S-C-d> : Scroll opencode message history
+--   + / -    : Restore increment/decrement (since <C-a>/<C-x> are remapped)
 --
 -- See: https://github.com/NickvanDyke/opencode.nvim
 -- ============================================================================

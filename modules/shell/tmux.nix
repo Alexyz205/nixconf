@@ -32,12 +32,16 @@ let
           set -g @catppuccin_status_left_separator ""
           set -g @catppuccin_status_right_separator ""
           set -g @catppuccin_status_connect_separator "no"
+          set -g @catppuccin_pane_active_border_style "fg=#{@thm_peach}"
         '';
       }
     ];
     extraConfig = ''
       set -g default-terminal "tmux-256color"
       set -ag terminal-overrides ",xterm-256color:RGB,xterm-ghostty:RGB"
+      # Allow the kitty graphics protocol (inline images in nvim/snacks) through
+      # tmux to the outer terminal (Ghostty/kitty/wezterm).
+      set -g allow-passthrough on
       set -g default-shell "${pkgs.zsh}/bin/zsh"
       set -g default-command "${pkgs.zsh}/bin/zsh -l"
       set -g pane-border-lines simple

@@ -1,5 +1,18 @@
 return {
   "harrisoncramer/gitlab.nvim",
+  -- Only load gitlab.nvim in repos hosted on the self-hosted GitLab
+  -- (git.dxyz.pro). `cond` is evaluated at startup: the plugin (and its
+  -- dependencies) stay unloaded for GitHub/local repos.
+  cond = function()
+    if vim.fn.executable("git") == 0 then
+      return false
+    end
+    local out = vim.fn.system({ "git", "remote", "-v" })
+    if vim.v.shell_error ~= 0 then
+      return false
+    end
+    return out:find("git.dxyz.pro", 1, true) ~= nil
+  end,
   dependencies = {
     "MunifTanjim/nui.nvim",
     "nvim-lua/plenary.nvim",

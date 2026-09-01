@@ -28,6 +28,58 @@ local function gh_run(args, success_msg)
 	})
 end
 
+-- Build a titled action pane section for either GitLab or GitHub.
+-- `actions` is a list of { icon, key, desc, action } where `action` is either
+-- a function or a string Ex command. `enabled` is the remote predicate
+-- (is_gitlab / is_github). Keeps the two ~90-line blocks down to a table.
+local function remote_actions(title, enabled, actions)
+	local items = {
+		{ icon = " ", title = title, padding = { 0, 1 }, indent = 2, enabled = enabled },
+	}
+	for _, a in ipairs(actions) do
+		table.insert(items, {
+			icon = a.icon,
+			key = a.key,
+			desc = a.desc,
+			indent = 2,
+			enabled = enabled,
+			action = a.action,
+		})
+	end
+	return items
+end
+
+-- Shared key -> action maps, one entry per remote type.
+local gitlab_actions = {
+	{ icon = " ", key = "a", desc = "Approve MR", action = function() require("gitlab").approve() end },
+	{ icon = " ", key = "A", desc = "Revoke Approval", action = function() require("gitlab").revoke() end },
+	{ icon = "󰁪 ", key = "S", desc = "MR Summary", action = function() require("gitlab").summary() end },
+	{ icon = "󰑬 ", key = "i", desc = "Pipeline", action = function() require("gitlab").pipeline() end },
+	{ icon = "󰙵 ", key = "d", desc = "Discussions", action = function() require("gitlab").toggle_discussions() end },
+	{ icon = "󰈙 ", key = "o", desc = "Open in Browser", action = function() require("gitlab").open_in_browser() end },
+	{ icon = "󰖟 ", key = "u", desc = "Copy MR URL", action = function() require("gitlab").copy_mr_url() end },
+	{ icon = "󰊤 ", key = "C", desc = "Choose MR", action = function() require("gitlab").choose_merge_request() end },
+	{
+		icon = "󱓼 ",
+		key = "N",
+		desc = "Create MR",
+		padding = 1,
+		action = function() require("gitlab").create_mr() end,
+	},
+}
+
+local github_actions = {
+	{ icon = " ", key = "a", desc = "Approve PR", action = function() gh_run({ "pr", "review", "--approve" }, "PR approved") end },
+	{ icon = " ", key = "A", desc = "Request Changes", action = function() gh_run({ "pr", "review", "--request-changes" }, "Changes requested") end },
+	{ icon = "󰁪 ", key = "S", desc = "PR Summary", action = ":Octo pr edit" },
+	{ icon = "󰑬 ", key = "i", desc = "Checks", action = ":Octo pr checks" },
+	{ icon = "󰙵 ", key = "d", desc = "Discussions", action = ":Octo review" },
+	{ icon = "󰈙 ", key = "o", desc = "Open in Browser", action = ":Octo pr browser" },
+	{ icon = "󰖟 ", key = "u", desc = "Copy PR URL", action = ":Octo pr url" },
+	{ icon = "󰊤 ", key = "C", desc = "Choose PR", action = ":Octo pr list" },
+	{ icon = "󱓼 ", key = "N", desc = "Create PR", padding = 1, action = ":Octo pr create" },
+}
+
 return {
 	"folke/snacks.nvim",
 	---@type snacks.Config
@@ -83,179 +135,9 @@ return {
 				{ section = "header" },
 				{ section = "keys", gap = 1, padding = 1 },
 
-				-- Quick GitLab action shortcuts (pane 1) - only for git.dxyz.pro remotes
-				{ icon = " ", title = "GitLab Actions", padding = { 0, 1 }, indent = 2, enabled = is_gitlab },
-				{
-					icon = " ",
-					key = "a",
-					desc = "Approve MR",
-					indent = 2,
-					enabled = is_gitlab,
-					action = function()
-						require("gitlab").approve()
-					end,
-				},
-				{
-					icon = " ",
-					key = "A",
-					desc = "Revoke Approval",
-					indent = 2,
-					enabled = is_gitlab,
-					action = function()
-						require("gitlab").revoke()
-					end,
-				},
-				{
-					icon = "󰁪 ",
-					key = "S",
-					desc = "MR Summary",
-					indent = 2,
-					enabled = is_gitlab,
-					action = function()
-						require("gitlab").summary()
-					end,
-				},
-				{
-					icon = "󰑬 ",
-					key = "i",
-					desc = "Pipeline",
-					indent = 2,
-					enabled = is_gitlab,
-					action = function()
-						require("gitlab").pipeline()
-					end,
-				},
-				{
-					icon = "󰙵 ",
-					key = "d",
-					desc = "Discussions",
-					indent = 2,
-					enabled = is_gitlab,
-					action = function()
-						require("gitlab").toggle_discussions()
-					end,
-				},
-				{
-					icon = "󰈙 ",
-					key = "o",
-					desc = "Open in Browser",
-					indent = 2,
-					enabled = is_gitlab,
-					action = function()
-						require("gitlab").open_in_browser()
-					end,
-				},
-				{
-					icon = "󰖟 ",
-					key = "u",
-					desc = "Copy MR URL",
-					indent = 2,
-					enabled = is_gitlab,
-					action = function()
-						require("gitlab").copy_mr_url()
-					end,
-				},
-				{
-					icon = "󰊤 ",
-					key = "C",
-					desc = "Choose MR",
-					indent = 2,
-					enabled = is_gitlab,
-					action = function()
-						require("gitlab").choose_merge_request()
-					end,
-				},
-				{
-					icon = "󱓼 ",
-					key = "N",
-					desc = "Create MR",
-					indent = 2,
-					padding = 1,
-					enabled = is_gitlab,
-					action = function()
-						require("gitlab").create_mr()
-					end,
-				},
-
-				-- Quick GitHub action shortcuts (pane 1) - only for github.com remotes
-				{ icon = " ", title = "GitHub Actions", padding = { 0, 1 }, indent = 2, enabled = is_github },
-				{
-					icon = " ",
-					key = "a",
-					desc = "Approve PR",
-					indent = 2,
-					enabled = is_github,
-					action = function()
-						gh_run({ "pr", "review", "--approve" }, "PR approved")
-					end,
-				},
-				{
-					icon = " ",
-					key = "A",
-					desc = "Request Changes",
-					indent = 2,
-					enabled = is_github,
-					action = function()
-						gh_run({ "pr", "review", "--request-changes" }, "Changes requested")
-					end,
-				},
-				{
-					icon = "󰁪 ",
-					key = "S",
-					desc = "PR Summary",
-					indent = 2,
-					enabled = is_github,
-					action = ":Octo pr edit",
-				},
-				{
-					icon = "󰑬 ",
-					key = "i",
-					desc = "Checks",
-					indent = 2,
-					enabled = is_github,
-					action = ":Octo pr checks",
-				},
-				{
-					icon = "󰙵 ",
-					key = "d",
-					desc = "Discussions",
-					indent = 2,
-					enabled = is_github,
-					action = ":Octo review",
-				},
-				{
-					icon = "󰈙 ",
-					key = "o",
-					desc = "Open in Browser",
-					indent = 2,
-					enabled = is_github,
-					action = ":Octo pr browser",
-				},
-				{
-					icon = "󰖟 ",
-					key = "u",
-					desc = "Copy PR URL",
-					indent = 2,
-					enabled = is_github,
-					action = ":Octo pr url",
-				},
-				{
-					icon = "󰊤 ",
-					key = "C",
-					desc = "Choose PR",
-					indent = 2,
-					enabled = is_github,
-					action = ":Octo pr list",
-				},
-				{
-					icon = "󱓼 ",
-					key = "N",
-					desc = "Create PR",
-					indent = 2,
-					padding = 1,
-					enabled = is_github,
-					action = ":Octo pr create",
-				},
+				-- Remote action panes - only shown for matching remotes
+				remote_actions("GitLab Actions", is_gitlab, gitlab_actions),
+				remote_actions("GitHub Actions", is_github, github_actions),
 
 				{
 					pane = 2,

@@ -9,7 +9,9 @@
 return {
   "folke/snacks.nvim",
   opts = {
+    input = { enabled = true },
     picker = {
+      ui_select = true,
       sources = {
         files = { hidden = true },
         grep = { hidden = true },
