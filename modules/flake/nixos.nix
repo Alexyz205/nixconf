@@ -14,6 +14,9 @@ let
       hostName,
       stateVersion,
     }:
+    let
+      sshClient = config.flake.modules.homeManager.ssh;
+    in
     {
       config,
       pkgs,
@@ -31,6 +34,8 @@ let
         extraSpecialArgs = {
           lazyvim = inputs.lazyvim;
         };
+        # Base SSH client config for every home-manager NixOS host.
+        sharedModules = [ sshClient ];
         users.${config.modules.users.userName} = {
           home.stateVersion = stateVersion;
           nix.package = lib.mkForce pkgs.nix;

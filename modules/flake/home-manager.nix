@@ -11,6 +11,7 @@ let
     nix
     shell
     git
+    ssh
     bat
     eza
     zoxide

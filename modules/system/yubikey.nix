@@ -33,27 +33,9 @@ let
       }
       // sshKeyFile
       // u2fKeyFile;
-      programs.ssh = {
-        enable = true;
-        enableDefaultConfig = false;
-        # devpod keeps its Host *.devpod entries in its own writable file
-        # (SSH_CONFIG_PATH) because this config is a read-only store symlink.
-        includes = [ "~/.config/devpod/ssh_config" ];
-        settings."*" = {
-          IdentityFile = "~/.ssh/${yubiKey}";
-          IdentitiesOnly = "yes";
-          SecurityKeyProvider = "internal";
-          IdentityAgent = "none";
-        };
-        # GitHub: prefer the plain ed25519 key already in ~/.ssh (primary);
-        # SSH skips it if absent and falls back to the YubiKey.
-        settings."github.com" = {
-          IdentityFile = [
-            "~/.ssh/id_ed25519"
-            "~/.ssh/${yubiKey}"
-          ];
-        };
-      };
+      # Append the resident YubiKey to the default identity list owned by the
+      # ssh module (id_ed25519 stays primary).
+      modules.ssh.identityFiles = [ "~/.ssh/${yubiKey}" ];
     };
 in
 {

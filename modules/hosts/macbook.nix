@@ -9,6 +9,7 @@ let
     nix
     shell
     git
+    ssh
     sops
     bat
     eza
