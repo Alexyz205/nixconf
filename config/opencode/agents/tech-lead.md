@@ -36,13 +36,16 @@ Plan, delegate, and review. Don't implement directly.
 ## Plan: <title>
 
 ### Phase 1: <name>
+
 - [ ] Task → @agent
 - [ ] Task → @agent
 
 ### Phase 2: <name> (depends Phase 1)
+
 - [ ] Task → @agent
 
 ### Phase 3: Validation
+
 - [ ] Task → @tester
 ```
 

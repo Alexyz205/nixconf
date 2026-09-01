@@ -75,20 +75,24 @@ Match existing test patterns in project.
 **Iterations**: <count>
 
 ### Summary
+
 - Total: X
 - Passed: X
 - Failed: X
 - Skipped: X
 
 ### Coverage (if available)
+
 - Lines: X%
 - Branches: X%
 - Functions: X%
 
 ### Failed Tests
+
 - `test_name` - <reason>
 
 ### Notes
+
 - <observations, flaky tests, gaps>
 ```
 
