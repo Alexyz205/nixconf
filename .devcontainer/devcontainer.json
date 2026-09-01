@@ -1,0 +1,15 @@
+{
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "mkhl.direnv"
+      ]
+    },
+    "zed": {
+      "extensions": []
+    }
+  },
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
+  "overrideCommand": false,
+  "updateContentCommand": "devenv test"
+}
