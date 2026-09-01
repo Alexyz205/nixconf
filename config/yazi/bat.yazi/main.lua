@@ -39,7 +39,7 @@ function M:peek(job)
 
 		i = i + #wrapped
 		for j = from, to do
-			lines[#lines + 1] = wrapped[j]
+			lines[#lines + 1] = M.normalize_bg(wrapped[j])
 		end
 	until i >= job.skip + limit
 
@@ -51,15 +51,14 @@ function M:peek(job)
 	end
 end
 
-function M:seek(job)
-	local h = cx.active.current.hovered
-	if h and h.url == job.file.url then
-		local step = math.floor(job.units * job.area.h / 10)
-		step = step == 0 and (job.units < 0 and -1 or 1) or step
-		ya.emit("peek", {
-			math.max(0, cx.active.preview.skip + step),
-			only_if = job.file.url,
-		})
+function M:seek(job) require("code"):seek(job) end
+
+function M.normalize_bg(line)
+	local bg = th.app.overall:bg()
+	if bg then
+		return line:map(function(span) return span:bg(bg) end)
+	else
+		return line
 	end
 end
 
