@@ -21,6 +21,11 @@ let
           jq
           tree-sitter
         ];
+        markdown = [
+          marksman
+          prettierd
+          markdownlint-cli2
+        ];
         security = [
           age
           sops
@@ -38,6 +43,7 @@ let
       enabled = n: config.modules.packages.${n};
       order = [
         "basic"
+        "markdown"
         "security"
         "devTools"
         "desktop"
@@ -47,19 +53,28 @@ let
       options.modules.packages = {
         basic = lib.mkOption {
           type = lib.types.bool;
-          default = false;
+          default = true;
+          description = "Core CLI utilities: curl, wget, openssl, ripgrep, fd, fastfetch, dust, duf, yq, jq, tree-sitter.";
+        };
+        markdown = lib.mkOption {
+          type = lib.types.bool;
+          default = true;
+          description = "Markdown tooling: marksman LSP, prettierd formatter, markdownlint-cli2 linter.";
         };
         security = lib.mkOption {
           type = lib.types.bool;
           default = false;
+          description = "Security tooling: age, sops, gnupg.";
         };
         devTools = lib.mkOption {
           type = lib.types.bool;
           default = false;
+          description = "Dev tooling: fabric-ai, lazydocker.";
         };
         desktop = lib.mkOption {
           type = lib.types.bool;
           default = false;
+          description = "Desktop applications: vlc, libreoffice.";
         };
       };
       # Non-empty when any group is enabled (all groups are non-empty).

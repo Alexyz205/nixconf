@@ -145,10 +145,12 @@ repository you start.
 ### For this repo
 
 `devenv.nix` at the root is kept to **only what this repo needs** — the test
-prerequisites for `scripts/test-all.sh` (`disko`, `shellcheck`), the secrets
-tooling (`sops`, `age-plugin-yubikey`), the markdown
-LSP/formatter/linter (`marksman`, `prettierd`, `markdownlint-cli2`), `nixfmt`,
-`stylua`/`luacheck`, and the Nix / shell / Lua language batteries.
+prerequisites for `scripts/test-all.sh` (`disko`, `shellcheck`), `nixfmt`,
+`stylua`/`luacheck`, and the Nix / shell / Lua language batteries. (Secrets
+tooling — `sops`, `age`, `age-plugin-yubikey`, `gnupg` — is installed globally
+by default via the `packages` module's `security` group, and markdown tooling —
+`marksman`, `prettierd`, `markdownlint-cli2` — via its `markdown` group, so
+neither is duplicated here.)
 
 The dev shell itself is optional — in day-to-day use the tools are already on
 `$PATH` via devenv **auto-activation** (see below) and the dev container. Drop

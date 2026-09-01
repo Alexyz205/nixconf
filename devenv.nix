@@ -23,13 +23,6 @@
     # Repo tooling (test suite prerequisites)
     disko
     shellcheck # bash linter (also a test-suite prerequisite)
-    sops
-    age-plugin-yubikey
-
-    # markdown: LSP marksman, formatter prettierd, linter markdownlint-cli2
-    marksman
-    prettierd
-    markdownlint-cli2
 
     # nix: formatter nixfmt (LSP nil + linter statix via languages.nix)
     nixfmt
