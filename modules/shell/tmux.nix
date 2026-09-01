@@ -5,6 +5,11 @@ let
   };
   tmuxCfg = { pkgs }: {
     enable = true;
+    # home-manager writes this in the base config (before any plugin
+    # run-shell), so continuum's background auto-restore — which spawns panes
+    # before extraConfig is applied — already has a zsh default-shell to fall
+    # back to instead of the passwd login shell.
+    shell = "${pkgs.zsh}/bin/zsh";
     plugins = with pkgs.tmuxPlugins; [
       { plugin = vim-tmux-navigator; }
       {
@@ -20,6 +25,7 @@ let
         extraConfig = ''
           set -g @continuum-restore 'on'
           set -g @continuum-boot 'off'
+          set -g @continuum-save-interval '15'
         '';
       }
       {
@@ -41,8 +47,11 @@ let
       # Allow the kitty graphics protocol (inline images in nvim/snacks) through
       # tmux to the outer terminal (Ghostty/kitty/wezterm).
       set -g allow-passthrough on
-      set -g default-shell "${pkgs.zsh}/bin/zsh"
       set -g default-command "${pkgs.zsh}/bin/zsh -l"
+      # Continuum drives its periodic auto-save off a `#()` hook in the status
+      # line. We own status-right here (catppuccin), so re-inject the hook;
+      # otherwise the theme overwriting status-right silently kills auto-save.
+      set -g status-right "#(${pkgs.tmuxPlugins.continuum}/share/tmux-plugins/continuum/scripts/continuum_save.sh)#{E:@catppuccin_status_user}#{E:@catppuccin_status_host}#{E:@catppuccin_status_session}"
       set -g pane-border-lines simple
       set -g pane-active-border-style "fg=#fab387"
       set -g renumber-windows on
@@ -90,7 +99,6 @@ let
       set -g status-left-length 100
       set -g status-right-length 100
       set -g status-left "#{E:@catppuccin_status_application}"
-      set -g status-right "#{E:@catppuccin_status_user}#{E:@catppuccin_status_host}#{E:@catppuccin_status_session}"
     '';
   };
 in

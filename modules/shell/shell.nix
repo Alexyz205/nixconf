@@ -138,6 +138,10 @@ in
       config = lib.mkIf config.modules.shell.enable {
         programs.zsh.enable = true;
         programs.git.enable = true;
+        # zsh is the managed shell: make it the login shell too. Otherwise tmux
+        # (and anything that falls back to the passwd shell) spawns bash and
+        # $SHELL stays wrong.
+        users.users.${config.modules.users.userName}.shell = pkgs.zsh;
         environment.systemPackages = with pkgs; [ git ];
         home-manager.users.${config.modules.users.userName} = mkShellCfg (
           baseAliases // nixAliases // nixosAliases
@@ -162,7 +166,28 @@ in
             // hmAliases
             // lib.optionalAttrs pkgs.stdenv.hostPlatform.isDarwin darwinAliases;
         in
-        mkShellCfg aliases args
+        lib.mkMerge [
+          (mkShellCfg aliases args)
+          {
+            # Standalone home-manager cannot change the OS login shell (that
+            # needs sudo + /etc/shells + chsh, deliberately out of scope for
+            # HM), so on non-NixOS hosts the passwd shell stays bash and
+            # tmux-restore (which falls back to passwd/default-shell) spawns
+            # bash. Bridge it: an interactive bash exec's straight into zsh,
+            # so every terminal and every restored tmux pane lands in zsh —
+            # purely declaratively, no chsh/sudo. NixOS doesn't need this:
+            # the shell module already sets users.users.<name>.shell = zsh.
+            programs.bash = {
+              enable = true;
+              initExtra = lib.mkAfter ''
+                if [[ -n $PS1 && -z $BASH_EXECUTION_STRING && -z $TMUX_IS_BASH_BRIDGED ]]; then
+                  export TMUX_IS_BASH_BRIDGED=1
+                  exec "${pkgs.zsh}/bin/zsh"
+                fi
+              '';
+            };
+          }
+        ]
       );
     };
 }
