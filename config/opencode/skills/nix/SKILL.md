@@ -8,20 +8,23 @@ metadata:
   workflow: nixos
 ---
 
-## Purpose
+# Purpose
 
-Standards for this repo's dendritic flake. Follow the tree structure, keep feature modules composable, catch evaluation errors early.
+Standards for this repo's dendritic flake. Follow the tree structure, keep feature
+modules composable, catch evaluation errors early.
 
 ## Dendritic Model
 
 - `flake.nix` is the trunk: one line of `outputs` delegating to `flake-parts` + `import-tree ./modules`
-- `import-tree` recursively loads every `*.nix` under `modules/` as a flake-parts module — there is **no central registry**; the tree _is_ the config
+- `import-tree` recursively loads every `*.nix` under `modules/` as a flake-parts
+  module — there is **no central registry**; the tree _is_ the config
 - Feature modules are branches (`modules/<category>/`); hosts are leaves (`modules/hosts/`)
 - Add a module = drop a file in the right directory; it is discovered automatically
 
 ## Feature Module Shape
 
-Each feature declares a NixOS side and (where relevant) a home-manager side, and owns its `enable` option, packages, and aliases:
+Each feature declares a NixOS side and (where relevant) a home-manager side, and
+owns its `enable` option, packages, and aliases:
 
 ```nix
 {
@@ -52,9 +55,11 @@ Each feature declares a NixOS side and (where relevant) a home-manager side, and
 
 ## Hosts (Leaves)
 
-- A host selects a tier (`config.flake.nixosFeatures.desktop`) and adds only its **deltas**: hardware, disko, allowUnfree, stylix, per-app toggles
+- A host selects a tier (`config.flake.nixosFeatures.desktop`) and adds only its
+  **deltas**: hardware, disko, allowUnfree, stylix, per-app toggles
 - Enable features with one line: `modules.<feature>.enable = true`
-- Shared boilerplate lives in `mkHostCommon` (stateVersion, hostName, timezone, home-manager wiring) — don't repeat it per host
+- Shared boilerplate lives in `mkHostCommon` (stateVersion, hostName, timezone,
+  home-manager wiring) — don't repeat it per host
 - Standalone profiles use `mkHome` (system + username + extra list); non-NixOS Linux auto-derives `targets.genericLinux`
 
 ## Reproducibility

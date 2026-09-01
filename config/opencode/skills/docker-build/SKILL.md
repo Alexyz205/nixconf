@@ -8,7 +8,7 @@ metadata:
   workflow: containers
 ---
 
-## Purpose
+# Purpose
 
 Production Dockerfile standards. Multi-stage, secure, optimized, scannable.
 
@@ -31,9 +31,11 @@ Production Dockerfile standards. Multi-stage, secure, optimized, scannable.
 
 - `.dockerignore` to exclude unnecessary files
 - BuildKit cache mounts:
+
   ```dockerfile
   RUN --mount=type=cache,target=/var/cache/apt apt-get install -y ...
   ```
+
 - Copy manifests before source for better caching
 - Minimize size → audit with `docker history`
 

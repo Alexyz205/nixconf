@@ -17,7 +17,7 @@ Guide refactoring toward strict Clean Architecture. Explain reasoning, trade-off
 
 ## Layers (Strict)
 
-```
+```text
 Infrastructure → Adapters → Use Cases → Domain
 Dependencies flow INWARD ONLY
 ```

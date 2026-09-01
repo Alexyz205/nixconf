@@ -1,5 +1,5 @@
-{ lib, ... }: {
-  flake.modules.nixos.podman = { ... }: {
+_: {
+  flake.modules.nixos.podman = _: {
     boot.kernelModules = [
       "overlay"
       "fuse"

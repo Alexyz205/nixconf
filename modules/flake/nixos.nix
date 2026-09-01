@@ -1,7 +1,6 @@
 {
   config,
   inputs,
-  lib,
   ...
 }:
 let
@@ -32,7 +31,7 @@ let
       home-manager = {
         useGlobalPkgs = true;
         extraSpecialArgs = {
-          lazyvim = inputs.lazyvim;
+          inherit (inputs) lazyvim;
         };
         # Base SSH client config for every home-manager NixOS host.
         sharedModules = [ sshClient ];
@@ -96,6 +95,6 @@ in
           youtubeMusic
         ]);
     };
-    mkHostCommon = mkHostCommon;
+    inherit mkHostCommon;
   };
 }

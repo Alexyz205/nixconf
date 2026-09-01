@@ -1,8 +1,4 @@
-{
-  lib,
-  ...
-}:
-{
+_: {
   flake.modules.nixos.discord =
     {
       config,

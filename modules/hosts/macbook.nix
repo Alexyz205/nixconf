@@ -78,7 +78,7 @@ in
             useGlobalPkgs = true;
             useUserPackages = true;
             extraSpecialArgs = {
-              lazyvim = inputs.lazyvim;
+              inherit (inputs) lazyvim;
             };
             users.alexis = {
               imports = hmModules ++ [ inputs.sops-nix.homeManagerModules.sops ];

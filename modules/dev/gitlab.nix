@@ -1,7 +1,4 @@
-{
-  lib,
-  ...
-}:
+_:
 let
   gitlabLua = builtins.readFile ../../config/gitlab/gitlab.lua;
   gitlabAliases = {
@@ -23,12 +20,14 @@ let
       # required (>= 1.25.1) for the build step to succeed.
       pkgs.go
     ];
-    programs.git.settings.credential."https://git.dxyz.pro".helper = [
-      ""
-      "!\${pkgs.glab}/bin/glab auth git-credential"
-    ];
-    programs.lazyvim.plugins.gitlab = gitlabLua;
-    programs.zsh.shellAliases = gitlabAliases;
+    programs = {
+      git.settings.credential."https://git.dxyz.pro".helper = [
+        ""
+        "!${pkgs.glab}/bin/glab auth git-credential"
+      ];
+      lazyvim.plugins.gitlab = gitlabLua;
+      zsh.shellAliases = gitlabAliases;
+    };
     sops.secrets.GITLAB_TOKEN = { };
   };
 in
@@ -49,7 +48,7 @@ in
         ];
         programs.git.config.credential."https://git.dxyz.pro".helper = [
           ""
-          "!\${pkgs.glab}/bin/glab auth git-credential"
+          "!${pkgs.glab}/bin/glab auth git-credential"
         ];
         sops.secrets.GITLAB_TOKEN = { };
         home-manager.users.${config.modules.users.userName} = gitlabCfg { inherit pkgs; };

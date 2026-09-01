@@ -1,7 +1,4 @@
-{
-  lib,
-  ...
-}:
+_:
 let
   audioBlockSrc = builtins.toFile "audio-block.c" ''
     #define _GNU_SOURCE

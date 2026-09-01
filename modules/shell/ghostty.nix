@@ -1,4 +1,4 @@
-{ lib, ... }:
+_:
 let
   ghosttyCfg = { pkgs }: {
     enable = true;

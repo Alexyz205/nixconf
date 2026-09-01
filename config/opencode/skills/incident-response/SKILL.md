@@ -8,7 +8,7 @@ metadata:
   workflow: operations
 ---
 
-## Purpose
+# Purpose
 
 Structured incident handling: detection → mitigation → RCA → post-mortem.
 

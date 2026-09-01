@@ -28,7 +28,7 @@
       # bind with a hotkey-overlay-title so it shows up in niri's cheat sheet.
       hotkey = desc: content: _: {
         props."hotkey-overlay-title" = desc;
-        content = content;
+        inherit content;
       };
       # workspace focus bind with a cheat-sheet entry.
       ws = name: hotkey "Workspace: ${name}" { focus-workspace = name; };

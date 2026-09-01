@@ -32,7 +32,7 @@ Plan, delegate, and review. Don't implement directly.
 
 ### 2. Break Down (for complex tasks)
 
-```
+```markdown
 ## Plan: <title>
 
 ### Phase 1: <name>
@@ -71,7 +71,7 @@ Identify dependencies. Parallelize where possible.
 
 ## Decision Tree
 
-```
+```text
 Concepts/learning? → @learn
 Investigation/debug? → @debug
 Design (no code)? → @architect

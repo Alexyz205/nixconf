@@ -19,7 +19,7 @@ return {
           stdin = false,
           stream = "stderr",
           ignore_exitcode = true,
-          parser = function(output, bufnr)
+          parser = function(output, _bufnr)
             local diagnostics = {}
             for line in output:gmatch("[^\r\n]+") do
               if line:match("would be reformatted") then

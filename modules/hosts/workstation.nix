@@ -48,25 +48,35 @@ let
               ];
             disko.devices.disk.main.device = diskDevice;
 
-            services.xserver.enable = true;
-            # Required for hardware.nvidia to actually activate: the module is
-            # gated on "nvidia" being listed here (nvidia.nix: nvidiaEnabled).
-            services.xserver.videoDrivers = [ "nvidia" ];
-            # Disable TTS service: the graphical-desktop default enables
-            # speech-dispatcher (pulls mbrola/espeak/flite, ~890MB, unused here).
-            services.speechd.enable = false;
+            services = {
+              xserver = {
+                enable = true;
+                # Required for hardware.nvidia to actually activate: the module is
+                # gated on "nvidia" being listed here (nvidia.nix: nvidiaEnabled).
+                videoDrivers = [ "nvidia" ];
+              };
+              # Disable TTS service: the graphical-desktop default enables
+              # speech-dispatcher (pulls mbrola/espeak/flite, ~890MB, unused here).
+              speechd.enable = false;
+              greetd = {
+                enable = true;
+                settings = {
+                  default_session = {
+                    command = "niri-session";
+                    user = config.modules.users.userName;
+                  };
+                };
+              };
+              upower.enable = true;
+              pipewire = {
+                enable = true;
+                alsa.enable = true;
+                pulse.enable = true;
+              };
+            };
             # Only the declared JetBrains Mono + emoji fonts are used, so skip
             # the default CJK/unifont package set (~170MB).
             fonts.enableDefaultPackages = false;
-            services.greetd = {
-              enable = true;
-              settings = {
-                default_session = {
-                  command = "niri-session";
-                  user = config.modules.users.userName;
-                };
-              };
-            };
             systemd.services.greetd.serviceConfig = {
               Type = "idle";
               StandardInput = "tty";
@@ -100,7 +110,6 @@ let
               };
             };
 
-            services.upower.enable = true;
             environment.systemPackages = with pkgs; [
               polkit_gnome
               base16-schemes
@@ -122,9 +131,11 @@ let
               containers.enable = true;
               shell.enable = true;
               git.enable = true;
-              yubikey.enable = true;
-              yubikey.luksUnlock = true;
-              yubikey.sudoAuth = true;
+              yubikey = {
+                enable = true;
+                luksUnlock = true;
+                sudoAuth = true;
+              };
               starship.enable = true;
               tmux.enable = true;
               bat.enable = true;
@@ -176,11 +187,6 @@ let
               };
             };
 
-            services.pipewire = {
-              enable = true;
-              alsa.enable = true;
-              pulse.enable = true;
-            };
             hardware = {
               bluetooth.enable = true;
               graphics.enable = true;

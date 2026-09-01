@@ -4,7 +4,7 @@ let
     enableZshIntegration = true;
   };
 in
-{ lib, ... }: {
+_: {
   flake.modules.nixos.zoxide =
     {
       config,

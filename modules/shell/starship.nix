@@ -1,4 +1,4 @@
-{ lib, ... }:
+_:
 let
   starshipCfg = {
     enable = true;
@@ -24,23 +24,25 @@ let
         color_peach = "#fab387";
         color_grey = "#6c7086";
       };
-      os.disabled = false;
-      os.style = "bg:surface0 fg:color_fg0";
-      os.symbols = {
-        Windows = "󰍲";
-        Ubuntu = "󰕈";
-        Macos = "󰀵";
-        Linux = "󰌽";
-        NixOS = "";
-        Fedora = "󰣛";
-        Alpine = "";
-        Amazon = "";
-        Android = "";
-        Arch = "󰣇";
-        CentOS = "";
-        Debian = "󰣚";
-        Redhat = "󱄛";
-        RedHatEnterprise = "󱄛";
+      os = {
+        disabled = false;
+        style = "bg:surface0 fg:color_fg0";
+        symbols = {
+          Windows = "󰍲";
+          Ubuntu = "󰕈";
+          Macos = "󰀵";
+          Linux = "󰌽";
+          NixOS = "";
+          Fedora = "󰣛";
+          Alpine = "";
+          Amazon = "";
+          Android = "";
+          Arch = "󰣇";
+          CentOS = "";
+          Debian = "󰣚";
+          Redhat = "󱄛";
+          RedHatEnterprise = "󱄛";
+        };
       };
       username = {
         show_always = true;
@@ -222,7 +224,6 @@ in
     {
       config,
       lib,
-      pkgs,
       ...
     }:
     {

@@ -9,7 +9,6 @@ let
   };
   lazyvimCfg =
     {
-      lazyvim,
       pkgs,
       autoFormatOnSave ? true,
     }:
@@ -185,7 +184,6 @@ in
           imports = [ inputs.lazyvim.homeManagerModules.default ];
         }
         // lazyvimCfg {
-          inherit (inputs) lazyvim;
           inherit pkgs;
           autoFormatOnSave = config.modules.lazyvim.autoFormatOnSave;
         };
@@ -211,7 +209,7 @@ in
         };
       };
       config = lib.mkIf config.modules.lazyvim.enable (lazyvimCfg {
-        inherit lazyvim pkgs;
+        inherit pkgs;
         autoFormatOnSave = config.modules.lazyvim.autoFormatOnSave;
       });
     };

@@ -20,7 +20,7 @@ let
     programs.zsh.shellAliases = ezaAliases;
   };
 in
-{ lib, ... }: {
+_: {
   flake.modules.nixos.eza =
     {
       config,

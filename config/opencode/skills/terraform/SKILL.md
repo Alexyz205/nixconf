@@ -8,7 +8,7 @@ metadata:
   workflow: iac
 ---
 
-## Purpose
+# Purpose
 
 Production IaC standards. Reproducible state, reusable modules, secure and reviewable plans.
 
@@ -16,6 +16,7 @@ Production IaC standards. Reproducible state, reusable modules, secure and revie
 
 - Remote state with locking (S3 + DynamoDB, GCS, or TFC) — never local, never committed
 - Pin versions in `versions.tf`:
+
   ```hcl
   terraform {
     required_version = ">= 1.6"

@@ -36,7 +36,9 @@ return {
         input = {},
         picker = {
           actions = {
-            opencode_send = function(...) return require("opencode").snacks_picker_send(...) end,
+            opencode_send = function(...)
+              return require("opencode").snacks_picker_send(...)
+            end,
           },
           win = {
             input = {
@@ -63,17 +65,31 @@ return {
     vim.o.autoread = true
 
     -- Core keymaps
-    vim.keymap.set({ "n", "x" }, "<C-a>", function() require("opencode").ask("@this: ", { submit = true }) end, { desc = "Ask opencode" })
-    vim.keymap.set({ "n", "x" }, "<C-x>", function() require("opencode").select() end, { desc = "Opencode actions" })
-    vim.keymap.set({ "n", "t" }, "<C-.>", function() require("opencode").toggle() end, { desc = "Toggle opencode" })
+    vim.keymap.set({ "n", "x" }, "<C-a>", function()
+      require("opencode").ask("@this: ", { submit = true })
+    end, { desc = "Ask opencode" })
+    vim.keymap.set({ "n", "x" }, "<C-x>", function()
+      require("opencode").select()
+    end, { desc = "Opencode actions" })
+    vim.keymap.set({ "n", "t" }, "<C-.>", function()
+      require("opencode").toggle()
+    end, { desc = "Toggle opencode" })
 
     -- Operator (supports ranges and dot-repeat)
-    vim.keymap.set({ "n", "x" }, "go", function() return require("opencode").operator("@this ") end, { desc = "Send range to opencode", expr = true })
-    vim.keymap.set("n", "goo", function() return require("opencode").operator("@this ") .. "_" end, { desc = "Send line to opencode", expr = true })
+    vim.keymap.set({ "n", "x" }, "go", function()
+      return require("opencode").operator("@this ")
+    end, { desc = "Send range to opencode", expr = true })
+    vim.keymap.set("n", "goo", function()
+      return require("opencode").operator("@this ") .. "_"
+    end, { desc = "Send line to opencode", expr = true })
 
     -- Scroll opencode messages
-    vim.keymap.set("n", "<S-C-u>", function() require("opencode").command("session.half.page.up") end, { desc = "Scroll opencode up" })
-    vim.keymap.set("n", "<S-C-d>", function() require("opencode").command("session.half.page.down") end, { desc = "Scroll opencode down" })
+    vim.keymap.set("n", "<S-C-u>", function()
+      require("opencode").command("session.half.page.up")
+    end, { desc = "Scroll opencode up" })
+    vim.keymap.set("n", "<S-C-d>", function()
+      require("opencode").command("session.half.page.down")
+    end, { desc = "Scroll opencode down" })
 
     -- Restore default increment/decrement since <C-a>/<C-x> are remapped
     vim.keymap.set("n", "+", "<C-a>", { desc = "Increment", noremap = true })

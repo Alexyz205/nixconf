@@ -1,7 +1,4 @@
-{
-  lib,
-  ...
-}:
+_:
 let
   zshHook = ''eval "$(devenv hook zsh)"'';
   homeCfg =

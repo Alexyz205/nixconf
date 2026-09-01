@@ -26,7 +26,7 @@ Hosts are composed from **feature tiers** rather than hand-listed modules: a
 storage/secrets/containers, and `desktop` layers the GUI stack on top. Adding a
 new machine is mostly choosing a tier and a few extras.
 
-```
+```text
 flake.nix               # Entry point: flake-parts + import-tree
 devenv.nix / devenv.yaml# Dev environment for this repo (see "Dev environment")
 modules/

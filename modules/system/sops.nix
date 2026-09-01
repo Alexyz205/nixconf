@@ -19,10 +19,12 @@ in
       config = {
         sops = {
           defaultSopsFile = envFile;
-          age.keyFile = "/etc/yubi-age-identity";
-          age.sshKeyPaths = [ ];
-          age.generateKey = false;
-          age.plugins = [ pkgs.age-plugin-yubikey ];
+          age = {
+            keyFile = "/etc/yubi-age-identity";
+            sshKeyPaths = [ ];
+            generateKey = false;
+            plugins = [ pkgs.age-plugin-yubikey ];
+          };
           gnupg.sshKeyPaths = [ ];
         };
         environment.etc."yubi-age-identity".source = yubiIdentity;
@@ -65,8 +67,10 @@ in
       # (server, containers) never pull it in.
       config = lib.mkIf config.modules.sops.enable {
         sops = {
-          age.keyFile = "${config.home.homeDirectory}/repos/personal/nixconf/config/sops/yubi-age-identity";
-          age.plugins = [ pkgs.age-plugin-yubikey ];
+          age = {
+            keyFile = "${config.home.homeDirectory}/repos/personal/nixconf/config/sops/yubi-age-identity";
+            plugins = [ pkgs.age-plugin-yubikey ];
+          };
           defaultSopsFile = envFile;
           secrets.GITHUB_TOKEN = { };
         };

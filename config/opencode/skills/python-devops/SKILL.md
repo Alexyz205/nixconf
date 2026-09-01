@@ -8,7 +8,7 @@ metadata:
   workflow: python
 ---
 
-## Purpose
+# Purpose
 
 Python patterns for DevOps tooling. CLI, API clients, config, async, testing.
 
@@ -98,7 +98,7 @@ def mock_client():
 
 ## Project Layout
 
-```
+```text
 src/my_tool/
 ├── __main__.py    # Entry point
 ├── cli.py         # Commands

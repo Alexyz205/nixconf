@@ -67,7 +67,7 @@ Match existing test patterns in project.
 
 ## Report Format
 
-```
+```markdown
 ## Test Results
 
 **Status**: PASS | FAIL

@@ -48,9 +48,8 @@ let
     meta_info = {
       power_bookmark_meta = "";
     };
-    name = b.name;
+    inherit (b) name url;
     type = "url";
-    url = b.url;
   };
 
   mkBar = {
@@ -70,8 +69,7 @@ let
     date_last_used = "0";
     date_modified = "0";
     guid = guid';
-    id = id;
-    name = name;
+    inherit id name;
     type = "folder";
   };
 
@@ -88,7 +86,6 @@ let
   braveCfg =
     {
       pkgs,
-      config,
       ...
     }:
     {

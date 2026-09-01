@@ -1,7 +1,4 @@
-{
-  lib,
-  ...
-}:
+_:
 let
   containerAliases = {
     d = "docker";

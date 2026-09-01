@@ -8,7 +8,7 @@ metadata:
   workflow: config-management
 ---
 
-## Purpose
+# Purpose
 
 Production config-management standards. Idempotent, modular, testable playbooks.
 
@@ -21,7 +21,7 @@ Production config-management standards. Idempotent, modular, testable playbooks.
 
 ## Structure
 
-```
+```text
 roles/<name>/
   defaults/main.yml    # lowest precedence
   vars/main.yml

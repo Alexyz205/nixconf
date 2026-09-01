@@ -1,4 +1,4 @@
-{ lib, ... }:
+_:
 let
   gitCfg = { pkgs, ... }: {
     enable = true;
@@ -68,11 +68,11 @@ let
       url."git@git.dxyz.pro:".insteadOf = "gl:";
       credential."https://github.com".helper = [
         ""
-        "!\${pkgs.gh}/bin/gh auth git-credential"
+        "!${pkgs.gh}/bin/gh auth git-credential"
       ];
       credential."https://gist.github.com".helper = [
         ""
-        "!\${pkgs.gh}/bin/gh auth git-credential"
+        "!${pkgs.gh}/bin/gh auth git-credential"
       ];
     };
     includes = [

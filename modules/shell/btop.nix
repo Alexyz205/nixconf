@@ -3,7 +3,6 @@ let
     {
       pkgs,
       config,
-      lib,
       ...
     }:
     {
@@ -21,7 +20,7 @@ let
         config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/repos/personal/nixconf/config/btop/catppuccin_mocha.theme";
     };
 in
-{ lib, ... }: {
+_: {
   flake.modules.nixos.btop =
     {
       config,

@@ -1,4 +1,4 @@
-{ lib, ... }:
+_:
 let
   yaziCfg = {
     enable = true;
@@ -395,7 +395,6 @@ in
     {
       config,
       lib,
-      pkgs,
       ...
     }:
     {

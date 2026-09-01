@@ -8,13 +8,13 @@ metadata:
   workflow: python
 ---
 
-## Purpose
+# Purpose
 
 Strict Clean Architecture for Python apps. Layered design, dependency inversion, testability.
 
 ## Project Structure
 
-```
+```text
 src/
 ├── domain/              # Entities, value objects, exceptions
 ├── use_cases/           # Business rules, port definitions
@@ -25,7 +25,7 @@ src/
 
 ## Dependency Rule
 
-```
+```text
 Domain ← Use Cases ← Adapters ← Infrastructure
 Dependencies flow INWARD ONLY
 ```

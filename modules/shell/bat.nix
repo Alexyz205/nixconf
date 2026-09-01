@@ -1,4 +1,4 @@
-{ lib, ... }:
+_:
 let
   themeSrc = toString ../../config/bat/themes;
   batCfg = {

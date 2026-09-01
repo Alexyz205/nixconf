@@ -8,7 +8,7 @@ metadata:
   workflow: automation
 ---
 
-## Purpose
+# Purpose
 
 Production-grade shell script standards. Enforce patterns, catch anti-patterns, minimize verbosity.
 

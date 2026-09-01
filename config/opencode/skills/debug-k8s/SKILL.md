@@ -8,7 +8,7 @@ metadata:
   workflow: kubernetes
 ---
 
-## Purpose
+# Purpose
 
 Systematic K8s troubleshooting. Minimal steps, maximum signal.
 

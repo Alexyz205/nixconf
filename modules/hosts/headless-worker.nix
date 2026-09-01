@@ -1,7 +1,6 @@
 {
   config,
   inputs,
-  lib,
   ...
 }:
 let
@@ -32,7 +31,6 @@ let
         (
           {
             config,
-            pkgs,
             lib,
             ...
           }:
@@ -71,33 +69,34 @@ let
             services.resolved.enable = true;
 
             # SSH key from existing YubiKey pub (no hardware needed at runtime)
-            modules.users.extraGroups = [
-              "wheel"
-              "podman"
-            ];
+            modules = {
+              users.extraGroups = [
+                "wheel"
+                "podman"
+              ];
+              # Packages
+              packages = {
+                basic = true;
+                security = true;
+                devTools = true;
+              };
+              containers.enable = true;
+              shell.enable = true;
+              git.enable = true;
+              starship.enable = true;
+              tmux.enable = true;
+              bat.enable = true;
+              eza.enable = true;
+              lazygit.enable = true;
+              yazi.enable = true;
+              zoxide.enable = true;
+              lazyvim.enable = true;
+              tv.enable = true;
+              opencode.enable = true;
+            };
             users.users.${config.modules.users.userName}.openssh.authorizedKeys.keys = [
               (lib.trim (builtins.readFile yubiPub))
             ];
-
-            # Packages
-            modules.packages = {
-              basic = true;
-              security = true;
-              devTools = true;
-            };
-            modules.containers.enable = true;
-            modules.shell.enable = true;
-            modules.git.enable = true;
-            modules.starship.enable = true;
-            modules.tmux.enable = true;
-            modules.bat.enable = true;
-            modules.eza.enable = true;
-            modules.lazygit.enable = true;
-            modules.yazi.enable = true;
-            modules.zoxide.enable = true;
-            modules.lazyvim.enable = true;
-            modules.tv.enable = true;
-            modules.opencode.enable = true;
 
             # Server optimizations
             nix.gc = {

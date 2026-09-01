@@ -1,4 +1,4 @@
-{ lib, ... }:
+_:
 let
   tmuxAliases = {
     t = "tmux new-session -A -s dev";

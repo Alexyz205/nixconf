@@ -58,7 +58,7 @@ in
 {
   flake.mkBtrfsLayout = btrfsLayout;
 
-  flake.modules.nixos.disko = { ... }: {
+  flake.modules.nixos.disko = _: {
     disko.devices.disk.main = {
       type = "disk";
       device = lib.mkDefault "/dev/sda";

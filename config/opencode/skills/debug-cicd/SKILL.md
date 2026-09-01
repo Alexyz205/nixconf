@@ -8,7 +8,7 @@ metadata:
   workflow: ci-cd
 ---
 
-## Purpose
+# Purpose
 
 Systematic CI/CD pipeline debugging for GitLab CI and GitHub Actions.
 

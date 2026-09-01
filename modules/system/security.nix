@@ -1,5 +1,5 @@
-{ lib, ... }: {
-  flake.modules.nixos.security = { ... }: {
+_: {
+  flake.modules.nixos.security = _: {
     security.lockKernelModules = true;
     boot.kernelModules = [
       "uas"
