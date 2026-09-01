@@ -9,32 +9,41 @@ home-manager profiles — all sharing the same feature modules.
 
 The flake entry point (`flake.nix`) is tiny: it delegates everything to
 flake-parts, and import-tree recursively loads every `*.nix` file under
-`modules/` as a flake-parts module. Feature modules declare both a NixOS side
+`modules/` as a flake-parts module. Feature modules declare a NixOS side
 (`flake.modules.nixos.<feature>`) and, where relevant, a home-manager side
-(`flake.modules.homeManager.<feature>`), and each host mixes them via its
+(`flake.modules.homeManager.<feature>`), and each host mixes them via a
 `features` list.
 
-Each tool module is self-contained: it owns its `enable` option, the packages
-it installs, and its zsh aliases. Enabling a feature is one line
-(`modules.<feature>.enable = true`) and the aliases come along. The `shell`
-module is the exception: it centralizes the environment and the
-platform-specific rebuild aliases (`nr`/`hm`/`dr` sets), gated per platform
-(see [Commands](#commands)).
+The core design principle is **self-contained feature modules**. Each tool
+module owns its `enable` option, the packages it installs, and its zsh aliases.
+Enabling a feature is one line (`modules.<feature>.enable = true`) and the
+aliases come along. The `shell` module is the exception: it centralizes the
+environment and the platform-specific rebuild aliases, gated per platform (see
+[Commands](#commands)).
+
+Hosts are composed from **feature tiers** rather than hand-listed modules: a
+`base` tier (terminal tooling) is the default for every host, `server` adds
+storage/secrets/containers, and `desktop` layers the GUI stack on top. Adding a
+new machine is mostly choosing a tier and a few extras.
 
 ```
 flake.nix               # Entry point: flake-parts + import-tree
-devenv.nix / devenv.yaml# Dev environment for this repo (LSPs, formatters, test tooling)
+devenv.nix / devenv.yaml# Dev environment for this repo (see "Dev environment")
 modules/
-├── flake/              # options.nix (option types), nixos.nix (tiers), home-manager.nix (standalone configs)
+├── flake/              # options.nix (option types), nixos.nix (feature tiers), home-manager.nix (standalone configs)
 ├── hosts/              # One file per machine / image
 ├── system/             # boot, disko, network, nix, podman, sops, security, ssh, users, yubikey
 ├── shell/              # shell, starship, tmux, zoxide, eza, bat, btop, yazi, ghostty
-├── desktop/            # brave, claude, discord, hidden-apps, niri, noctalia, steam, youtube-music
-└── dev/                # containers, devenv, git, gitlab, lazygit, lazyvim, opencode, packages, tv
+├── desktop/            # niri, brave, claude, discord, steam, youtube-music, ...
+└── dev/                # devenv, git, gitlab, lazygit, lazyvim, opencode, containers, ...
 config/                 # Dotfiles & static assets referenced from feature modules
 scripts/                # install.sh, test-all.sh, build-iso.sh
 secrets/                # sops-encrypted secrets
 ```
+
+The `modules/` subdirectories are organizational only — import-tree loads every
+file regardless of location, so a feature can be added or moved without touching
+the flake.
 
 ## Install scripts
 
@@ -88,54 +97,23 @@ platform: NixOS hosts get the `nixos-rebuild` set, nix-darwin the
 set. The `nix` flake aliases exist on every platform. All aliases use the
 `$NIXCONF` env var.
 
-### General (every platform)
+The most common ones:
 
 ```bash
-nc   # nix flake check $NIXCONF
-nu   # nix flake update $NIXCONF
-nl   # nix flake lock $NIXCONF
-ngc  # nix store gc
-ngo  # nix store optimise
+nc   # nix flake check $NIXCONF          (every platform)
+nr   # sudo nixos-rebuild switch --flake $NIXCONF   (NixOS)
+dr   # sudo darwin-rebuild switch --flake $NIXCONF  (nix-darwin)
+hm   # home-manager switch --flake $NIXCONF         (standalone home-manager)
 ```
 
-### NixOS
+Each family has build/test variants (`nrb`/`nrt`, `drb`/`drc`, `hmb`/`hmc`) plus
+flake helpers (`nu` update, `nl` lock, `ngc` gc, `ngo` optimise). The complete
+set lives in `modules/shell/shell.nix` — the README doesn't duplicate it.
 
-```bash
-nr   # sudo nixos-rebuild switch --flake $NIXCONF
-nrb  # nixos-rebuild build --flake $NIXCONF
-nrt  # sudo nixos-rebuild test --flake $NIXCONF
-```
-
-### macOS (nix-darwin)
-
-```bash
-dr   # sudo darwin-rebuild switch --flake $NIXCONF
-drb  # sudo darwin-rebuild build --flake $NIXCONF
-drc  # sudo darwin-rebuild check --flake $NIXCONF
-```
-
-### Home-manager (standalone)
-
-```bash
-hm   # home-manager switch --flake $NIXCONF
-hmb  # home-manager build --flake $NIXCONF
-hmc  # home-manager build --flake $NIXCONF --check
-```
-
-### Tool aliases
-
-Each tool module ships its own `enable` flag, packages, and aliases:
-
-| Module               | Aliases                                                        |
-| -------------------- | -------------------------------------------------------------- |
-| `eza`                | `ls`, `la`, `ll`, `lt`, `lta`, `ltl`, `ldir`, `lm`, `lz`       |
-| `git`                | `g`, `ga`, `gc`, `gcm`, `gco`, `gd`, `gl`, `gp`, `gP`, `gs`    |
-| `lazygit`            | `lg`                                                           |
-| `tmux`               | `t` (`new-session -A -s dev`)                                  |
-| `lazyvim`            | `v`                                                            |
-| `containers`         | `d`, `dc`, `ld`, `dru`, `ds`, `du`                             |
-| `gitlab` (RNSL only) | `gm`, `gml`, `gmv`, `gmc`, `gma`, `gmm`, `gci`, `gcil`, `gciv` |
-| `shell`              | `nf`, `repos`, `f`, `p`, `e`, `c`, `reload`                    |
+Beyond the rebuild aliases, every tool module ships its own aliases alongside
+its `enable` flag and packages (e.g. `eza` provides `ls`/`ll`/`la`, `git`
+provides `g`/`gs`/`gc`/…, `lazygit` provides `lg`, `tmux` provides `t`). The
+full per-module alias list is defined in each module under `modules/`.
 
 ## Test suite
 
@@ -156,6 +134,9 @@ Each tool module ships its own `enable` flag, packages, and aliases:
 | `vm`         | Builds the Proxmox VM image (`.#proxmox-vm`)     |
 | `shellcheck` | Lints `scripts/*.sh`                             |
 
+If `disko` or `shellcheck` aren't on `$PATH`, the script re-enters itself via
+`devenv shell` so the tools are always available.
+
 ## Dev environment (devenv)
 
 Devenv provides the shell the test suite needs and is the template for any new
@@ -163,20 +144,27 @@ repository you start.
 
 ### For this repo
 
-`devenv.nix` at the root installs what `scripts/test-all.sh` requires
-(`disko` for the disko test, `shellcheck` for linting) and enables the Nix,
-Python, and shell language batteries. It also owns the LSPs and formatters that
-LazyVim picks up
-from `$PATH` (see [For a new project](#for-a-new--other-project)): `marksman`,
-`yaml-language-server`, `vscode-json-languageserver`, `taplo`, `ruff`,
-`prettierd`, `markdownlint-cli2`, `nixfmt`, plus `nil`, `basedpyright` and
-`shfmt`/`shellcheck` via the `languages.nix`/`languages.python`/
-`languages.shell` batteries. Enter it with:
+`devenv.nix` at the root is kept to **only what this repo needs** — the test
+prerequisites for `scripts/test-all.sh` (`disko`, `shellcheck`), the secrets
+tooling (`sops`, `age-plugin-yubikey`), the markdown
+LSP/formatter/linter (`marksman`, `prettierd`, `markdownlint-cli2`), `nixfmt`,
+`stylua`/`luacheck`, and the Nix / shell / Lua language batteries.
+
+The dev shell itself is optional — in day-to-day use the tools are already on
+`$PATH` via devenv **auto-activation** (see below) and the dev container. Drop
+into it manually only when you need a one-off:
 
 ```bash
 devenv shell        # drop into the dev shell
 devenv up           # run services / stay resident (here: no services)
 ```
+
+`devenv.nix` also generates the dev container: `devenv` writes
+`.devcontainer/devcontainer.json` (Ubuntu 24.04 base, direnv extension) so the
+repo opens with the same tooling in VS Code/Zed, and `devenv container`
+builds a `test` container that runs `nix flake check` for CI. Anything beyond
+this repo's own needs is documented in the reference template at
+`examples/devenv.nix`.
 
 On NixOS hosts the `modules.dev.devenv` feature is enabled, which installs
 `devenv` system-wide and adds a zsh hook so devenv **auto-activates** when
@@ -185,66 +173,27 @@ for standalone home-manager profiles.)
 
 ### For a new / other project
 
-This repo's own `devenv.nix` is the reference template — copy it into any new
-repo root and trim to taste:
+The full reference template lives at `examples/devenv.nix` — copy it into any
+new repo root and UNCOMMENT only the tools that repo actually needs:
 
 ```bash
-cp $NIXCONF/devenv.nix $REPO/devenv.nix
+cp $NIXCONF/examples/devenv.nix $REPO/devenv.nix
 devenv shell        # now enter that repo's dev environment
 ```
 
 The mental model: LazyVim itself (the `lazyvim` feature) only provides
 neovim + config + aliases — **LSPs and formatters live in each repo's
-`devenv.nix`**, so they're available from `$PATH` inside the activated dev shell:
+`devenv.nix`**, so they're available from `$PATH` inside the activated dev shell.
+The template shows how to wire `packages` (standalone LSPs/formatters/linters),
+`languages` (compiler/runtime + matching LSP batteries), `env`, `treefmt`
+(repo-wide formatters), `tasks` (project commands), `devcontainer`, and
+`containers` (CI). The full per-language LSP/formatter/linter table lives in the
+template and in `config/lazyvim` — it's not duplicated here.
 
-- **`packages`** — test prerequisites (`disko`, `shellcheck`) plus the LSP
-  baseline with no language battery: `marksman`, `yaml-language-server`,
-  `vscode-json-languageserver`, `taplo`, `ruff`, `prettierd`, `markdownlint-cli2`,
-  `nixfmt`.
-- **`languages`** — real compiler/runtime + matching LSP batteries. Enable only
-  what the repo uses: `nix` (→ `nil`, `statix`, `deadnix`), `python` (→
-  `basedpyright`), `shell` (→ `shfmt`, `shellcheck`), `node`, `typescript`, `c`,
-  `cpp`, `rust`, `go`, … LazyVim finds the LSP from `$PATH`.
-- **`env`** — shell environment variables (kept in sync with
-  `devcontainer.json`).
-- **`treefmt`** — repo-wide formatters (nixfmt, shfmt, prettierd), applied via
-  the `repo:fmt` task and LazyVim's format-on-save.
-- **`tasks`** — project commands via `devenv tasks run <name>` (`test:all`,
-  `test:flake`, `test:iso`, `repo:fmt`); also reachable through the TV
-  `devenv-tasks` channel.
-
-Anything that's not already global on NixOS (C++/Rust/Go toolchains, language-
-specific compiler versions) belongs in the repo's `devenv.nix`, not in nixconf.
-The LazyVim LSPs are _not_ global either — each repo owns its own via devenv.
-
-One tool per job, no duplicates. The `lazyvim` feature's `extras.lang.*` are
-lazy config only (they never install binaries — mason is disabled by
-lazyvim-nix); the binaries below are what each repo's `devenv.nix` must provide
-for LazyVim (and opencode's built-in LSP) to pick up from `$PATH`:
-
-| Language          | LSP                                                                     | Formatter       | Linter                          |
-| ----------------- | ----------------------------------------------------------------------- | --------------- | ------------------------------- |
-| nix               | `nil`                                                                   | `nixfmt`        | `statix`                        |
-| python            | `basedpyright`                                                          | `ruff`          | `ruff`                          |
-| c / cpp / arduino | `clangd`                                                                | `clang-format`  | `clang-tidy`                    |
-| lua               | `lua-language-server`                                                   | `stylua`        | `luacheck`                      |
-| markdown          | `marksman`                                                              | `prettierd`     | `markdownlint-cli2`             |
-| json              | `vscode-json-languageserver`                                            | —               | (built into LSP)                |
-| yaml / yml        | `yaml-language-server`                                                  | —               | (built into LSP)                |
-| ansible           | `ansible-language-server`                                               | —               | `ansible-lint` (via LSP)        |
-| terraform         | `terraform-ls`                                                          | `terraform fmt` | `tflint` + `terraform validate` |
-| docker            | `dockerfile-language-server-nodejs` + `docker-compose-language-service` | —               | `hadolint`                      |
-| cmake             | `cmake-language-server`                                                 | `gersemi`       | `gersemi --check`               |
-| toml              | `taplo`                                                                 | —               | —                               |
-| shell             | `bash-language-server`                                                  | `shfmt`         | `shellcheck`                    |
-
-`gitlab` (GitLab CI, `.gitlab-ci.yml`) is plain YAML — handled by the `yaml`
-row above (SchemaStore validates the pipeline schema). The dedicated GitLab
-tooling (`glab`, `gitlab.nvim`) lives in the standalone `gitlab` feature module.
-
-These are wired consistently across `modules/dev/lazyvim.nix` (extras config),
-`config/lazyvim/plugins/langs.lua` (formatter/linter overrides), the repo
-`devenv.nix` template, and `config/opencode/opencode.json`.
+The rule is **one tool per job, no duplicates**. Anything that isn't already
+global on NixOS (C++/Rust/Go toolchains, language-specific compiler versions)
+belongs in the repo's `devenv.nix`, not in nixconf. The LazyVim LSPs are _not_
+global either — each repo owns its own via devenv.
 
 ## Secrets
 
@@ -260,13 +209,11 @@ YubiKey-based age identity.
     `sops $NIXCONF/secrets/secrets.yaml`).
 - The module `modules/system/sops.nix` wires sops into NixOS: default sops file
   (`env.yaml`), age key file (`/etc/yubi-age-identity`), age-plugin-yubikey,
-  and exposes a home-manager `sops` feature
-  that decrypts `GITHUB_TOKEN` to
-  `~/.config/sops-nix/secrets/GITHUB_TOKEN` (via the sops-nix home-manager
-  module, using the repo's age identity as an out-of-store symlink). The
-  feature is shared by every home-manager profile: NixOS hosts with the
-  `sops` feature, standalone Linux profiles, and the macOS home-manager
-  config. It also defines the `sec`/`sece` aliases.
+  and exposes a home-manager `sops` feature that decrypts `GITHUB_TOKEN` to
+  `~/.config/sops-nix/secrets/GITHUB_TOKEN`. The feature is shared by every
+  home-manager profile: NixOS hosts with the `sops` feature, standalone Linux
+  profiles, and the macOS home-manager config. It also defines the `sec`/`sece`
+  aliases.
 - The sops module exports env secrets (`env.yaml`) into `$GITHUB_TOKEN` at
   login (only when the decrypted secret is readable), so `gh` works out of the
   box on any profile with sops enabled.
