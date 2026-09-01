@@ -25,12 +25,12 @@ platform-specific rebuild aliases (`nr`/`hm`/`dr` sets), gated per platform
 flake.nix               # Entry point: flake-parts + import-tree
 devenv.nix / devenv.yaml# Dev environment for this repo (LSPs, formatters, test tooling)
 modules/
-├── flake/              # options.nix (option types), home-manager.nix (standalone configs), tools.nix (.#tools profile)
+├── flake/              # options.nix (option types), nixos.nix (tiers), home-manager.nix (standalone configs)
 ├── hosts/              # One file per machine / image
 ├── system/             # boot, disko, network, nix, podman, sops, security, ssh, users, yubikey
 ├── shell/              # shell, starship, tmux, zoxide, eza, bat, btop, yazi, ghostty
 ├── desktop/            # brave, claude, discord, hidden-apps, niri, noctalia, steam, youtube-music
-└── dev/                # containers, devenv, git, gitlab, lazygit, lazyvim, opencode, packages
+└── dev/                # containers, devenv, git, gitlab, lazygit, lazyvim, opencode, packages, tv
 config/                 # Dotfiles & static assets referenced from feature modules
 scripts/                # install.sh, test-all.sh, build-iso.sh
 secrets/                # sops-encrypted secrets
@@ -53,7 +53,8 @@ tmux, tools, aliases) from a standalone home-manager profile:
 
 It installs Nix via the official installer (downloaded to a temp file — never
 `curl | sh`), clones this repo, and activates the matching home-manager config
-(`root@container` / `alexis@server`).
+(`<user>@container` for containers, `alexis@server` for servers). The container
+user is picked at runtime from `id -un` (`root@container` or `vscode@container`).
 
 ## Hosts
 
@@ -67,11 +68,14 @@ It installs Nix via the official installer (downloaded to a temp file — never
 
 Standalone home-manager profiles (`flake.homeConfigurations`):
 
-| Config                        | Username      | Platform       | Notes                        |
-| ----------------------------- | ------------- | -------------- | ---------------------------- |
-| `alexis@macos`                | alexis        | aarch64-darwin | macOS profile                |
-| `alexis@linux`                | alexis        | x86_64-linux   | Linux profile                |
-| `alexis.pigeon@RNSL-APIGEON5` | alexis.pigeon | x86_64-linux   | Professional machine profile |
+| Config                        | Username      | Platform       | Notes                                |
+| ----------------------------- | ------------- | -------------- | ------------------------------------ |
+| `alexis@macos`                | alexis        | aarch64-darwin | macOS profile                        |
+| `alexis@linux`                | alexis        | x86_64-linux   | Linux profile                        |
+| `alexis.pigeon@RNSL-APIGEON5` | alexis.pigeon | x86_64-linux   | Professional machine profile         |
+| `alexis@server`               | alexis        | x86_64-linux   | Headless server (terminal-only)      |
+| `root@container`              | root          | x86_64-linux   | Container profile (root)             |
+| `vscode@container`            | vscode        | x86_64-linux   | Devcontainer profile (non-root user) |
 
 Hosts are referenced by their flake attribute: `nixosConfigurations.workstation`,
 `darwinConfigurations.macbook`, `homeConfigurations."alexis@linux"`, etc.
@@ -99,15 +103,15 @@ ngo  # nix store optimise
 ```bash
 nr   # sudo nixos-rebuild switch --flake $NIXCONF
 nrb  # nixos-rebuild build --flake $NIXCONF
-nrt  # nixos-rebuild test --flake $NIXCONF
+nrt  # sudo nixos-rebuild test --flake $NIXCONF
 ```
 
 ### macOS (nix-darwin)
 
 ```bash
-dr   # darwin-rebuild switch --flake $NIXCONF
-drb  # darwin-rebuild build --flake $NIXCONF
-drc  # darwin-rebuild check --flake $NIXCONF
+dr   # sudo darwin-rebuild switch --flake $NIXCONF
+drb  # sudo darwin-rebuild build --flake $NIXCONF
+drc  # sudo darwin-rebuild check --flake $NIXCONF
 ```
 
 ### Home-manager (standalone)
@@ -160,11 +164,12 @@ repository you start.
 ### For this repo
 
 `devenv.nix` at the root installs what `scripts/test-all.sh` requires
-(`disko` for the disko test, `shellcheck` for linting) and enables the Nix
-language shell. It also owns the LSPs and formatters that LazyVim picks up
+(`disko` for the disko test, `shellcheck` for linting) and enables the Nix,
+Python, and shell language batteries. It also owns the LSPs and formatters that
+LazyVim picks up
 from `$PATH` (see [For a new project](#for-a-new--other-project)): `marksman`,
 `yaml-language-server`, `vscode-json-languageserver`, `taplo`, `ruff`,
-`prettierd`, `markdownlint-cli`, `nixfmt`, plus `nil`, `basedpyright` and
+`prettierd`, `markdownlint-cli2`, `nixfmt`, plus `nil`, `basedpyright` and
 `shfmt`/`shellcheck` via the `languages.nix`/`languages.python`/
 `languages.shell` batteries. Enter it with:
 
@@ -192,22 +197,54 @@ The mental model: LazyVim itself (the `lazyvim` feature) only provides
 neovim + config + aliases — **LSPs and formatters live in each repo's
 `devenv.nix`**, so they're available from `$PATH` inside the activated dev shell:
 
-- **`packages`** — raw nixpkgs tools (neovim, git, lazygit, gh) plus the LSP
+- **`packages`** — test prerequisites (`disko`, `shellcheck`) plus the LSP
   baseline with no language battery: `marksman`, `yaml-language-server`,
-  `vscode-json-languageserver`, `taplo`, `ruff`, `prettierd`, `markdownlint-cli`.
+  `vscode-json-languageserver`, `taplo`, `ruff`, `prettierd`, `markdownlint-cli2`,
+  `nixfmt`.
 - **`languages`** — real compiler/runtime + matching LSP batteries. Enable only
   what the repo uses: `nix` (→ `nil`, `statix`, `deadnix`), `python` (→
   `basedpyright`), `shell` (→ `shfmt`, `shellcheck`), `node`, `typescript`, `c`,
   `cpp`, `rust`, `go`, … LazyVim finds the LSP from `$PATH`.
 - **`env`** — shell environment variables (kept in sync with
   `devcontainer.json`).
-- **`enterShell`** — runs when entering `devenv shell`.
-- **`tasks`** — project commands via `devenv tasks run <name>` (`dev`, `build`,
-  `test`, `lint`, `fmt`); also reachable through the TV `devenv-tasks` channel.
+- **`treefmt`** — repo-wide formatters (nixfmt, shfmt, prettierd), applied via
+  the `repo:fmt` task and LazyVim's format-on-save.
+- **`tasks`** — project commands via `devenv tasks run <name>` (`test:all`,
+  `test:flake`, `test:iso`, `repo:fmt`); also reachable through the TV
+  `devenv-tasks` channel.
 
 Anything that's not already global on NixOS (C++/Rust/Go toolchains, language-
 specific compiler versions) belongs in the repo's `devenv.nix`, not in nixconf.
 The LazyVim LSPs are _not_ global either — each repo owns its own via devenv.
+
+One tool per job, no duplicates. The `lazyvim` feature's `extras.lang.*` are
+lazy config only (they never install binaries — mason is disabled by
+lazyvim-nix); the binaries below are what each repo's `devenv.nix` must provide
+for LazyVim (and opencode's built-in LSP) to pick up from `$PATH`:
+
+| Language          | LSP                                                                     | Formatter       | Linter                          |
+| ----------------- | ----------------------------------------------------------------------- | --------------- | ------------------------------- |
+| nix               | `nil`                                                                   | `nixfmt`        | `statix`                        |
+| python            | `basedpyright`                                                          | `ruff`          | `ruff`                          |
+| c / cpp / arduino | `clangd`                                                                | `clang-format`  | `clang-tidy`                    |
+| lua               | `lua-language-server`                                                   | `stylua`        | `luacheck`                      |
+| markdown          | `marksman`                                                              | `prettierd`     | `markdownlint-cli2`             |
+| json              | `vscode-json-languageserver`                                            | —               | (built into LSP)                |
+| yaml / yml        | `yaml-language-server`                                                  | —               | (built into LSP)                |
+| ansible           | `ansible-language-server`                                               | —               | `ansible-lint` (via LSP)        |
+| terraform         | `terraform-ls`                                                          | `terraform fmt` | `tflint` + `terraform validate` |
+| docker            | `dockerfile-language-server-nodejs` + `docker-compose-language-service` | —               | `hadolint`                      |
+| cmake             | `cmake-language-server`                                                 | `gersemi`       | `gersemi --check`               |
+| toml              | `taplo`                                                                 | —               | —                               |
+| shell             | `bash-language-server`                                                  | `shfmt`         | `shellcheck`                    |
+
+`gitlab` (GitLab CI, `.gitlab-ci.yml`) is plain YAML — handled by the `yaml`
+row above (SchemaStore validates the pipeline schema). The dedicated GitLab
+tooling (`glab`, `gitlab.nvim`) lives in the standalone `gitlab` feature module.
+
+These are wired consistently across `modules/dev/lazyvim.nix` (extras config),
+`config/lazyvim/plugins/langs.lua` (formatter/linter overrides), the repo
+`devenv.nix` template, and `config/opencode/opencode.json`.
 
 ## Secrets
 
