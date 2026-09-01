@@ -1,4 +1,4 @@
-{ ... }: {
+{ _ }: {
   flake.modules.nixos.opencode =
     {
       config,
@@ -10,6 +10,8 @@
       options.modules.opencode.enable = lib.mkEnableOption "OpenCode CLI";
       config = lib.mkIf config.modules.opencode.enable {
         environment.systemPackages = [ pkgs.opencode ];
+        home-manager.users.${config.modules.users.userName}.home.sessionVariables.OPENCODE_DISABLE_LSP_DOWNLOAD =
+          "true";
       };
     };
 
@@ -20,5 +22,6 @@
     }:
     {
       home.packages = [ pkgs.opencode ];
+      home.sessionVariables.OPENCODE_DISABLE_LSP_DOWNLOAD = "true";
     };
 }
