@@ -1,0 +1,66 @@
+local M = {}
+
+function M:peek(job)
+	local url = job.file.url
+	if job.file.link_to then
+		url = job.file.link_to
+	end
+
+	local child = Command("bat")
+		:arg({
+			"--style=plain",
+			"--color=always",
+			"--terminal-width",
+			tostring(job.area.w),
+			tostring(url),
+		})
+		:stdout(Command.PIPED)
+		:stderr(Command.PIPED)
+		:spawn()
+
+	if not child then
+		return require("code"):peek(job)
+	end
+
+	local opt = { ansi = true, tab_size = rt.preview.tab_size, wrap = rt.preview.wrap, width = job.area.w }
+	local limit = job.area.h
+	local i, lines = 0, {}
+	repeat
+		local next, event = child:read_line()
+		if event == 1 then
+			return require("code"):peek(job)
+		elseif event ~= 0 then
+			break
+		end
+
+		local wrapped = ui.lines(next, opt)
+		local from = math.max(1, job.skip - i + 1)
+		local to = math.min(#wrapped, job.skip + limit - i)
+
+		i = i + #wrapped
+		for j = from, to do
+			lines[#lines + 1] = wrapped[j]
+		end
+	until i >= job.skip + limit
+
+	child:start_kill()
+	if job.skip > 0 and i < job.skip + limit then
+		ya.emit("peek", { math.max(0, i - limit), only_if = job.file.url, upper_bound = true })
+	else
+		ya.preview_widget(job, ui.Text(lines):area(job.area))
+	end
+end
+
+function M:seek(job)
+	local h = cx.active.current.hovered
+	if h and h.url == job.file.url then
+		local step = math.floor(job.units * job.area.h / 10)
+		step = step == 0 and (job.units < 0 and -1 or 1) or step
+		ya.emit("peek", {
+			math.max(0, cx.active.preview.skip + step),
+			only_if = job.file.url,
+		})
+	end
+end
+
+return M

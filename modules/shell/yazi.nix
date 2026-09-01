@@ -1,4 +1,4 @@
-_:
+{ lib, ... }:
 let
   yaziCfg = {
     enable = true;
@@ -389,19 +389,163 @@ let
       ];
     };
   };
+
+  # Dynamic parts: the git + mount plugins and their keymaps. Kept separate so
+  # `yaziCfg` above stays a static, format-friendly base.
+  mkYaziCfg = { pkgs }: {
+    # Tools referenced by the custom openers below, guaranteed on the yazi
+    # wrapper's PATH.
+    extraPackages = [
+      pkgs.bat
+    ]
+    # mount.yazi needs udisksctl/lsblk/eject (Linux) to mount disks.
+    ++ lib.optionals pkgs.stdenv.hostPlatform.isLinux [
+      pkgs.udisks2
+      pkgs.util-linux
+      pkgs.glib.bin
+    ];
+
+    plugins = {
+      git = {
+        package = pkgs.yaziPlugins.git;
+        setup = true;
+        settings.order = 1500;
+      };
+      mount = pkgs.yaziPlugins.mount;
+      # bat-powered text previewer (replaces the built-in syntect `code`).
+      bat = ../../config/yazi/bat.yazi;
+    };
+
+    settings = {
+      # Show human-readable file sizes in the file list.
+      mgr.linemode = "size";
+
+      # Openers backed by the user's own tooling: edit with nvim (LazyVim),
+      # view text with bat. `open`/`reveal` fall back to the defaults (xdg-open).
+      opener = {
+        edit = [
+          {
+            run = "nvim %s";
+            desc = "Edit with nvim";
+            for = "unix";
+            block = true;
+          }
+        ];
+        view = [
+          {
+            run = "bat --color=always --paging=never %s";
+            desc = "View with bat";
+            for = "unix";
+            block = true;
+          }
+        ];
+      };
+
+      # Prepend (not replace) so default open rules still apply for other types.
+      open.prepend_rules = [
+        {
+          mime = "text/*";
+          use = [
+            "edit"
+            "view"
+          ];
+        }
+      ];
+
+      plugin.prepend_fetchers = [
+        {
+          url = "*";
+          run = "git";
+          group = "git";
+        }
+        {
+          url = "*/";
+          run = "git";
+          group = "git";
+        }
+      ];
+
+      # Preview text files with the bat plugin instead of yazi's built-in `code`
+      # highlighter. Prepend so the bat rule wins over the default text/* rule.
+      plugin.prepend_previewers = [
+        {
+          mime = "text/*";
+          run = "bat";
+        }
+        {
+          mime = "application/{json,ndjson,javascript,wine-extension-ini}";
+          run = "bat";
+        }
+      ];
+    };
+
+    # mount.yazi: `M` opens a disk mount manager (udisksctl on Linux).
+    keymap.mgr.prepend_keymap = [
+      {
+        on = "M";
+        run = "plugin mount";
+        desc = "Manage mounted disks";
+      }
+    ];
+
+    theme.git = {
+      unstaged = {
+        fg = "#f38ba8";
+      };
+      staged = {
+        fg = "#a6e3a1";
+      };
+      added = {
+        fg = "#a6e3a1";
+        bold = true;
+      };
+      deleted = {
+        fg = "#f38ba8";
+        bold = true;
+      };
+      updated = {
+        fg = "#89b4fa";
+      };
+      untracked = {
+        fg = "#f9e2af";
+      };
+      ignored = {
+        fg = "#585b70";
+      };
+      clean = {
+        fg = "#a6e3a1";
+      };
+      unknown = {
+        fg = "#7f849c";
+      };
+      unstaged_sign = "M";
+      staged_sign = "A";
+      added_sign = "A";
+      deleted_sign = "D";
+      updated_sign = "U";
+      untracked_sign = "?";
+      ignored_sign = "!";
+      clean_sign = " ";
+      unknown_sign = "?";
+    };
+  };
 in
 {
   flake.modules.nixos.yazi =
     {
       config,
       lib,
+      pkgs,
       ...
     }:
     {
       options.modules.yazi.enable = lib.mkEnableOption "Yazi (terminal file manager)";
       config = lib.mkIf config.modules.yazi.enable {
         home-manager.users.${config.modules.users.userName} = {
-          programs.yazi = yaziCfg;
+          programs.yazi = lib.recursiveUpdate yaziCfg (mkYaziCfg {
+            inherit pkgs;
+          });
+          programs.zsh.shellAliases.ygr = "y \"$(git rev-parse --show-toplevel 2>/dev/null)\"";
         }
         // lib.optionalAttrs (config ? stylix) {
           stylix.targets.yazi.enable = false;
@@ -413,12 +557,16 @@ in
     {
       config,
       lib,
+      pkgs,
       ...
     }:
     {
       options.modules.yazi.enable = lib.mkEnableOption "Yazi (terminal file manager)";
       config = lib.mkIf config.modules.yazi.enable {
-        programs.yazi = yaziCfg;
+        programs.yazi = lib.recursiveUpdate yaziCfg (mkYaziCfg {
+          inherit pkgs;
+        });
+        programs.zsh.shellAliases.ygr = "y \"$(git rev-parse --show-toplevel 2>/dev/null)\"";
       };
     };
 }
