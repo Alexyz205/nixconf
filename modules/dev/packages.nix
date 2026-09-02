@@ -21,10 +21,16 @@ let
           jq
           tree-sitter
         ];
-        markdown = [
+        # LSPs / formatters / linters on every host + home-manager profile so the
+        # tooling is on $PATH regardless of the dev environment.
+        lsp = [
           marksman
           prettierd
           markdownlint-cli2
+          shfmt
+          shellcheck
+          bash-language-server
+          helm-ls
         ];
         security = [
           age
@@ -43,7 +49,7 @@ let
       enabled = n: config.modules.packages.${n};
       order = [
         "basic"
-        "markdown"
+        "lsp"
         "security"
         "devTools"
         "desktop"
@@ -54,27 +60,27 @@ let
         basic = lib.mkOption {
           type = lib.types.bool;
           default = true;
-          description = "Core CLI utilities: curl, wget, openssl, ripgrep, fd, fastfetch, dust, duf, yq, jq, tree-sitter.";
+          description = "Core CLI utilities.";
         };
-        markdown = lib.mkOption {
+        lsp = lib.mkOption {
           type = lib.types.bool;
           default = true;
-          description = "Markdown tooling: marksman LSP, prettierd formatter, markdownlint-cli2 linter.";
+          description = "LSPs, formatters and linters for the languages in use.";
         };
         security = lib.mkOption {
           type = lib.types.bool;
           default = false;
-          description = "Security tooling: age, sops, gnupg.";
+          description = "Security and encryption tooling.";
         };
         devTools = lib.mkOption {
           type = lib.types.bool;
           default = false;
-          description = "Dev tooling: fabric-ai, lazydocker.";
+          description = "Developer productivity tools.";
         };
         desktop = lib.mkOption {
           type = lib.types.bool;
           default = false;
-          description = "Desktop applications: vlc, libreoffice.";
+          description = "Desktop applications.";
         };
       };
       # Non-empty when any group is enabled (all groups are non-empty).

@@ -29,11 +29,16 @@ let
         ];
         extras = {
           coding.mini-surround.enable = true;
+          util.dot.enable = true;
+          util.octo.enable = true;
+          editor.snacks-picker.enable = true;
           lang = {
             ansible.enable = true;
             clangd.enable = true;
             cmake.enable = true;
             docker.enable = true;
+            git.enable = true;
+            helm.enable = true;
             json.enable = true;
             markdown = {
               enable = true;
@@ -57,6 +62,11 @@ let
             terraform.enable = true;
             toml.enable = true;
             yaml.enable = true;
+          };
+          ui = {
+            # indent-blankline is configured in config/lazyvim/plugins/indent-blankline.lua
+            indent-blankline.enable = true;
+            treesitter-context.enable = true;
           };
         };
         config = {

@@ -145,12 +145,10 @@ repository you start.
 ### For this repo
 
 `devenv.nix` at the root is kept to **only what this repo needs** — the test
-prerequisites for `scripts/test-all.sh` (`disko`, `shellcheck`), `nixfmt`,
-`stylua`/`luacheck`, and the Nix / shell / Lua language batteries. (Secrets
-tooling — `sops`, `age`, `age-plugin-yubikey`, `gnupg` — is installed globally
-by default via the `packages` module's `security` group, and markdown tooling —
-`marksman`, `prettierd`, `markdownlint-cli2` — via its `markdown` group, so
-neither is duplicated here.)
+prerequisites for `scripts/test-all.sh` and the language batteries for the
+languages this repo is written in. Global tooling (secrets, LSPs/formatters/
+linters) is installed by the `packages` module's groups instead, so nothing is
+duplicated between the dev environment and the system.
 
 The dev shell itself is optional — in day-to-day use the tools are already on
 `$PATH` via devenv **auto-activation** (see below) and the dev container. Drop
@@ -190,7 +188,7 @@ The template shows how to wire `packages` (standalone LSPs/formatters/linters),
 `languages` (compiler/runtime + matching LSP batteries), `env`, `treefmt`
 (repo-wide formatters), `tasks` (project commands), `devcontainer`, and
 `containers` (CI). The full per-language LSP/formatter/linter table lives in the
-template and in `config/lazyvim` — it's not duplicated here.
+template — it's not duplicated here.
 
 The rule is **one tool per job, no duplicates**. Anything that isn't already
 global on NixOS (C++/Rust/Go toolchains, language-specific compiler versions)
@@ -257,5 +255,5 @@ A pre-baked copy of the flake ships inside the ISO at `/iso/nixconf`.
 - `$NIXCONF` env var pointing to this repo (set automatically by the shell
   module).
 - YubiKey for age/sops decryption and FIDO2 auth (workstation, headless-worker).
-- `disko` and `shellcheck` — comes free through `devenv shell` or the NixOS
+- The test-suite prerequisites — come free through `devenv shell` or the NixOS
   `devenv` feature.
