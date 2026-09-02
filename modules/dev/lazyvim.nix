@@ -20,12 +20,9 @@ let
         pluginSource = "nixpkgs";
         # Extra tools made available to LazyVim/snacks: tectonic renders LaTeX
         # math and mermaid-cli renders Mermaid diagrams in markdown docs.
-        # lldb provides the `lldb-dap` binary used by the lang.clangd debugger
-        # (codelldb isn't packaged in nixpkgs, see plugins/dap.lua).
         extraPackages = with pkgs; [
           tectonic
           mermaid-cli
-          lldb
         ];
         extras = {
           coding.mini-surround.enable = true;

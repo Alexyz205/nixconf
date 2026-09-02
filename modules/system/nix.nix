@@ -7,7 +7,8 @@ let
   # `gitConfigFile` (exported as GIT_CONFIG_GLOBAL by builder.sh) instead:
   # a static file, so no eval cycle, and a no-op where the path is absent
   # (macOS). Upstream: NixOS/nixpkgs#101119, NixOS/nix#12698.
-  fetchgitGitConfig = final:
+  fetchgitGitConfig =
+    final:
     final.writeText "fetchgit-gitconfig" (
       if final.stdenv.hostPlatform.isDarwin then
         ""

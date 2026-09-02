@@ -6,44 +6,31 @@
 -- ============================================================================
 
 return {
-  -- Disable bufferline (prefer native tabline or other alternatives)
-  {
-    "akinsho/bufferline.nvim",
-    enabled = false,
-  },
+	-- Disable bufferline (prefer native tabline or other alternatives)
+	{
+		"akinsho/bufferline.nvim",
+		enabled = false,
+	},
 
-  -- Disable tokyonight theme (using Catppuccin instead)
-  {
-    "folke/tokyonight.nvim",
-    enabled = false,
-  },
+	-- Disable tokyonight theme (using Catppuccin instead)
+	{
+		"folke/tokyonight.nvim",
+		enabled = false,
+	},
 
-  -- Disable the bogus 'nvim' plugin: lazyvim-nix mis-resolves the
-  -- "catppuccin/nvim" spec to nixpkgs' vimPlugins.nvim, which appears as an
-  -- eager dev plugin and fails with "Lua module not found for config of nvim".
-  {
-    "nvim",
-    enabled = false,
-  },
+	-- Disable the bogus 'nvim' plugin: lazyvim-nix mis-resolves the
+	-- "catppuccin/nvim" spec to nixpkgs' vimPlugins.nvim, which appears as an
+	-- eager dev plugin and fails with "Lua module not found for config of nvim".
+	{
+		"nvim",
+		enabled = false,
+	},
 
-  -- Disable snacks.nvim explorer (using Yazi instead)
-  {
-    "folke/snacks.nvim",
-    opts = {
-      explorer = { enabled = false },
-    },
-  },
-
-  -- dressing.nvim (deprecated) is pulled in as a gitlab.nvim dependency. It
-  -- hijacks vim.ui.* and overrides snacks' picker/input, which is why
-  -- `checkhealth snacks` reports vim.ui.select/input not wired to Snacks.
-  -- Disable its vim.ui overrides (gitlab works fine via vim.ui.select on any
-  -- backend, snacks handles it here).
-  {
-    "stevearc/dressing.nvim",
-    opts = {
-      input = { enabled = false },
-      select = { enabled = false },
-    },
-  },
+	-- Disable snacks.nvim explorer (using Yazi instead)
+	{
+		"folke/snacks.nvim",
+		opts = {
+			explorer = { enabled = false },
+		},
+	},
 }
