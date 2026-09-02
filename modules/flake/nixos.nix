@@ -15,6 +15,9 @@ let
     }:
     let
       sshClient = config.flake.modules.homeManager.ssh;
+      # Flake-level overlays (e.g. the fetchgit CA wrapper). The inner NixOS
+      # module shadows `config`, so bind the flake config first.
+      flakeOverlays = config.flake.modules.overlays;
     in
     {
       config,
@@ -25,6 +28,7 @@ let
     {
       system.stateVersion = stateVersion;
       networking.hostName = hostName;
+      nixpkgs.overlays = flakeOverlays;
       time.timeZone = "Europe/Paris";
       i18n.defaultLocale = "en_US.UTF-8";
       hardware.enableRedistributableFirmware = true;

@@ -30,6 +30,7 @@ in
   flake.darwinConfigurations.macbook = inputs.nix-darwin.lib.darwinSystem {
     modules = [
       { nixpkgs.hostPlatform = "aarch64-darwin"; }
+      { nixpkgs.overlays = config.flake.modules.overlays; }
       inputs.home-manager.darwinModules.home-manager
       (
         { pkgs, lib, ... }:

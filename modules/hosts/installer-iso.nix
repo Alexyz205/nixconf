@@ -1,4 +1,5 @@
 {
+  config,
   inputs,
   self,
   ...
@@ -12,6 +13,7 @@ in
     specialArgs = { inherit diskoPkg; };
     modules = [
       "${inputs.nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix"
+      { nixpkgs.overlays = config.flake.modules.overlays; }
       (
         {
           pkgs,

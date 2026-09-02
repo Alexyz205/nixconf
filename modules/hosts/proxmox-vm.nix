@@ -17,6 +17,7 @@ in
   flake.nixosConfigurations.proxmox-vm = inputs.nixpkgs.lib.nixosSystem {
     modules = [
       { nixpkgs.hostPlatform = system; }
+      { nixpkgs.overlays = config.flake.modules.overlays; }
     ]
     ++ features
     ++ [

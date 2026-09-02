@@ -115,7 +115,11 @@ let
       ];
     in
     inputs.home-manager.lib.homeManagerConfiguration {
-      pkgs = inputs.nixpkgs.legacyPackages.${system};
+      # Apply the flake's overlays (e.g. the fetchgit CA wrapper) so standalone
+      # profiles get the same patched fetchers as NixOS hosts.
+      pkgs = inputs.nixpkgs.legacyPackages.${system}.extend (
+        inputs.nixpkgs.lib.composeManyExtensions config.flake.modules.overlays
+      );
       extraSpecialArgs = {
         inherit (inputs) lazyvim;
       };

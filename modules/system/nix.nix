@@ -1,5 +1,22 @@
 { lib, ... }:
 let
+  # nixpkgs' fetchgit (nix-prefetch-git) assigns GIT_SSL_CAINFO without
+  # `export`, so the builder's git never sees it and falls back to nixpkgs'
+  # own cacert bundle — breaking builds behind corporate/MITM proxies that
+  # serve a self-signed root. Point fetchgit at the host system bundle via
+  # `gitConfigFile` (exported as GIT_CONFIG_GLOBAL by builder.sh) instead:
+  # a static file, so no eval cycle, and a no-op where the path is absent
+  # (macOS). Upstream: NixOS/nixpkgs#101119, NixOS/nix#12698.
+  fetchgitGitConfig = final:
+    final.writeText "fetchgit-gitconfig" (
+      if final.stdenv.hostPlatform.isDarwin then
+        ""
+      else
+        ''
+          [http]
+          	sslCAInfo = /etc/ssl/certs/ca-certificates.crt
+        ''
+    );
   userSettings = {
     experimental-features = [
       "nix-command"
@@ -25,6 +42,19 @@ let
   };
 in
 {
+  # Overlays applied to every host/profile's pkgs. Shared through the flake
+  # `modules` namespace (freeform raw attrset) and threaded into home-manager
+  # and each nixosSystem's nixpkgs.overlays.
+  flake.modules.overlays = [
+    (final: prev: {
+      fetchgit = prev.fetchgit.override {
+        config = {
+          gitConfigFile = fetchgitGitConfig final;
+        };
+      };
+    })
+  ];
+
   flake.modules.nixos.nix = _: {
     nix.settings =
       userSettings
