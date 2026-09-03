@@ -17,7 +17,33 @@
 -- See: https://github.com/christoomey/vim-tmux-navigator
 -- ============================================================================
 
+-- LazyVim's core keymaps bind <C-h/j/k/l> to window navigation. They are
+-- applied on the `VeryLazy` event, which fires after this plugin's own
+-- mappings, silently overriding them and breaking nvim -> tmux navigation.
+-- Re-apply the navigator's mappings after `VeryLazy` so the plugin wins.
+local navigator = {
+  { "<C-h>", "TmuxNavigateLeft" },
+  { "<C-j>", "TmuxNavigateDown" },
+  { "<C-k>", "TmuxNavigateUp" },
+  { "<C-l>", "TmuxNavigateRight" },
+  { "<C-\\>", "TmuxNavigatePrevious" },
+}
+
+local function apply_navigator_mappings()
+  for _, binding in ipairs(navigator) do
+    vim.keymap.set("n", binding[1], ":<C-U>" .. binding[2] .. "<CR>", { silent = true })
+  end
+end
+
 return {
   "christoomey/vim-tmux-navigator",
   lazy = false, -- Load immediately to ensure navigation works from start
+  config = function()
+    apply_navigator_mappings()
+    vim.api.nvim_create_autocmd("User", {
+      pattern = "VeryLazy",
+      once = true,
+      callback = apply_navigator_mappings,
+    })
+  end,
 }
