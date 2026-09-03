@@ -75,6 +75,15 @@ esac
 log "repo=$repo"
 
 session="$(basename "$repo")"
+
+if tmux has-session -t "$session" 2>/dev/null; then
+  log "session=$session exists; switching"
+  tmux switch-client -t "$session" 2>>"$DEBUG_LOG"
+  log "switch rc=$?"
+  log "== done =="
+  exit 0
+fi
+
 log "creating session=$session"
 
 tmux new-session -d -s "$session" -c "$repo" "${EDITOR:-nvim}" 2>>"$DEBUG_LOG"
