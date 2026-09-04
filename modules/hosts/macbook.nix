@@ -38,6 +38,11 @@ in
           system.stateVersion = 7;
           system.primaryUser = "alexis";
           networking.hostName = "macbook";
+          networking.knownNetworkServices = [
+            "Wi-Fi"
+            "Ethernet"
+          ];
+          networking.dns = [ "192.168.1.253" ];
 
           environment.systemPath = lib.mkBefore [
             "/opt/homebrew/bin"

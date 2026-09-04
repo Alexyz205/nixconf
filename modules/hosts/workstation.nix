@@ -47,6 +47,12 @@ let
                 "nvidia-settings"
               ];
             disko.devices.disk.main.device = diskDevice;
+            networking.networkmanager.insertNameservers = [ "192.168.1.253" ];
+            # Let NetworkManager own /etc/resolv.conf directly (rc-manager=unmanaged)
+            # so the insertNameservers dispatcher always runs AFTER NM writes DNS.
+            # With resolvconf enabled, NM's DHCP DNS write races the dispatcher
+            # at boot and can overwrite the PiHole insert.
+            networking.resolvconf.enable = false;
 
             services = {
               xserver = {
