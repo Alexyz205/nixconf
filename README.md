@@ -216,13 +216,20 @@ YubiKey-based age identity.
   aliases.
 - The sops module exports env secrets (`env.yaml`) into `$GITHUB_TOKEN` at
   login (only when the decrypted secret is readable), so `gh` works out of the
-  box on any profile with sops enabled.
+  box on any profile with sops enabled. It also exports `SOPS_AGE_KEY_FILE`, so
+  plain `sops` works in any shell, including `devenv shell`.
+- The age identity and SSH keys are stored under `config/` and referenced by the
+  feature modules. Decryption requires the YubiKey, except on the workstation:
+  it has no USB port for the YubiKey, so it decrypts with a software age key
+  (`~/.config/sops/age/keys.txt`) instead. That key's public half is a second
+  recipient in `.sops.yaml`, so every secret stays decryptable on both the
+  YubiKey and the workstation. The sops module exposes `modules.sops.ageKeyFile`
+  and `modules.sops.useYubikey` for hosts that need the same fallback. Re-keying
+  after adding recipients is `sops updatekeys secrets/env.yaml secrets/secrets.yaml`
+  (run from a machine with the YubiKey).
 - GitLab tooling (`glab`, the `gitlab.nvim` LazyVim plugin, and the
   `GITLAB_TOKEN` secret) lives in the standalone `gitlab` feature module and is
   only enabled on the `alexis.pigeon@RNSL-APIGEON5` home-manager profile.
-- The age identity and SSH keys are stored under `config/` and referenced by the
-  feature modules. Decryption requires the YubiKey (workstation,
-  headless-worker, and any home-manager profile where the token is exported).
 
 ## Installer / ISO
 

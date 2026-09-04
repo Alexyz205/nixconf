@@ -129,6 +129,12 @@ let
                 desktop = true;
               };
               containers.enable = true;
+              sops = {
+                # No USB port on this machine: decrypt with the software age
+                # key instead of the YubiKey identity.
+                useYubikey = false;
+                ageKeyFile = "/home/alexis/.config/sops/age/keys.txt";
+              };
               shell.enable = true;
               git.enable = true;
               yubikey = {
@@ -160,6 +166,9 @@ let
             };
 
             home-manager.users.${config.modules.users.userName} = {
+              # Same software age key as the NixOS side (see modules.sops above):
+              # decrypts GITHUB_TOKEN and the sec/sece aliases on this host.
+              modules.sops.ageKeyFile = "/home/alexis/.config/sops/age/keys.txt";
               services.cliphist = {
                 enable = true;
                 allowImages = true;

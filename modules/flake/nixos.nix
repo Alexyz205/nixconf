@@ -86,6 +86,7 @@ in
         ++ (with features; [
           network
           yubikey
+          sops
           devenv
           btop
           ghostty

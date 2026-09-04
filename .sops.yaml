@@ -1,7 +1,11 @@
 keys:
   - &yubi age1yubikey1qtlwktpdhke5uqs6nv2wvwp662ygc5x52qn2w8fntvxl338j9dx2ggzk2ld
+  # Software age key fallback for hosts without YubiKey access (e.g. workstation).
+  # Private key: ~/.config/sops/age/keys.txt (never committed).
+  - &workstation age1m7svclua6tfjzujfg06zxh2ngc4amheuex2djtahqk9f488383qqemlk9p
 
 creation_rules:
   - path_regex: secrets/.+\.yaml$
     age:
       - *yubi
+      - *workstation
