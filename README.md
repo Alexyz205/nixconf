@@ -234,15 +234,17 @@ YubiKey-based age identity.
 ## Nextcloud
 
 The `nextcloud` feature module (`modules/system/nextcloud.nix`) mounts the
-homelab Nextcloud WebDAV share (`https://nextcloud.alexyz.hl`) like a local
+homelab Nextcloud WebDAV share (`https://nextcloud.alexyz.org`) like a local
 drive. The password lives in `secrets/secrets.yaml` under `NEXTCLOUD_PASSWORD`
 (never exported into the shell) and is decrypted by sops on each mount, so no
 plaintext credentials are stored anywhere.
 
-- **Linux** (`modules.nextcloud.enable`): davfs2 true mount via fstab at
-  `/mnt/nextcloud` (`rw,user,noauto`) on NixOS hosts; standalone profiles mount
-  `~/nextcloud` with `mount.davfs`. Certificates come from Let's Encrypt
-  (Cloudflare DNS), so davfs2/rclone verify against the public trust store.
+- **Linux** (`modules.nextcloud.enable`): davfs2 mount at `/mnt/nextcloud` on
+  NixOS hosts; standalone profiles mount `~/nextcloud`. Both go through the
+  setuid `mount.davfs` helper (called by its `/run/wrappers/bin/...` path on
+  NixOS) and read credentials from `~/.davfs2/secrets`. Certificates come from
+  Let's Encrypt (Cloudflare DNS), so davfs2/rclone verify against the public
+  trust store.
 - **macOS** (`modules.nextcloudRclone.enable`): davfs2 is Linux-only, so the
   mount uses `rclone` + macFUSE (installed via the `macfuse` Homebrew cask),
   mounting `~/nextcloud`.

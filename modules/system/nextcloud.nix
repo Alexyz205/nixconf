@@ -4,7 +4,7 @@
   ...
 }:
 let
-  url = "https://nextcloud.alexyz.hl/remote.php/dav/files/alexyz";
+  url = "https://nextcloud.alexyz.org/remote.php/dav/files/alexyz";
   username = "alexyz";
   secretName = "NEXTCLOUD_PASSWORD";
   secretFile = ../../secrets/secrets.yaml;
@@ -58,8 +58,11 @@ let
       }
     else
       let
-        # With an fstab entry (NixOS) let mount(8) resolve device+options;
-        # on standalone profiles call mount.davfs with the explicit URL.
+        # NixOS: let mount(8) resolve the fstab entry and run the setuid
+        # mount.davfs helper with the user-mount options (noexec, ...). It finds
+        # the helper via its own search path (not the shell PATH), so calling
+        # mount.davfs directly would hit the non-setuid copy instead.
+        # Standalone: call the distro's setuid mount.davfs with the explicit URL.
         mountCmd = if fstabMount then "mount \"${mountPoint}\"" else "mount.davfs ${url} \"${mountPoint}\"";
       in
       {
@@ -112,33 +115,31 @@ in
     {
       options.modules.nextcloud = mkOptions "/mnt/nextcloud";
       config = lib.mkIf config.modules.nextcloud.enable {
-        environment.systemPackages = [ pkgs.davfs2 ];
-        boot.kernelModules = [ "fuse" ];
-        # mount.davfs (setuid) requires the davfs2 user and group to exist.
-        users.groups.davfs2 = { };
-        users.users.davfs2 = {
-          group = "davfs2";
-          isSystemUser = true;
-        };
-        # ... and the mounting user must be a member of the davfs2 group.
-        users.users.${config.modules.users.userName}.extraGroups = [ "davfs2" ];
-        # davfs2 performs the FUSE mount syscall itself (no fusermount), so
-        # non-root `user` mounts need a setuid-root helper. It still reads the
-        # calling user's ~/.davfs2/secrets via getuid().
+        # nixpkgs' davfs2 service: setuid mount.davfs/umount.davfs wrappers,
+        # the davfs2 user+group and /etc/davfs2/davfs2.conf.
+        services.davfs2.enable = true;
+        # Widen the setuid wrapper to world-executable: davfs2's group check
+        # (check_permissions) is the real enforcement, and it reports a clear
+        # "user must be member of group davfs2" instead of a cryptic EACCES
+        # when the mounting session lacks the davfs2 group.
         security.wrappers."mount.davfs" = {
-          owner = "root";
-          group = "root";
-          setuid = true;
-          source = "${pkgs.davfs2}/sbin/mount.davfs";
+          permissions = lib.mkForce "u+rx,g+x,o+x";
         };
+        boot.kernelModules = [ "fuse" ];
+        # ... and the mounting user must be a member of the davfs2 group
+        # (required by mount.davfs' setuid permission check).
+        users.users.${config.modules.users.userName}.extraGroups = [ "davfs2" ];
         sops.secrets.${secretName} = {
           sopsFile = secretFile;
         };
-        # noauto fstab mounts need an existing mount point owned by the user for
-        # the `user` mount option to work — create it at boot.
+        # The mount point must exist and be owned by the user so the setuid
+        # mount.davfs can bind it — create it at boot.
         systemd.tmpfiles.rules = [
           "d ${config.modules.nextcloud.mountPoint} 0755 ${config.modules.users.userName} users -"
         ];
+        # fstab entry for the setuid user mount: mount.davfs refuses non-root
+        # mounts without a matching entry (check_fstab). `noauto` keeps it out
+        # of the boot sequence — ncm mounts it on demand.
         fileSystems."${config.modules.nextcloud.mountPoint}" = {
           device = url;
           fsType = "davfs";
