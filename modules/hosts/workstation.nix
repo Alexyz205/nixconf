@@ -136,6 +136,7 @@ let
                 desktop = true;
               };
               containers.enable = true;
+              nextcloud.enable = true;
               sops = {
                 # No USB port on this machine: decrypt with the software age
                 # key instead of the YubiKey identity.

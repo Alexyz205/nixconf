@@ -32,7 +32,7 @@ devenv.nix / devenv.yaml# Dev environment for this repo (see "Dev environment")
 modules/
 ├── flake/              # options.nix (option types), nixos.nix (feature tiers), home-manager.nix (standalone configs)
 ├── hosts/              # One file per machine / image
-├── system/             # boot, disko, network, nix, podman, sops, security, ssh, users, yubikey
+├── system/             # boot, disko, network, nextcloud, nix, podman, sops, security, ssh, users, yubikey
 ├── shell/              # shell, starship, tmux, zoxide, eza, bat, btop, yazi, ghostty
 ├── desktop/            # niri, brave, claude, discord, steam, youtube-music, ...
 └── dev/                # devenv, git, gitlab, lazygit, lazyvim, opencode, containers, ...
@@ -67,13 +67,13 @@ user is picked at runtime from `id -un` (`root@container` or `vscode@container`)
 
 ## Hosts
 
-| Host              | Platform       | Type    | Key Features                                                        |
-| ----------------- | -------------- | ------- | ------------------------------------------------------------------- |
-| `macbook`         | aarch64-darwin | Laptop  | nix-darwin, Homebrew, Ghostty                                       |
-| `workstation`     | x86_64-linux   | Desktop | Niri WM, Catppuccin (stylix), greetd, pipewire, YubiKey LUKS + sudo |
-| `headless-worker` | x86_64-linux   | Server  | systemd-networkd, btrfs disko, SSH via YubiKey key, weekly GC       |
-| `proxmox-vm`      | x86_64-linux   | VM      | cloud-init, Proxmox image, qemu-guest, minimal                      |
-| `installer-iso`   | x86_64-linux   | USB ISO | Guided installer script with YubiKey auth                           |
+| Host              | Platform       | Type    | Key Features                                                                            |
+| ----------------- | -------------- | ------- | --------------------------------------------------------------------------------------- |
+| `macbook`         | aarch64-darwin | Laptop  | nix-darwin, Homebrew, Ghostty, Nextcloud (rclone)                                       |
+| `workstation`     | x86_64-linux   | Desktop | Niri WM, Catppuccin (stylix), greetd, pipewire, YubiKey LUKS + sudo, Nextcloud (davfs2) |
+| `headless-worker` | x86_64-linux   | Server  | systemd-networkd, btrfs disko, SSH via YubiKey key, Nextcloud (davfs2), weekly GC       |
+| `proxmox-vm`      | x86_64-linux   | VM      | cloud-init, Proxmox image, qemu-guest, minimal                                          |
+| `installer-iso`   | x86_64-linux   | USB ISO | Guided installer script with YubiKey auth                                               |
 
 Standalone home-manager profiles (`flake.homeConfigurations`):
 
@@ -205,7 +205,7 @@ YubiKey-based age identity.
     exported into the shell at login. Edit with `sece` (alias for
     `sops $NIXCONF/secrets/env.yaml`).
   - `secrets.yaml` — plain secrets that are **not** loaded into the shell
-    environment. Edit with `sec` (alias for
+    environment (`NEXTCLOUD_PASSWORD`, ...). Edit with `sec` (alias for
     `sops $NIXCONF/secrets/secrets.yaml`).
 - The module `modules/system/sops.nix` wires sops into NixOS: default sops file
   (`env.yaml`), age key file (`/etc/yubi-age-identity`), age-plugin-yubikey,
@@ -230,6 +230,28 @@ YubiKey-based age identity.
 - GitLab tooling (`glab`, the `gitlab.nvim` LazyVim plugin, and the
   `GITLAB_TOKEN` secret) lives in the standalone `gitlab` feature module and is
   only enabled on the `alexis.pigeon@RNSL-APIGEON5` home-manager profile.
+
+## Nextcloud
+
+The `nextcloud` feature module (`modules/system/nextcloud.nix`) mounts the
+homelab Nextcloud WebDAV share (`https://nextcloud.alexyz.hl`) like a local
+drive. The password lives in `secrets/secrets.yaml` under `NEXTCLOUD_PASSWORD`
+(never exported into the shell) and is decrypted by sops on each mount, so no
+plaintext credentials are stored anywhere.
+
+- **Linux** (`modules.nextcloud.enable`): davfs2 true mount via fstab at
+  `/mnt/nextcloud` (`rw,user,noauto`) on NixOS hosts; standalone profiles mount
+  `~/nextcloud` with `mount.davfs`. The homelab CA is placed in
+  `/etc/davfs2/certs/` (NixOS) / pointed at via `~/.davfs2/davfs2.conf`.
+- **macOS** (`modules.nextcloudRclone.enable`): davfs2 is Linux-only, so the
+  mount uses `rclone` + macFUSE (installed via the `macfuse` Homebrew cask),
+  mounting `~/nextcloud`. The webdav remote is built from CLI flags and trusts
+  the homelab CA directly.
+- Aliases everywhere: `ncm` mounts, `ncu` unmounts.
+
+New secrets are created on a machine with the YubiKey (see above); if one is
+created from the workstation it must be re-keyed with
+`sops updatekeys secrets/secrets.yaml` before other hosts can decrypt it.
 
 ## Installer / ISO
 

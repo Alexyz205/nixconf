@@ -50,6 +50,15 @@ let
       gitlab
       { modules.gitlab.enable = true; }
     ];
+    nextcloud = [
+      nextcloud
+      { modules.nextcloud.enable = true; }
+    ];
+    # macOS: davfs2 is Linux-only, so use the rclone backend variant.
+    nextcloudMacos = [
+      nextcloudRclone
+      { modules.nextcloudRclone.enable = true; }
+    ];
   };
   # Extras for interactive desktop hosts (macos, linux, RNSL).
   desktopExtras = extras.sops ++ extras.yubikey ++ extras.ghostty ++ extras.containers;
@@ -150,13 +159,13 @@ in
       system = "aarch64-darwin";
       username = "alexis";
       homeDirectory = "/Users/alexis";
-      extra = desktopExtras;
+      extra = desktopExtras ++ extras.nextcloudMacos;
     };
     "alexis@linux" = mkHome {
       system = "x86_64-linux";
       username = "alexis";
       homeDirectory = "/home/alexis";
-      extra = desktopExtras;
+      extra = desktopExtras ++ extras.nextcloud;
     };
     "alexis.pigeon@RNSL-APIGEON5" = mkHome {
       system = "x86_64-linux";
@@ -164,12 +173,13 @@ in
       homeDirectory = "/home/alexis.pigeon";
       extra = desktopExtras ++ extras.gitlab;
     };
-    # Headless Ubuntu server: terminal-only, no YubiKey / sops / GUI.
+    # Headless Ubuntu server: terminal-only, no GUI extras. sops + nextcloud
+    # for the WebDAV mount credentials.
     "alexis@server" = mkHome {
       system = "x86_64-linux";
       username = "alexis";
       homeDirectory = "/home/alexis";
-      extra = [ ];
+      extra = extras.sops ++ extras.nextcloud;
     };
   }
   // containerConfigs;

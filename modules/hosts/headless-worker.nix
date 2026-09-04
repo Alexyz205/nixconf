@@ -82,6 +82,7 @@ let
                 devTools = true;
               };
               containers.enable = true;
+              nextcloud.enable = true;
               shell.enable = true;
               git.enable = true;
               bitwarden.enable = true;

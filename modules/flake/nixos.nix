@@ -78,7 +78,8 @@ in
         ++ (with features; [
           boot
           disko
-          # sops
+          sops
+          nextcloud
           podman
           containers
         ]);
@@ -88,7 +89,6 @@ in
         ++ (with features; [
           network
           yubikey
-          sops
           devenv
           btop
           ghostty

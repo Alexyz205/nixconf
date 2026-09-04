@@ -25,6 +25,7 @@ let
     opencode
     devenv
     tv
+    nextcloudRclone
   ];
 in
 {
@@ -77,6 +78,7 @@ in
             ];
             casks = [
               "ghostty"
+              "macfuse"
             ];
             masApps = { };
           };
@@ -100,10 +102,12 @@ in
                   basic = true;
                   devTools = true;
                 };
+                sops.enable = true;
                 bitwarden = {
                   enable = true;
                   desktop = true;
                 };
+                nextcloudRclone.enable = true;
                 tv.enable = true;
               };
             };
