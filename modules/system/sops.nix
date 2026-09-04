@@ -19,6 +19,7 @@ in
     }:
     {
       options.modules.sops = {
+        enable = lib.mkEnableOption "Sops secrets (NixOS side)";
         useYubikey = lib.mkOption {
           type = lib.types.bool;
           default = true;
@@ -38,7 +39,7 @@ in
           '';
         };
       };
-      config = {
+      config = lib.mkIf config.modules.sops.enable {
         sops = {
           defaultSopsFile = envFile;
           age = {

@@ -26,7 +26,10 @@ in
         system.stateVersion = "26.05";
 
         modules.ca.enable = true;
+        modules.users.enable = true;
         modules.users.userName = "alexis";
+        modules.nix.enable = true;
+        modules.ssh.enable = true;
 
         users.users.alexis.openssh.authorizedKeys.keys = [
           (lib.trim (builtins.readFile yubiPub))

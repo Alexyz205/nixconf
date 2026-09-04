@@ -58,29 +58,38 @@ in
 {
   flake.mkBtrfsLayout = btrfsLayout;
 
-  flake.modules.nixos.disko = _: {
-    disko.devices.disk.main = {
-      type = "disk";
-      device = lib.mkDefault "/dev/sda";
-      content = {
-        type = "gpt";
-        partitions = {
-          ESP = {
-            size = "1G";
-            type = "EF00";
-            content = {
-              type = "filesystem";
-              format = "vfat";
-              mountpoint = "/boot";
-              mountOptions = [ "umask=0077" ];
+  flake.modules.nixos.disko =
+    {
+      config,
+      lib,
+      ...
+    }:
+    {
+      options.modules.disko.enable = lib.mkEnableOption "Disko disk layout";
+      config = lib.mkIf config.modules.disko.enable {
+        disko.devices.disk.main = {
+          type = "disk";
+          device = lib.mkDefault "/dev/sda";
+          content = {
+            type = "gpt";
+            partitions = {
+              ESP = {
+                size = "1G";
+                type = "EF00";
+                content = {
+                  type = "filesystem";
+                  format = "vfat";
+                  mountpoint = "/boot";
+                  mountOptions = [ "umask=0077" ];
+                };
+              };
+              luks = {
+                size = "100%";
+                content = btrfsLayout { luks = true; };
+              };
             };
-          };
-          luks = {
-            size = "100%";
-            content = btrfsLayout { luks = true; };
           };
         };
       };
     };
-  };
 }

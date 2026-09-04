@@ -10,6 +10,17 @@ let
   secretName = "NEXTCLOUD_PASSWORD";
   secretFile = ../../secrets/secrets.yaml;
 
+  # Options shared by the NixOS side (system mount) and both home-manager
+  # backends (user mount). The mount point default differs per context.
+  mkOptions = mountPointDefault: {
+    enable = lib.mkEnableOption "Nextcloud WebDAV mount";
+    mountPoint = lib.mkOption {
+      type = lib.types.str;
+      default = mountPointDefault;
+      description = "Mount point for the Nextcloud WebDAV share.";
+    };
+  };
+
   # Shared home-manager config for both NixOS hosts and standalone profiles.
   # `backend` is a constant picked at composition time (not a config option), so
   # no option read happens inside the config (which would recurse in home-manager).
@@ -77,6 +88,26 @@ let
           }
         '';
       };
+
+  # Standalone home-manager module for a backend: davfs2 on Linux, rclone on
+  # macOS (davfs2 is Linux-only).
+  mkHomeModule =
+    name: backend:
+    {
+      config,
+      lib,
+      pkgs,
+      ...
+    }:
+    {
+      options.modules.${name} = mkOptions "$HOME/nextcloud";
+      config = lib.mkIf config.modules.${name}.enable (mkNextcloudHome {
+        inherit config lib pkgs;
+        mountPoint = config.modules.${name}.mountPoint;
+        inherit backend;
+        fstabMount = false;
+      });
+    };
 in
 {
   flake.modules.nixos.nextcloud =
@@ -87,14 +118,7 @@ in
       ...
     }:
     {
-      options.modules.nextcloud = {
-        enable = lib.mkEnableOption "Nextcloud WebDAV mount (davfs2)";
-        mountPoint = lib.mkOption {
-          type = lib.types.str;
-          default = "/mnt/nextcloud";
-          description = "Mount point for the Nextcloud WebDAV share.";
-        };
-      };
+      options.modules.nextcloud = mkOptions "/mnt/nextcloud";
       config = lib.mkIf config.modules.nextcloud.enable {
         environment.systemPackages = [ pkgs.davfs2 ];
         boot.kernelModules = [ "fuse" ];
@@ -157,52 +181,8 @@ in
       };
     };
 
-  flake.modules.homeManager.nextcloud =
-    {
-      config,
-      lib,
-      pkgs,
-      ...
-    }:
-    {
-      options.modules.nextcloud = {
-        enable = lib.mkEnableOption "Nextcloud WebDAV mount (davfs2)";
-        mountPoint = lib.mkOption {
-          type = lib.types.str;
-          default = "$HOME/nextcloud";
-          description = "Mount point for the Nextcloud WebDAV share.";
-        };
-      };
-      config = lib.mkIf config.modules.nextcloud.enable (mkNextcloudHome {
-        inherit config lib pkgs;
-        mountPoint = config.modules.nextcloud.mountPoint;
-        backend = "davfs";
-        fstabMount = false;
-      });
-    };
+  flake.modules.homeManager.nextcloud = mkHomeModule "nextcloud" "davfs";
 
   # macOS: davfs2 is Linux-only (FUSE), so mount via rclone + macFUSE instead.
-  flake.modules.homeManager.nextcloudRclone =
-    {
-      config,
-      lib,
-      pkgs,
-      ...
-    }:
-    {
-      options.modules.nextcloudRclone = {
-        enable = lib.mkEnableOption "Nextcloud WebDAV mount (rclone)";
-        mountPoint = lib.mkOption {
-          type = lib.types.str;
-          default = "$HOME/nextcloud";
-          description = "Mount point for the Nextcloud WebDAV share.";
-        };
-      };
-      config = lib.mkIf config.modules.nextcloudRclone.enable (mkNextcloudHome {
-        inherit config lib pkgs;
-        mountPoint = config.modules.nextcloudRclone.mountPoint;
-        backend = "rclone";
-        fstabMount = false;
-      });
-    };
+  flake.modules.homeManager.nextcloudRclone = mkHomeModule "nextcloudRclone" "rclone";
 }

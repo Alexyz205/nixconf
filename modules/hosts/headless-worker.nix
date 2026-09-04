@@ -70,6 +70,15 @@ let
 
             # SSH key from existing YubiKey pub (no hardware needed at runtime)
             modules = {
+              # Infrastructure (server tier)
+              nix.enable = true;
+              users.enable = true;
+              security.enable = true;
+              ssh.enable = true;
+              boot.enable = true;
+              disko.enable = true;
+              sops.enable = true;
+              podman.enable = true;
               ca.enable = true;
               users.extraGroups = [
                 "wheel"

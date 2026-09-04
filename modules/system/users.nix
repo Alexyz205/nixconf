@@ -7,6 +7,7 @@ _: {
     }:
     {
       options.modules.users = {
+        enable = lib.mkEnableOption "User account + sudo";
         userName = lib.mkOption {
           type = lib.types.str;
           default = "alexis";
@@ -24,7 +25,7 @@ _: {
           default = [ ];
         };
       };
-      config = {
+      config = lib.mkIf config.modules.users.enable {
         users.users.${config.modules.users.userName} = {
           isNormalUser = true;
           extraGroups = config.modules.users.extraGroups;

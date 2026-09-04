@@ -37,18 +37,27 @@ let
     };
 in
 {
-  flake.modules.nixos.ssh = {
-    services.openssh = {
-      enable = true;
-      settings = {
-        PasswordAuthentication = false;
-        KbdInteractiveAuthentication = false;
-        PermitRootLogin = "no";
+  flake.modules.nixos.ssh =
+    {
+      config,
+      lib,
+      ...
+    }:
+    {
+      options.modules.ssh.enable = lib.mkEnableOption "SSH server (openssh + fail2ban)";
+      config = lib.mkIf config.modules.ssh.enable {
+        services.openssh = {
+          enable = true;
+          settings = {
+            PasswordAuthentication = false;
+            KbdInteractiveAuthentication = false;
+            PermitRootLogin = "no";
+          };
+        };
+        services.fail2ban.enable = true;
+        networking.firewall.allowedTCPPorts = lib.mkDefault [ 22 ];
       };
     };
-    services.fail2ban.enable = true;
-    networking.firewall.allowedTCPPorts = lib.mkDefault [ 22 ];
-  };
 
   flake.modules.homeManager.ssh = sshClient;
 }

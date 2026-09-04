@@ -122,6 +122,16 @@ let
             ];
 
             modules = {
+              # Infrastructure (base + server tiers)
+              nix.enable = true;
+              users.enable = true;
+              security.enable = true;
+              ssh.enable = true;
+              boot.enable = true;
+              disko.enable = true;
+              sops.enable = true;
+              podman.enable = true;
+              network.enable = true;
               ca.enable = true;
               users.extraGroups = [
                 "wheel"
