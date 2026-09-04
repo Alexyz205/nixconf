@@ -55,7 +55,6 @@ in
         nix
         users
         security
-        ca
         ssh
         shell
         git

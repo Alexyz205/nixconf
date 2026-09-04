@@ -241,12 +241,11 @@ plaintext credentials are stored anywhere.
 
 - **Linux** (`modules.nextcloud.enable`): davfs2 true mount via fstab at
   `/mnt/nextcloud` (`rw,user,noauto`) on NixOS hosts; standalone profiles mount
-  `~/nextcloud` with `mount.davfs`. The homelab CA is placed in
-  `/etc/davfs2/certs/` (NixOS) / pointed at via `~/.davfs2/davfs2.conf`.
+  `~/nextcloud` with `mount.davfs`. Certificates come from Let's Encrypt
+  (Cloudflare DNS), so davfs2/rclone verify against the public trust store.
 - **macOS** (`modules.nextcloudRclone.enable`): davfs2 is Linux-only, so the
   mount uses `rclone` + macFUSE (installed via the `macfuse` Homebrew cask),
-  mounting `~/nextcloud`. The webdav remote is built from CLI flags and trusts
-  the homelab CA directly.
+  mounting `~/nextcloud`.
 - Aliases everywhere: `ncm` mounts, `ncu` unmounts.
 
 New secrets are created on a machine with the YubiKey (see above); if one is

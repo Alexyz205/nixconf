@@ -11,7 +11,6 @@ let
     ssh
     users
     nix
-    ca
   ];
 in
 {
@@ -25,7 +24,6 @@ in
       ({ pkgs, modulesPath, ... }: {
         system.stateVersion = "26.05";
 
-        modules.ca.enable = true;
         modules.users.enable = true;
         modules.users.userName = "alexis";
         modules.nix.enable = true;

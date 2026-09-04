@@ -4,7 +4,6 @@
   ...
 }:
 let
-  certFile = ../../config/ca/homelab-ca.pem;
   url = "https://nextcloud.alexyz.hl/remote.php/dav/files/alexyz";
   username = "alexyz";
   secretName = "NEXTCLOUD_PASSWORD";
@@ -44,14 +43,13 @@ let
         sops.secrets.${secretName} = {
           sopsFile = secretFile;
         };
-        # Trust the homelab CA directly (rclone ignores the system store on macOS).
         programs.zsh.initContent = lib.mkOrder 950 ''
           ncm() {
             mkdir -p "${mountPoint}"
             rclone mount :webdav: "${mountPoint}" \
               --webdav-url "${url}" --webdav-vendor nextcloud --webdav-user "${username}" \
               --webdav-pass "$(rclone obscure "$(cat "${secretPath}")")" \
-              --ca-cert "${certFile}" --vfs-cache-mode full &
+              --vfs-cache-mode full &
           }
           ncu() {
             rclone umount "${mountPoint}"
@@ -68,12 +66,6 @@ let
         home.packages = [ pkgs.davfs2 ];
         sops.secrets.${secretName} = {
           sopsFile = secretFile;
-        };
-        # davfs2 verifies TLS against its own trust store: trust_ca_cert looks
-        # the cert up in ~/.davfs2/certs (and /etc/davfs2/certs).
-        home.file = {
-          ".davfs2/certs/homelab-ca.pem".source = certFile;
-          ".davfs2/davfs2.conf".text = "trust_ca_cert homelab-ca.pem\n";
         };
         programs.zsh.initContent = lib.mkOrder 950 ''
           ncm() {
@@ -139,8 +131,6 @@ in
           setuid = true;
           source = "${pkgs.davfs2}/sbin/mount.davfs";
         };
-        environment.etc."davfs2/certs/homelab-ca.pem".source = certFile;
-        environment.etc."davfs2/davfs2.conf".text = "trust_ca_cert homelab-ca.pem\n";
         sops.secrets.${secretName} = {
           sopsFile = secretFile;
         };

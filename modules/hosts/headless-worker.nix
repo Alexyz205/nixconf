@@ -79,7 +79,6 @@ let
               disko.enable = true;
               sops.enable = true;
               podman.enable = true;
-              ca.enable = true;
               users.extraGroups = [
                 "wheel"
                 "podman"
