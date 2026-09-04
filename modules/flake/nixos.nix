@@ -58,6 +58,7 @@ in
         ssh
         shell
         git
+        bitwarden
         packages
         starship
         tmux

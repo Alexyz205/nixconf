@@ -83,6 +83,7 @@ let
               containers.enable = true;
               shell.enable = true;
               git.enable = true;
+              bitwarden.enable = true;
               starship.enable = true;
               tmux.enable = true;
               bat.enable = true;

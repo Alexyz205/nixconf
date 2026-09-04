@@ -143,6 +143,10 @@ let
               };
               shell.enable = true;
               git.enable = true;
+              bitwarden = {
+                enable = true;
+                desktop = true;
+              };
               yubikey = {
                 enable = true;
                 luksUnlock = true;

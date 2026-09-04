@@ -8,6 +8,7 @@ let
     { id = "eimadpbcbfnmbkopoojfekhnkhdbieeh"; } # Dark Reader
     { id = "dbepggeogbaibhgnhhndojpepiihcmeb"; } # Vimium
     { id = "bkkmolkhemgaeaeggcmfbghljjjoofoh"; } # Catppuccin Mocha theme
+    { id = "nngceckbapebfimnlniiiahkandclblb"; } # Bitwarden
   ];
   bookmarks = [
     {

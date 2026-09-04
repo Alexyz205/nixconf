@@ -9,6 +9,7 @@ let
     nix
     shell
     git
+    bitwarden
     ssh
     sops
     bat
@@ -98,6 +99,10 @@ in
                 packages = {
                   basic = true;
                   devTools = true;
+                };
+                bitwarden = {
+                  enable = true;
+                  desktop = true;
                 };
                 tv.enable = true;
               };

@@ -11,6 +11,7 @@ let
     nix
     shell
     git
+    bitwarden
     ssh
     bat
     eza
@@ -92,6 +93,7 @@ let
             shell.enable = true;
             ssh.enable = true;
             git.enable = true;
+            bitwarden.enable = true;
             bat.enable = true;
             eza.enable = true;
             zoxide.enable = true;
