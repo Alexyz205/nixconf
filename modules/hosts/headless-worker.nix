@@ -70,6 +70,7 @@ let
 
             # SSH key from existing YubiKey pub (no hardware needed at runtime)
             modules = {
+              ca.enable = true;
               users.extraGroups = [
                 "wheel"
                 "podman"

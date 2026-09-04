@@ -14,6 +14,7 @@ in
     modules = [
       "${inputs.nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix"
       { nixpkgs.overlays = config.flake.modules.overlays; }
+      config.flake.modules.nixos.ca
       (
         {
           pkgs,
@@ -303,6 +304,7 @@ in
         in
         {
           nixpkgs.hostPlatform = "x86_64-linux";
+          modules.ca.enable = true;
           isoImage = {
             edition = "custom-iso";
             contents = [

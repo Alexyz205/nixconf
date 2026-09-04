@@ -122,6 +122,7 @@ let
             ];
 
             modules = {
+              ca.enable = true;
               users.extraGroups = [
                 "wheel"
                 "networkmanager"
@@ -146,6 +147,9 @@ let
               bitwarden = {
                 enable = true;
                 desktop = true;
+                # Trust the homelab cert-manager root CA so the CLI, desktop app
+                # and Brave can verify the Traefik-issued *.alexyz.hl cert.
+                caCertFile = ../../config/ca/homelab-ca.pem;
               };
               yubikey = {
                 enable = true;

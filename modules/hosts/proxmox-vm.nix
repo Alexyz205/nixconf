@@ -11,6 +11,7 @@ let
     ssh
     users
     nix
+    ca
   ];
 in
 {
@@ -24,6 +25,7 @@ in
       ({ pkgs, modulesPath, ... }: {
         system.stateVersion = "26.05";
 
+        modules.ca.enable = true;
         modules.users.userName = "alexis";
 
         users.users.alexis.openssh.authorizedKeys.keys = [
