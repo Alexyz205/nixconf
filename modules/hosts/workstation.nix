@@ -183,6 +183,11 @@ let
               claude.enable = true;
               discord.enable = true;
               steam.enable = true;
+              thunderbird = {
+                enable = true;
+                email = "alexis@alexyz.org";
+                realName = "Alexis Pigeon";
+              };
               youtubeMusic.enable = true;
             };
 

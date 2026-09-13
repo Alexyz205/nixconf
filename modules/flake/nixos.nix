@@ -98,6 +98,7 @@ in
           claude
           discord
           steam
+          thunderbird
           youtubeMusic
         ]);
     };
