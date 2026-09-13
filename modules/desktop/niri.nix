@@ -312,13 +312,6 @@
           { workspace = namedWorkspace "main"; }
           { workspace = namedWorkspace "browser"; }
           { workspace = namedWorkspace "game"; }
-          { workspace = namedWorkspace "4"; }
-          { workspace = namedWorkspace "5"; }
-          { workspace = namedWorkspace "6"; }
-          { workspace = namedWorkspace "7"; }
-          { workspace = namedWorkspace "8"; }
-          { workspace = namedWorkspace "9"; }
-          { workspace = namedWorkspace "10"; }
         ];
       };
     };
