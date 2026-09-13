@@ -70,9 +70,11 @@ let
           settings = {
             "datareporting.healthreport.uploadEnabled" = false;
             "datareporting.policy.dataSubmissionEnabled" = false;
-            # Keep the Catppuccin theme enabled instead of disabling it as an
-            # untrusted/unknown extension on first run.
+            # Install the Catppuccin theme without it being auto-disabled, and
+            # make it the active theme (installing a static theme XPI does not
+            # select it on its own).
             "extensions.autoDisableScopes" = 0;
+            "extensions.activeThemeID" = themeId;
           };
         };
       };
