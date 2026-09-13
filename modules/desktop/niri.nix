@@ -171,7 +171,7 @@
             # Workspaces (digit binds, named so Mod+1 is always "main").
             "Mod+1" = ws "main";
             "Mod+2" = ws "browser";
-            "Mod+3" = ws "3";
+            "Mod+3" = ws "game";
             "Mod+4" = ws "4";
             "Mod+5" = ws "5";
             "Mod+6" = ws "6";
@@ -182,7 +182,7 @@
 
             "Mod+Shift+1".move-column-to-workspace = "main";
             "Mod+Shift+2".move-column-to-workspace = "browser";
-            "Mod+Shift+3".move-column-to-workspace = "3";
+            "Mod+Shift+3".move-column-to-workspace = "game";
             "Mod+Shift+4".move-column-to-workspace = "4";
             "Mod+Shift+5".move-column-to-workspace = "5";
             "Mod+Shift+6".move-column-to-workspace = "6";
@@ -278,6 +278,15 @@
               open-on-workspace = "browser";
             }
             {
+              # Steam client + games (native and Proton windows report as steam_app_<id>).
+              matches = [ { app-id = "^(steam|steam_app_[0-9]+)$"; } ];
+              open-on-workspace = "game";
+            }
+            {
+              matches = [ { app-id = "^vesktop$"; } ];
+              open-on-workspace = "game";
+            }
+            {
               matches = [ { } ];
               geometry-corner-radius = 20.0;
               clip-to-geometry = true;
@@ -300,6 +309,14 @@
         extraSettings = [
           { workspace = namedWorkspace "main"; }
           { workspace = namedWorkspace "browser"; }
+          { workspace = namedWorkspace "game"; }
+          { workspace = namedWorkspace "4"; }
+          { workspace = namedWorkspace "5"; }
+          { workspace = namedWorkspace "6"; }
+          { workspace = namedWorkspace "7"; }
+          { workspace = namedWorkspace "8"; }
+          { workspace = namedWorkspace "9"; }
+          { workspace = namedWorkspace "10"; }
         ];
       };
     };
