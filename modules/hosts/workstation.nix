@@ -161,7 +161,9 @@ let
               yubikey = {
                 enable = true;
                 luksUnlock = true;
-                sudoAuth = true;
+                # No USB port for the YubiKey here: pam_u2f would prompt for a
+                # FIDO authenticator on every sudo with nothing to insert.
+                sudoAuth = false;
               };
               starship.enable = true;
               tmux.enable = true;
