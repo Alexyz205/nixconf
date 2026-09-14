@@ -8,7 +8,8 @@ let
     { id = "eimadpbcbfnmbkopoojfekhnkhdbieeh"; } # Dark Reader
     { id = "dbepggeogbaibhgnhhndojpepiihcmeb"; } # Vimium
     { id = "bkkmolkhemgaeaeggcmfbghljjjoofoh"; } # Catppuccin Mocha theme
-    { id = "nngceckbapebfimnlniiiahkandclblb"; } # Bitwarden
+    { id = "nngceckbapebfimnlniiiahkandclblb"; } # Bitwarden (Vaultwarden)
+    { id = "kgcjekpmcjjogibpjebkhaanilehneje"; } # Karakeep
   ];
   bookmarks = [
     {
@@ -29,7 +30,23 @@ let
     }
   ];
 
-  # Deterministic GUID from a bookmark name.
+  # Dashy is the single entry point to every homelab service (see ../homelab),
+  # so the folder only carries the two dashboards.
+  homelab = {
+    name = "Homelab";
+    children = [
+      {
+        name = "Dashy";
+        url = "https://dashy.alexyz.org";
+      }
+      {
+        name = "Dev Dashy";
+        url = "https://dev-dashy.alexyz.org";
+      }
+    ];
+  };
+
+  # Deterministic GUID from a bookmark/folder name.
   guid =
     name:
     let
@@ -41,20 +58,70 @@ let
   # Bookmarks.json timestamps are microseconds since 1601-01-01.
   dateAdded = "13326774450786953";
 
-  mkNode = i: b: {
-    date_added = dateAdded;
-    date_last_used = "0";
-    guid = guid b.name;
-    id = builtins.toString (i + 3);
-    meta_info = {
-      power_bookmark_meta = "";
+  # Convert {name, url?, children?} trees into numbered bookmarks.json nodes,
+  # threading a unique `id` through the whole tree.
+  numberNode =
+    startId: node:
+    let
+      isUrl = node ? url;
+      kids =
+        if isUrl then
+          {
+            nodes = [ ];
+            next = startId + 1;
+          }
+        else
+          numberList (startId + 1) node.children;
+      base = {
+        date_added = dateAdded;
+        date_last_used = "0";
+        guid = guid node.name;
+        id = builtins.toString startId;
+        inherit (node) name;
+      };
+    in
+    {
+      node =
+        if isUrl then
+          base
+          // {
+            meta_info = {
+              power_bookmark_meta = "";
+            };
+            inherit (node) url;
+            type = "url";
+          }
+        else
+          base
+          // {
+            children = kids.nodes;
+            date_modified = dateAdded;
+            type = "folder";
+          };
+      next = kids.next;
     };
-    inherit (b) name url;
-    type = "url";
-  };
+
+  numberList =
+    startId: nodes:
+    if nodes == [ ] then
+      {
+        nodes = [ ];
+        next = startId;
+      }
+    else
+      let
+        head = builtins.head nodes;
+        tail = builtins.tail nodes;
+        first = numberNode startId head;
+        rest = numberList first.next tail;
+      in
+      {
+        nodes = [ first.node ] ++ rest.nodes;
+        next = rest.next;
+      };
 
   mkBar = {
-    children = builtins.genList (i: mkNode i (builtins.elemAt bookmarks i)) (builtins.length bookmarks);
+    children = (numberList 4 (bookmarks ++ [ homelab ])).nodes;
     date_added = dateAdded;
     date_last_used = "0";
     date_modified = dateAdded;
