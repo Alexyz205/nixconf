@@ -1,11 +1,6 @@
 {
   "$schema": "https://opencode.ai/config.json",
   "autoupdate": false,
-  // Built-in LSP servers. Keep only the type-checking / code-intelligence
-  // servers we actually provide on $PATH (via each repo's devenv), pointing at
-  // the same binaries LazyVim uses. Formatters and linters are CLI tools the
-  // agent runs directly, not LSPs. Auto-downloads are disabled in
-  // modules/dev/opencode.nix.
   "lsp": {
     "nixd": { "disabled": true },
     "pyright": { "disabled": true },
@@ -47,9 +42,6 @@
     }
   },
   "share": "disabled",
-  // --- Model Configuration ---
-  // DeepSeek V4 Flash is the best quality-per-cost model on the Go plan
-  // ($0.22/$0.66, ~37.8k req/mo vs Pro's $0.66/$1.98, ~5.2k req/mo).
   "model": "opencode-go/deepseek-v4-flash",
   "small_model": "opencode-go/deepseek-v4-flash",
   "agent": {
@@ -69,48 +61,6 @@
       "model": "opencode-go/deepseek-v4-flash"
     }
   },
-  // --- LLM Providers ---
-  "provider": {
-    "ollama": {
-      "npm": "@ai-sdk/openai-compatible",
-      "name": "Ollama (local)",
-      "options": {
-        "baseURL": "http://localhost:11434/v1"
-      },
-      "models": {
-        "qwen3-coder-next:q4_K_M": {
-          "name": "Qwen3 Coder Next",
-          "limit": {
-            "context": 64000,
-            "output": 32768
-          }
-        },
-        "gemma4:26b": {
-          "name": "Gemma 4 26B MoE",
-          "tools": true,
-          "options": {
-            "reasoning_effort": "none"
-          },
-          "limit": {
-            "context": 128000,
-            "output": 32768
-          }
-        },
-        "gemma4:e4b": {
-          "name": "Gemma 4 E4B (fast)",
-          "tools": true,
-          "options": {
-            "reasoning_effort": "none"
-          },
-          "limit": {
-            "context": 65536,
-            "output": 16384
-          }
-        },
-      }
-    }
-  },
-  // --- Global Permissions ---
   "permission": {
     "read": "allow",
     "edit": "allow",
@@ -127,7 +77,8 @@
     "external_directory": {
       "*": "ask",
       "~/Documents/**": "deny",
-      "~/repos/work/**": "deny"
+      "~/repos/work/**": "deny",
+      "/tmp/**": "allow"
     },
     "doom_loop": "ask",
     "bash": {
@@ -152,25 +103,40 @@
       "rm -f *": "ask",
       "rm -rf *": "ask",
       "sudo rm -rf *": "deny",
+      "sops*": "ask",
+      "age*": "ask",
+      "gpg*": "ask",
+      "ssh-keygen*": "ask",
+      "openssl*": "ask",
+      "security*": "ask",
+      "cosign*": "ask",
+      "nix store sign*": "ask",
       "docker system prune -a": "ask",
       "terraform destroy *": "ask",
-      "kubectl delete *": "ask"
+      "kubectl get *": "allow",
+      "kubectl get secret*": "ask",
+      "kubectl describe *": "allow",
+      "kubectl describe secret*": "ask",
+      "kubectl logs *": "allow",
+      "kubectl apply *": "ask",
+      "kubectl delete *": "ask",
+      "kubectl delete pod*": "ask",
+      "kubectl delete pvc*": "ask",
+      "kubectl delete pv*": "ask",
+      "kubectl delete secret*": "ask"
     }
   },
-  // --- Context Management ---
   "compaction": {
     "auto": true,
     "prune": true,
     "reserved": 8000
   },
-  // --- Instructions ---
   "instructions": [
     "~/repos/personal/nixconf/README.md",
     "~/.config/opencode/AGENTS.md",
     "README.md",
     "CONTRIBUTING.md"
   ],
-  // --- Watcher (ignore noisy dirs) ---
   "watcher": {
     "ignore": [
       "node_modules/**",
@@ -185,7 +151,6 @@
       "coverage/**"
     ]
   },
-  // --- Custom Commands ---
   "command": {
     "review": {
       "description": "Code review the current changes",
@@ -220,10 +185,6 @@
       "template": "Run a cleanup pipeline on $ARGUMENTS in this order:\n\n1. **Debug removal** - Remove console.log, print(), debugger statements, TODO/FIXME comments that are resolved, commented-out code blocks\n2. **Import optimization** - Sort imports, remove unused imports, group by stdlib/external/internal\n3. **Formatting** - Apply project formatter (prettier, black, gofmt, etc.) or consistent style\n4. **Lint fixes** - Fix linter warnings (eslint, pylint, shellcheck, etc.)\n5. **Type safety** - Fix type errors if TypeScript/mypy/type hints are in use\n\nAfter cleanup, run the project linter/formatter to verify. Show a summary of changes made in each category."
     }
   },
-  // --- MCP Servers ---
-  // Remote servers, no local install needed. context7 = up-to-date docs
-  // (nix/terraform/ansible/k8s), gh_grep = GitHub code search. Prompt with
-  // "use context7" / "use gh_grep" (see AGENTS.md).
   "mcp": {
     "context7": {
       "type": "remote",
