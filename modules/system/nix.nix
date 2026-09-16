@@ -1,4 +1,4 @@
-{ lib, ... }:
+{ inputs, lib, ... }:
 let
   # nixpkgs' fetchgit (nix-prefetch-git) assigns GIT_SSL_CAINFO without
   # `export`, so the builder's git never sees it and falls back to nixpkgs'
@@ -53,6 +53,20 @@ in
           gitConfigFile = fetchgitGitConfig final;
         };
       };
+    })
+    (final: prev: {
+      # Pin opencode to 1.18.25 (last working build): 1.18.30/1.18.31 crash on
+      # every prompt (anomalyco/opencode#49158). See the nixpkgs-opencode input
+      # in flake.nix. Revert once nixpkgs ships a fixed opencode.
+      opencode = inputs.nixpkgs-opencode.legacyPackages.${final.system}.opencode;
+    })
+    (final: prev: {
+      # nixos-unstable's devenv 2.3.1 links an ABI-incompatible libghostty-vt
+      # (0.1.0-unstable-2026-07-20), so `devenv shell` dies with "terminal
+      # error: invalid value" (cachix/devenv#3183). Take the prebuilt devenv
+      # from the nixpkgs rev carrying the fix (NixOS/nixpkgs#563205) until
+      # nixos-unstable catches up. See the nixpkgs-devenv input in flake.nix.
+      devenv = inputs.nixpkgs-devenv.legacyPackages.${final.system}.devenv;
     })
   ];
 

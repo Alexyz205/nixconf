@@ -309,6 +309,22 @@
         "type": "github"
       }
     },
+    "nixpkgs-devenv": {
+      "locked": {
+        "lastModified": 1789441812,
+        "narHash": "sha256-w1s2imvhU89UcGWWYtrG5eq6xafePQrU+QJWqA4BpuI=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "53ac6b7b63ad326e1e84105c306d5c9072f9d304",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "53ac6b7b63ad326e1e84105c306d5c9072f9d304",
+        "type": "github"
+      }
+    },
     "nixpkgs-lib": {
       "locked": {
         "lastModified": 1788057806,
@@ -321,6 +337,22 @@
       "original": {
         "owner": "nix-community",
         "repo": "nixpkgs.lib",
+        "type": "github"
+      }
+    },
+    "nixpkgs-opencode": {
+      "locked": {
+        "lastModified": 1788039129,
+        "narHash": "sha256-pa4Q0qErvCvzCaaUph7Sm37RhR4xvPrYI8Lgz6k85+A=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "d2f67949798825fe853f7c5d0492b8bf016d3f88",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "d2f67949798825fe853f7c5d0492b8bf016d3f88",
         "type": "github"
       }
     },
@@ -375,6 +407,8 @@
         "lazyvim": "lazyvim",
         "nix-darwin": "nix-darwin",
         "nixpkgs": "nixpkgs",
+        "nixpkgs-devenv": "nixpkgs-devenv",
+        "nixpkgs-opencode": "nixpkgs-opencode",
         "sops-nix": "sops-nix",
         "stylix": "stylix",
         "wrapper-modules": "wrapper-modules"
