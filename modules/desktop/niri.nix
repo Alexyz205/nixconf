@@ -40,6 +40,11 @@
         settings = {
           prefer-no-csd = _: { };
           debug.honor-xdg-activation-with-invalid-serial = _: { };
+          # NVIDIA: force a full modeset on resume. Without this, waking from
+          # suspend leaves niri's DRM output corrupted (the page-flip commit
+          # fails) and the screen freezes/greys on the first redraw after
+          # unlock. See niri wiki "Configuration: Debug Options".
+          debug.force-disable-connectors-on-resume = _: { };
 
           input = {
             focus-follows-mouse = _: { };
@@ -237,6 +242,9 @@
             "Mod+Shift+E" = hotkey "Exit niri" { quit = _: { }; };
             "Mod+Shift+Q" = _: { content.quit = _: { }; };
             "Mod+Shift+P" = hotkey "Power off monitors" { power-off-monitors = _: { }; };
+            "Mod+X" = hotkey "Lock screen" {
+              spawn-sh = "${lib.getExe pkgs.hyprlock} --no-fade-in --immediate-render";
+            };
 
             # Volume.
             "XF86AudioRaiseVolume" = _: {

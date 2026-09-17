@@ -79,7 +79,7 @@
           animationSpeed = 1;
           showScreenCorners = false;
           showSessionButtonsOnLockScreen = true;
-          lockOnSuspend = true;
+          lockOnSuspend = false;
           dimmerOpacity = 0.15;
         };
 

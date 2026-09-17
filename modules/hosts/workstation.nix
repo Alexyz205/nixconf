@@ -98,6 +98,9 @@ let
               autoEnable = true;
               base16Scheme = "${pkgs.base16-schemes}/share/themes/catppuccin-mocha.yaml";
               polarity = "dark";
+              # Same catppuccin-mocha wallpaper niri shows; used by wallpaper-aware
+              # stylix targets (e.g. hyprlock's lock-screen background).
+              image = "${pkgs.nixos-artwork.wallpapers.catppuccin-mocha}/share/backgrounds/nixos/nixos-wallpaper-catppuccin-mocha.png";
               # Disabled to avoid pulling inkscape as a build dependency (stylix uses it for icon recoloring)
               overlays.enable = false;
               icons.enable = false;
@@ -180,6 +183,7 @@ let
               devenv.enable = true;
               niri.enable = true;
               noctalia.enable = true;
+              lock.enable = true;
               hiddenApps.enable = true;
               brave.enable = true;
               claude.enable = true;
@@ -232,6 +236,10 @@ let
               nvidia = {
                 modesetting.enable = true;
                 open = true;
+                # Reinitialise the GPU on resume; without this the driver never
+                # recovers from suspend and the screen freezes on the first
+                # redraw after unlocking (grey screen on the next wake).
+                powerManagement.enable = true;
               };
             };
             security.rtkit.enable = true;

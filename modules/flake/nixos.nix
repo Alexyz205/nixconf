@@ -94,6 +94,7 @@ in
           niri
           noctalia
           hiddenApps
+          lock
           brave
           claude
           discord
