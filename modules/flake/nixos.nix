@@ -101,6 +101,7 @@ in
           steam
           thunderbird
           youtubeMusic
+          cap
         ]);
     };
     inherit mkHostCommon;

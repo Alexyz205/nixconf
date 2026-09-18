@@ -228,11 +228,6 @@
             "Print".screenshot = _: { };
             "Ctrl+Print".screenshot-screen = _: { };
             "Alt+Print".screenshot-window = _: { };
-            "Mod+Ctrl+S" = hotkey "Screenshot to clipboard" {
-              # Explicit image/png type: wl-copy's auto-detection (via xdg-mime)
-              # can fail and fall back to text/plain, pasting empty text instead.
-              spawn-sh = "${lib.getExe pkgs.grim} -l 0 - | ${pkgs.wl-clipboard}/bin/wl-copy --type image/png";
-            };
 
             # System.
             "Mod+Escape" = _: {

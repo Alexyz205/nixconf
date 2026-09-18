@@ -31,15 +31,20 @@
               ExecStart = pkgs.writeShellScript "lock-after-resume" ''
                 export XDG_RUNTIME_DIR="/run/user/$(id -u ${userName})"
                 export WAYLAND_DISPLAY="wayland-1"
+                # swayidle keeps its pre-suspend idle state across sleep, so after
+                # resume its 30-min suspend timeout re-fires immediately and the
+                # machine suspends again right after the user unlocks. Restarting
+                # it makes the idle timer start counting from scratch.
+                systemctl --user restart swayidle.service
                 # niri may not have re-acquired the display when the service fires;
                 # retry until hyprlock can actually connect and render.
                 for i in $(seq 1 15); do
-                  if ${pkgs.hyprlock}/bin/hyprlock --no-fade-in --immediate-render; then
-                    exit 0
-                  fi
-                  sleep 1
-                done
-                exit 1
+                    if ${pkgs.hyprlock}/bin/hyprlock --no-fade-in --immediate-render; then
+                      exit 0
+                    fi
+                    sleep 1
+                  done
+                  exit 1
               '';
             };
           };

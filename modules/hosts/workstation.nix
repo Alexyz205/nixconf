@@ -66,11 +66,56 @@ let
               speechd.enable = false;
               greetd = {
                 enable = true;
+                # Auto-login at boot; after a logout (niri exits) greetd falls
+                # back to the login screen wired below (default_session set by
+                # the displayManager.noctalia-greeter module).
+                settings.initial_session = {
+                  command = "niri-session";
+                  user = config.modules.users.userName;
+                };
+              };
+              # Login/logout screen: shown whenever the niri session ends. The
+              # module points greetd's default_session at the greeter, which
+              # picks up the "Niri" wayland session from sessionPackages.
+              displayManager.noctalia-greeter = {
+                enable = true;
                 settings = {
-                  default_session = {
-                    command = "niri-session";
-                    user = config.modules.users.userName;
+                  session.default = "Niri";
+                  user.default = config.modules.users.userName;
+                  keyboard.layout = "us";
+                  cursor.size = 24;
+                  appearance = {
+                    scheme = "Synced";
+                    theme_mode = "dark";
+                    # Same wallpaper as the desktop (niri/swaybg) and lock
+                    # screen (stylix -> hyprlock), so login matches both.
+                    wallpaper = {
+                      path = config.stylix.image;
+                      fill_mode = "crop";
+                    };
+                    palette = {
+                      primary = "#cba6f7";
+                      on_primary = "#1e1e2e";
+                      secondary = "#a6adc8";
+                      on_secondary = "#1e1e2e";
+                      tertiary = "#b4befe";
+                      on_tertiary = "#1e1e2e";
+                      error = "#f38ba8";
+                      on_error = "#1e1e2e";
+                      surface = "#1e1e2e";
+                      on_surface = "#cdd6f4";
+                      surface_variant = "#313244";
+                      on_surface_variant = "#a6adc8";
+                      outline = "#7f849c";
+                      shadow = "#000000";
+                      hover = "#cba6f7";
+                      on_hover = "#1e1e2e";
+                    };
                   };
+                };
+                cursorTheme = {
+                  package = pkgs.catppuccin-cursors.mochaMauve;
+                  name = "catppuccin-mocha-mauve-cursors";
                 };
               };
               upower.enable = true;
@@ -83,15 +128,6 @@ let
             # Only the declared JetBrains Mono + emoji fonts are used, so skip
             # the default CJK/unifont package set (~170MB).
             fonts.enableDefaultPackages = false;
-            systemd.services.greetd.serviceConfig = {
-              Type = "idle";
-              StandardInput = "tty";
-              StandardOutput = "tty";
-              StandardError = "journal";
-              TTYReset = true;
-              TTYVHangup = true;
-              TTYVTDisallocate = true;
-            };
 
             stylix = {
               enable = true;
@@ -195,6 +231,7 @@ let
                 realName = "Alexis Pigeon";
               };
               youtubeMusic.enable = true;
+              cap.enable = true;
             };
 
             home-manager.users.${config.modules.users.userName} = {

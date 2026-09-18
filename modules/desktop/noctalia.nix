@@ -102,6 +102,46 @@
           position = "center";
           countdownDuration = 10000;
           enableCountdown = true;
+          # Hibernate disabled: this host has no resume config and its swap is
+          # smaller than RAM, so `systemctl hibernate` always fails. Keep the
+          # button out of the menu instead of showing a dead action.
+          powerOptions = [
+            {
+              action = "lock";
+              enabled = true;
+              keybind = "1";
+            }
+            {
+              action = "suspend";
+              enabled = true;
+              keybind = "2";
+            }
+            {
+              action = "hibernate";
+              enabled = false;
+              keybind = "3";
+            }
+            {
+              action = "reboot";
+              enabled = true;
+              keybind = "4";
+            }
+            {
+              action = "logout";
+              enabled = true;
+              keybind = "5";
+            }
+            {
+              action = "shutdown";
+              enabled = true;
+              keybind = "6";
+            }
+            {
+              action = "rebootToUefi";
+              enabled = true;
+              keybind = "7";
+            }
+          ];
         };
 
         wallpaper = {
