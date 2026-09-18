@@ -24,6 +24,9 @@ let
           tectonic
           mermaid-cli
         ];
+        treesitterParsers = with pkgs; [
+          vimPlugins.nvim-treesitter-parsers.hyprlang
+        ];
         extras = {
           coding.mini-surround.enable = true;
           util.dot.enable = true;
