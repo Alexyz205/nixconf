@@ -237,8 +237,10 @@
             "Mod+Shift+E" = hotkey "Exit niri" { quit = _: { }; };
             "Mod+Shift+Q" = _: { content.quit = _: { }; };
             "Mod+Shift+P" = hotkey "Power off monitors" { power-off-monitors = _: { }; };
+            # Lock via logind: `systemctl lock` fires swayidle's `lock` event
+            # (modules/desktop/lock.nix), the same code path as the idle lock.
             "Mod+X" = hotkey "Lock screen" {
-              spawn-sh = "${lib.getExe pkgs.hyprlock} --no-fade-in --immediate-render";
+              spawn-sh = "${lib.getExe' pkgs.systemd "systemctl"} lock";
             };
 
             # Volume.
