@@ -26,6 +26,7 @@ let
     devenv
     tv
     nextcloudRclone
+    btop
   ];
 in
 {
@@ -101,6 +102,7 @@ in
               modules = {
                 packages = {
                   basic = true;
+                  security = true;
                   devTools = true;
                 };
                 sops.enable = true;
@@ -110,6 +112,23 @@ in
                 };
                 nextcloudRclone.enable = true;
                 tv.enable = true;
+                nix.enable = true;
+                shell.enable = true;
+                git.enable = true;
+                ssh.enable = true;
+                bat.enable = true;
+                eza.enable = true;
+                zoxide.enable = true;
+                starship.enable = true;
+                tmux.enable = true;
+                yazi.enable = true;
+                lazygit.enable = true;
+                ghostty.enable = true;
+                lazyvim.enable = true;
+                yubikey.enable = true;
+                opencode.enable = true;
+                devenv.enable = true;
+                btop.enable = true;
               };
             };
           };
