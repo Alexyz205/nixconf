@@ -232,6 +232,8 @@ let
               };
               youtubeMusic.enable = true;
               cap.enable = true;
+              swayimg.enable = true;
+              gimp.enable = true;
             };
 
             home-manager.users.${config.modules.users.userName} = {

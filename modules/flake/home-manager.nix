@@ -59,6 +59,14 @@ let
       nextcloudRclone
       { modules.nextcloudRclone.enable = true; }
     ];
+    swayimg = [
+      swayimg
+      { modules.swayimg.enable = true; }
+    ];
+    gimp = [
+      gimp
+      { modules.gimp.enable = true; }
+    ];
   };
   # Extras for interactive desktop hosts (macos, linux, RNSL).
   desktopExtras = extras.sops ++ extras.yubikey ++ extras.ghostty ++ extras.containers;
@@ -165,7 +173,7 @@ in
       system = "x86_64-linux";
       username = "alexis";
       homeDirectory = "/home/alexis";
-      extra = desktopExtras ++ extras.nextcloud;
+      extra = desktopExtras ++ extras.nextcloud ++ extras.swayimg ++ extras.gimp;
     };
     "alexis.pigeon@RNSL-APIGEON5" = mkHome {
       system = "x86_64-linux";

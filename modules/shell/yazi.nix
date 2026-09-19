@@ -398,6 +398,10 @@ let
     extraPackages = [
       pkgs.bat
     ]
+    # swayimg: the image/* opener (swayimg is Wayland-only, hence Linux-gated).
+    ++ lib.optionals pkgs.stdenv.hostPlatform.isLinux [
+      pkgs.swayimg
+    ]
     # mount.yazi needs udisksctl/lsblk/eject (Linux) to mount disks.
     ++ lib.optionals pkgs.stdenv.hostPlatform.isLinux [
       pkgs.udisks2
@@ -421,7 +425,8 @@ let
       mgr.linemode = "size";
 
       # Openers backed by the user's own tooling: edit with nvim (LazyVim),
-      # view text with bat. `open`/`reveal` fall back to the defaults (xdg-open).
+      # view text with bat, open images with swayimg. `open`/`reveal` fall back
+      # to the defaults (xdg-open) for everything else.
       opener = {
         edit = [
           {
@@ -439,6 +444,14 @@ let
             block = true;
           }
         ];
+        swayimg = lib.optionals pkgs.stdenv.hostPlatform.isLinux [
+          {
+            run = "swayimg %s";
+            desc = "Open with swayimg";
+            for = "unix";
+            block = true;
+          }
+        ];
       };
 
       # Prepend (not replace) so default open rules still apply for other types.
@@ -449,6 +462,12 @@ let
             "edit"
             "view"
           ];
+        }
+      ]
+      ++ lib.optionals pkgs.stdenv.hostPlatform.isLinux [
+        {
+          mime = "image/*";
+          use = [ "swayimg" ];
         }
       ];
 

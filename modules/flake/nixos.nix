@@ -102,6 +102,8 @@ in
           thunderbird
           youtubeMusic
           cap
+          swayimg
+          gimp
         ]);
     };
     inherit mkHostCommon;
