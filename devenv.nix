@@ -27,6 +27,9 @@
     # nix: formatter nixfmt (LSP nil + linter statix via languages.nix)
     nixfmt
 
+    # yaml: LSP yaml-language-server (secrets, devenv.yaml, .sops.yaml, theme.yml)
+    yaml-language-server
+
     # lua: formatter stylua, linter luacheck (LSP lua-language-server via languages.lua)
     stylua
     luaPackages.luacheck
