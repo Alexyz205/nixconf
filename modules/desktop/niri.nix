@@ -47,7 +47,6 @@
           debug.force-disable-connectors-on-resume = _: { };
 
           input = {
-            focus-follows-mouse = _: { };
             keyboard = {
               xkb.layout = "us";
               xkb.options = "caps:escape";
@@ -173,9 +172,9 @@
             "Mod+Shift+V".switch-focus-between-floating-and-tiling = _: { };
             "Mod+W".toggle-column-tabbed-display = _: { };
 
-            # Workspaces (digit binds, named so Mod+1 is always "main").
-            "Mod+1" = ws "main";
-            "Mod+2" = ws "browser";
+            # Workspaces (digit binds, named so Mod+1 is always "dev").
+            "Mod+1" = ws "dev";
+            "Mod+2" = ws "main";
             "Mod+3" = ws "game";
             "Mod+4" = ws "4";
             "Mod+5" = ws "5";
@@ -185,8 +184,8 @@
             "Mod+9" = ws "9";
             "Mod+0" = ws "10";
 
-            "Mod+Shift+1".move-column-to-workspace = "main";
-            "Mod+Shift+2".move-column-to-workspace = "browser";
+            "Mod+Shift+1".move-column-to-workspace = "dev";
+            "Mod+Shift+2".move-column-to-workspace = "main";
             "Mod+Shift+3".move-column-to-workspace = "game";
             "Mod+Shift+4".move-column-to-workspace = "4";
             "Mod+Shift+5".move-column-to-workspace = "5";
@@ -282,7 +281,11 @@
           window-rules = [
             {
               matches = [ { app-id = "^(brave|brave-browser|Brave-browser)$"; } ];
-              open-on-workspace = "browser";
+              open-on-workspace = "main";
+            }
+            {
+              matches = [ { app-id = "^com\\.mitchellh\\.ghostty$"; } ];
+              open-on-workspace = "dev";
             }
             {
               # Steam client + games (native and Proton windows report as steam_app_<id>).
@@ -314,8 +317,8 @@
         };
 
         extraSettings = [
+          { workspace = namedWorkspace "dev"; }
           { workspace = namedWorkspace "main"; }
-          { workspace = namedWorkspace "browser"; }
           { workspace = namedWorkspace "game"; }
         ];
       };

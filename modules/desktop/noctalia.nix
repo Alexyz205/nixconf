@@ -31,11 +31,15 @@
                 id = "MediaMini";
                 hideMode = "hidden";
               }
+              {
+                id = "Tray";
+                drawerEnabled = true;
+              }
+              { id = "NotificationHistory"; }
               { id = "Volume"; }
               { id = "Network"; }
               { id = "Battery"; }
               { id = "Clock"; }
-              { id = "NotificationHistory"; }
               { id = "ControlCenter"; }
             ];
           };
