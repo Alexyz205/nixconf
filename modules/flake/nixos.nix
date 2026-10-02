@@ -29,6 +29,8 @@ let
       system.stateVersion = stateVersion;
       networking.hostName = hostName;
       nixpkgs.overlays = flakeOverlays;
+      # Latest stable Nix for the daemon + CLI on every host.
+      nix.package = pkgs.nixVersions.latest;
       time.timeZone = "Europe/Paris";
       i18n.defaultLocale = "en_US.UTF-8";
       hardware.enableRedistributableFirmware = true;
@@ -41,7 +43,7 @@ let
         sharedModules = [ sshClient ];
         users.${config.modules.users.userName} = {
           home.stateVersion = stateVersion;
-          nix.package = lib.mkForce pkgs.nix;
+          nix.package = lib.mkForce pkgs.nixVersions.latest;
           modules.ssh.enable = true;
         };
       };

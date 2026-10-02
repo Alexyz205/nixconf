@@ -41,6 +41,8 @@ in
           system.stateVersion = 7;
           system.primaryUser = "alexis";
           networking.hostName = "macbook";
+          # Latest stable Nix for nix-darwin.
+          nix.package = lib.mkForce pkgs.nixVersions.latest;
           networking.knownNetworkServices = [
             "Wi-Fi"
             "Ethernet"
@@ -98,7 +100,7 @@ in
                 homeDirectory = lib.mkForce "/Users/alexis";
                 stateVersion = "26.05";
               };
-              nix.package = lib.mkForce pkgs.nix;
+              nix.package = lib.mkForce pkgs.nixVersions.latest;
               modules = {
                 packages = {
                   basic = true;
