@@ -3,6 +3,22 @@
   ...
 }:
 let
+  # Force the desktop app to render through XWayland instead of native Wayland:
+  # on NVIDIA Wayland the Electron renderer enters a continuous-repaint loop
+  # (keeps receiving frame callbacks) and burns a full core while idle.
+  # See bitwarden/clients#17996 (Wayland + NVIDIA GPU/dmabuf issues); Bitwarden's
+  # own release notes recommend switching the desktop app to X11 on Linux.
+  mkBitwardenDesktop =
+    pkgs:
+    pkgs.symlinkJoin {
+      name = "bitwarden-desktop-x11";
+      paths = [ pkgs.bitwarden-desktop ];
+      nativeBuildInputs = [ pkgs.makeWrapper ];
+      postBuild = ''
+        wrapProgram $out/bin/bitwarden --add-flags "--ozone-platform=x11"
+      '';
+    };
+
   # Options shared by the NixOS and home-manager sides.
   bitwardenOptions = {
     enable = lib.mkEnableOption "Bitwarden CLI + desktop client (self-hosted Vaultwarden)";
@@ -28,7 +44,7 @@ let
       desktop,
     }:
     {
-      home.packages = [ pkgs.bitwarden-cli ] ++ lib.optionals desktop [ pkgs.bitwarden-desktop ];
+      home.packages = [ pkgs.bitwarden-cli ] ++ lib.optionals desktop [ (mkBitwardenDesktop pkgs) ];
       home.sessionVariables = {
         BW_SERVER = serverUrl;
       };
@@ -64,7 +80,7 @@ in
         environment.systemPackages = [
           pkgs.bitwarden-cli
         ]
-        ++ lib.optionals config.modules.bitwarden.desktop [ pkgs.bitwarden-desktop ];
+        ++ lib.optionals config.modules.bitwarden.desktop [ (mkBitwardenDesktop pkgs) ];
         home-manager.users.${config.modules.users.userName} = mkCfg {
           inherit config pkgs;
         };
