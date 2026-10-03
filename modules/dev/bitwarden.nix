@@ -48,6 +48,22 @@ let
       home.sessionVariables = {
         BW_SERVER = serverUrl;
       };
+      # The desktop app auto-creates ~/.config/autostart/bitwarden.desktop on
+      # first run pointing at the RAW bitwarden-desktop store path, so login
+      # starts a Wayland instance and the NVIDIA repaint loop burns a full core
+      # (the --ozone-platform=x11 wrapper is never used). Ship our own autostart
+      # entry that targets the wrapped binary instead.
+      xdg.configFile."autostart/bitwarden.desktop" = lib.mkIf desktop {
+        text = ''
+          [Desktop Entry]
+          Type=Application
+          Name=Bitwarden
+          Comment=Bitwarden startup script
+          Exec=${mkBitwardenDesktop pkgs}/bin/bitwarden --autostart
+          StartupNotify=false
+          Terminal=false
+        '';
+      };
       programs.zsh.initContent = lib.mkOrder 950 ''
         # Bitwarden CLI helpers (self-hosted Vaultwarden: $BW_SERVER)
         bwu() { export BW_SESSION="$(bw unlock --raw)" }
