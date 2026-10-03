@@ -98,7 +98,7 @@ let
             date_modified = dateAdded;
             type = "folder";
           };
-      next = kids.next;
+      inherit (kids) next;
     };
 
   numberList =
@@ -117,7 +117,7 @@ let
       in
       {
         nodes = [ first.node ] ++ rest.nodes;
-        next = rest.next;
+        inherit (rest) next;
       };
 
   mkBar = {

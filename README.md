@@ -137,6 +137,26 @@ full per-module alias list is defined in each module under `modules/`.
 If `disko` or `shellcheck` aren't on `$PATH`, the script re-enters itself via
 `devenv shell` so the tools are always available.
 
+### Git hooks
+
+Git hooks are owned and auto-installed by devenv (via its `git-hooks` module,
+`prek` shims installed into `.git/hooks/` on shell entry). Two layers gate the
+expensive work:
+
+1. **`pre-commit`** — fast per-file staged linting (shellcheck on `.sh`/`.bash`,
+   shfmt matching treefmt's `-i 2 -s`, nixfmt, statix, deadnix, luacheck,
+   stylua) **plus** the fast full suite (`flake`, `eval`, `shellcheck`).
+2. **`pre-push`** — the slow image builds (`disko`, `iso`, `vm`).
+
+Linting config lives in `devenv.nix` (`git-hooks.hooks`); `statix.toml` at the
+repo root disables the `repeated_keys` lint, which fires on the intentional
+`flake.modules.*` split used across feature modules.
+
+Both suite hooks run `scripts/test-all.sh` and re-enter via `devenv shell` when
+tools are missing. No setup needed — entering the dev shell installs them.
+
+Bypass on a one-off push with `SKIP_NIXCONF_TESTS=1 git push ...`.
+
 ## Dev environment (devenv)
 
 Devenv provides the shell the test suite needs and is the template for any new

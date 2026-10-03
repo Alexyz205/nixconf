@@ -51,12 +51,16 @@ function M:peek(job)
 	end
 end
 
-function M:seek(job) require("code"):seek(job) end
+function M:seek(job)
+	require("code"):seek(job)
+end
 
 function M.normalize_bg(line)
 	local bg = th.app.overall:bg()
 	if bg then
-		return line:map(function(span) return span:bg(bg) end)
+		return line:map(function(span)
+			return span:bg(bg)
+		end)
 	else
 		return line
 	end

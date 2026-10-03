@@ -1,5 +1,4 @@
-{ ... }:
-{
+_: {
   flake.modules.nixos.lock =
     {
       config,
@@ -20,7 +19,6 @@
             hyprlock = "${lib.getExe pkgs.hyprlock} --no-fade-in --immediate-render";
             niri = lib.getExe pkgs.niri;
             systemctl = lib.getExe' pkgs.systemd "systemctl";
-            loginctl = lib.getExe' pkgs.systemd "loginctl";
 
             # The scripts run from swayidle's systemd user service, whose PATH
             # home-manager overrides to bash only, so every bare command used

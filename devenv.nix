@@ -86,6 +86,60 @@
     };
   };
 
+  # Git hooks managed by devenv (prek shims auto-installed into .git/hooks/ on
+  # `devenv shell` entry). Three layers:
+  #   1. fast per-file staged linting on commit (shellcheck, nixfmt, ...)
+  #   2. the fast full-suite gate on commit (flake, eval, shellcheck)
+  #   3. the slow image-build gate on push (disko, iso, vm)
+  # Layers 2-3 are custom `always_run` hooks that mirror scripts/test-all.sh;
+  # they re-enter via `devenv shell` when tools are missing.
+  git-hooks = {
+    enable = true;
+    hooks = {
+      shellcheck = {
+        enable = true;
+        # shellcheck can't parse zsh; only lint real sh/bash scripts.
+        files = "\\.(sh|bash)$";
+      };
+      shfmt = {
+        enable = true;
+        # Match the repo's treefmt shfmt settings (-i 2 -s), and skip zsh.
+        files = "\\.(sh|bash)$";
+        settings.indent = 2;
+        settings.simplify = true;
+      };
+      nixfmt.enable = true;
+      statix = {
+        enable = true;
+        # See statix.toml: repeated_keys is disabled (import-tree design).
+        settings.config = "statix.toml";
+      };
+      deadnix.enable = true;
+      luacheck.enable = true;
+      stylua.enable = true;
+
+      nixconf-fast = {
+        enable = true;
+        name = "nixconf fast suite (flake, eval, shellcheck)";
+        entry = "${pkgs.bash}/bin/bash ./scripts/test-all.sh flake eval shellcheck";
+        language = "system";
+        pass_filenames = false;
+        always_run = true;
+        stages = [ "pre-commit" ];
+      };
+
+      nixconf-slow = {
+        enable = true;
+        name = "nixconf slow suite (disko, iso, vm)";
+        entry = "${pkgs.bash}/bin/bash ./scripts/test-all.sh disko iso vm";
+        language = "system";
+        pass_filenames = false;
+        always_run = true;
+        stages = [ "pre-push" ];
+      };
+    };
+  };
+
   # Project commands: `devenv tasks run <name>` (also reachable through the tv
   # `devenv-tasks` channel). Mirrors scripts/test-all.sh plus common workflows.
   tasks = {

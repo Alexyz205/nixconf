@@ -1,0 +1,7 @@
+# statix configuration for nixconf.
+#
+# `repeated_keys` (W20) is intentionally disabled: this repo's import-tree
+# architecture deliberately splits `flake.modules.*` / `modules.*` assignments
+# across per-feature blocks, so merging them would fight the design.
+disabled = ["repeated_keys"]
+ignore = [".devenv", "result"]

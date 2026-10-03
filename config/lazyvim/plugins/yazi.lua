@@ -24,38 +24,38 @@
 -- ============================================================================
 
 return {
-  "mikavilpas/yazi.nvim",
-  event = "VeryLazy",
-  dependencies = {
-    "folke/snacks.nvim",
-  },
-  keys = {
-    {
-      "<leader>e",
-      mode = { "n", "v" },
-      "<cmd>Yazi<cr>",
-      desc = "Open yazi at current file",
-    },
-    {
-      "<leader>E",
-      "<cmd>Yazi cwd<cr>",
-      desc = "Open yazi in working directory",
-    },
-    {
-      "<c-up>",
-      "<cmd>Yazi toggle<cr>",
-      desc = "Resume last yazi session",
-    },
-  },
-  opts = {
-    -- Don't hijack netrw for directory opening
-    open_for_directories = false,
-    keymaps = {
-      show_help = "<f1>",
-    },
-  },
-  init = function()
-    -- Disable netrw plugin to avoid conflicts
-    vim.g.loaded_netrwPlugin = 1
-  end,
+	"mikavilpas/yazi.nvim",
+	event = "VeryLazy",
+	dependencies = {
+		"folke/snacks.nvim",
+	},
+	keys = {
+		{
+			"<leader>e",
+			mode = { "n", "v" },
+			"<cmd>Yazi<cr>",
+			desc = "Open yazi at current file",
+		},
+		{
+			"<leader>E",
+			"<cmd>Yazi cwd<cr>",
+			desc = "Open yazi in working directory",
+		},
+		{
+			"<c-up>",
+			"<cmd>Yazi toggle<cr>",
+			desc = "Resume last yazi session",
+		},
+	},
+	opts = {
+		-- Don't hijack netrw for directory opening
+		open_for_directories = false,
+		keymaps = {
+			show_help = "<f1>",
+		},
+	},
+	init = function()
+		-- Disable netrw plugin to avoid conflicts
+		vim.g.loaded_netrwPlugin = 1
+	end,
 }
