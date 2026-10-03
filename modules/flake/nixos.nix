@@ -101,6 +101,8 @@ in
           claude
           discord
           steam
+          heroic
+          controller
           thunderbird
           youtubeMusic
           cap

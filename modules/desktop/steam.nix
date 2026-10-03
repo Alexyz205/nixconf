@@ -50,6 +50,9 @@ in
       options.modules.steam.enable = lib.mkEnableOption "Steam";
       config = lib.mkIf config.modules.steam.enable {
         programs.steam.enable = true;
+        # System-wide gaming daemons so launch wrappers work in Steam AND Heroic.
+        programs.gamemode.enable = true;
+        programs.gamescope.enable = true;
         # Steam's CEF (web view) renders black / no window under niri's XWayland
         # when GPU-accelerated. -system-composer (niri-recommended) renders the UI
         # via the compositor instead. See niri "Application-Specific Issues: Steam".
@@ -61,8 +64,30 @@ in
         # games never load Steam's libaudio.so, so they get a clean environment
         # and real PulseAudio (the old PULSE_SERVER=/nonexistent workaround was
         # inherited by spawned games and broke their audio).
+        #
+        # extraPkgs: put gamemode/gamescope/mangohud inside the FHS container so
+        # per-game launch options like `gamemoderun %command%`, `gamescope %command%`
+        # and `mangohud %command%` resolve (Steam games run inside the bwrap env).
+        # heroic: Heroic's "Add to Steam" shortcuts exec /usr/bin/heroic (nixpkgs
+        # fix-non-steam-shortcuts.patch); without heroic here that exec fails
+        # inside Steam's container. Same override as the heroic module so the
+        # launcher keeps its gamescope/gamemode/mangohud tools when spawned from Steam.
         programs.steam.package = pkgs.steam.override {
           extraArgs = "-system-composer";
+          extraPkgs =
+            pkgs': with pkgs'; [
+              gamescope
+              gamemode
+              mangohud
+              (heroic.override {
+                extraPkgs =
+                  p: with p; [
+                    gamescope
+                    gamemode
+                    mangohud
+                  ];
+              })
+            ];
           extraEnv = {
             # 32-bit client only: the 64-bit webhelper ignores the mismatched arch.
             # /nix is bind-mounted into the FHS container, so the store path resolves.

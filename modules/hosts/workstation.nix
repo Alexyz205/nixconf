@@ -225,6 +225,8 @@ let
               claude.enable = true;
               discord.enable = true;
               steam.enable = true;
+              heroic.enable = true;
+              controller.enable = true;
               thunderbird = {
                 enable = true;
                 email = "alexis@alexyz.org";
