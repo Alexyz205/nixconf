@@ -190,6 +190,7 @@ let
               bitwarden = {
                 enable = true;
                 desktop = true;
+                autostart = false;
               };
               yubikey = {
                 enable = true;

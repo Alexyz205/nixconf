@@ -32,6 +32,11 @@ let
       default = false;
       description = "Also install the Bitwarden desktop app (GUI).";
     };
+    autostart = lib.mkOption {
+      type = lib.types.bool;
+      default = true;
+      description = "Launch the Bitwarden desktop app automatically at login (desktop only).";
+    };
   };
 
   # Shared home-manager config: the CLI (+ optional desktop app), the
@@ -42,17 +47,19 @@ let
       pkgs,
       serverUrl,
       desktop,
+      autostart,
     }:
     {
       home.packages = [ pkgs.bitwarden-cli ] ++ lib.optionals desktop [ (mkBitwardenDesktop pkgs) ];
       home.sessionVariables = {
         BW_SERVER = serverUrl;
       };
-      # The desktop app auto-creates ~/.config/autostart/bitwarden.desktop on
-      # first run pointing at the RAW bitwarden-desktop store path, so login
-      # starts a Wayland instance and the NVIDIA repaint loop burns a full core
-      # (the --ozone-platform=x11 wrapper is never used). Ship our own autostart
-      # entry that targets the wrapped binary instead.
+      # The desktop app manages ~/.config/autostart/bitwarden.desktop on every
+      # start: it rewrites the file (pointing at the RAW, unwrapped store path) if
+      # its "Open at login" setting is on, and deletes it when off. Ship our own
+      # entry so login always uses the X11 wrapper binary. When autostart is
+      # disabled, mark it Hidden=true so systemd's xdg-autostart-generator skips
+      # it (the symlink is read-only, so the app's in-place write fails).
       xdg.configFile."autostart/bitwarden.desktop" = lib.mkIf desktop {
         text = ''
           [Desktop Entry]
@@ -62,6 +69,7 @@ let
           Exec=${mkBitwardenDesktop pkgs}/bin/bitwarden --autostart
           StartupNotify=false
           Terminal=false
+          ${lib.optionalString (!autostart) "Hidden=true"}
         '';
       };
       programs.zsh.initContent = lib.mkOrder 950 ''
@@ -81,6 +89,7 @@ let
       inherit pkgs;
       serverUrl = config.modules.bitwarden.serverUrl;
       desktop = config.modules.bitwarden.desktop;
+      autostart = config.modules.bitwarden.autostart;
     };
 in
 {
