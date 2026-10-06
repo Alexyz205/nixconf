@@ -47,7 +47,6 @@ in
             "Wi-Fi"
             "Ethernet"
           ];
-          networking.dns = [ "192.168.1.253" ];
 
           environment.systemPath = lib.mkBefore [
             "/opt/homebrew/bin"
