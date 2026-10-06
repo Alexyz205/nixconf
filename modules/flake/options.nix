@@ -31,5 +31,9 @@
       type = inputs.nixpkgs.lib.types.lazyAttrsOf inputs.nixpkgs.lib.types.raw;
       default = { };
     };
+    darwin = inputs.nixpkgs.lib.mkOption {
+      type = inputs.nixpkgs.lib.types.lazyAttrsOf inputs.nixpkgs.lib.types.raw;
+      default = { };
+    };
   };
 }
