@@ -27,6 +27,7 @@ let
       ]
       ++ features
       ++ [
+        config.flake.modules.nixos.networkTuning
         (
           {
             config,
@@ -165,6 +166,12 @@ let
               sops.enable = true;
               podman.enable = true;
               network.enable = true;
+              # BBR + fq + larger buffers, and disable EEE on the Intel I226-V
+              # (igc) NIC, which otherwise flaps the 2.5GbE link.
+              networkTuning = {
+                enable = true;
+                interface = "enp4s0";
+              };
               users.extraGroups = [
                 "wheel"
                 "networkmanager"
