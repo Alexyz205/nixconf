@@ -293,6 +293,14 @@
               open-on-workspace = "game";
             }
             {
+              # Games launched through gamescope present as a single native
+              # Wayland window (app-id "gamescope"). Go fullscreen so the
+              # cursor is confined and the 16:9 letterbox fills the ultrawide.
+              matches = [ { app-id = "^gamescope$"; } ];
+              open-on-workspace = "game";
+              open-fullscreen = true;
+            }
+            {
               matches = [ { app-id = "^vesktop$"; } ];
               open-on-workspace = "game";
             }
