@@ -3,6 +3,13 @@ let
   tmuxAliases = {
     t = "tmux new-session -A -s dev";
   };
+  # Plugin dependencies that must be on $PATH inside tmux: tmux-fzf needs
+  # fzf, tmux-yank needs a system-clipboard tool on Linux (macOS ships
+  # pbcopy).
+  tmuxDeps =
+    { lib, pkgs }:
+    with pkgs;
+    [ fzf ] ++ lib.optionals pkgs.stdenv.hostPlatform.isLinux [ wl-clipboard ];
   tmuxCfg = { pkgs }: {
     enable = true;
     # home-manager writes this in the base config (before any plugin
@@ -41,6 +48,9 @@ let
           set -g @catppuccin_status_connect_separator "no"
         '';
       }
+      { plugin = tmux-fzf; }
+      { plugin = yank; }
+      { plugin = open; }
     ];
     extraConfig = ''
       set -g default-terminal "tmux-256color"
@@ -72,6 +82,17 @@ let
       bind-key -T copy-mode-vi y send-keys -X copy-selection-and-cancel
       bind-key -T copy-mode-vi Enter send-keys -X copy-selection-and-cancel
       bind-key -T copy-mode-vi MouseDragEnd1Pane send-keys -X copy-selection-and-cancel
+      # --- Prompt navigation (OSC 133 semantic markers) ---
+      # Jump between shell prompts in scrollback instead of scrolling; the
+      # markers are emitted by the shell (config/shell/zsh-extra.zsh).
+      bind-key -T copy-mode-vi '[' send-keys -X previous-prompt
+      bind-key -T copy-mode-vi ']' send-keys -X next-prompt
+      # Jump straight to the start of the most recent command from the shell.
+      bind P copy-mode \; send-keys -X previous-prompt
+      # Copy the previous command's output to the system clipboard: the -o
+      # flag moves to the command output's START mark, so the selection spans
+      # exactly the output lines between that mark and the current prompt.
+      bind-key -T copy-mode-vi 'Y' send-keys -X previous-prompt -o \; send-keys -X begin-selection \; send-keys -X history-bottom \; send-keys -X cursor-up \; send-keys -X copy-selection-and-cancel
       bind f resize-pane -Z
       bind q detach-client
       bind e choose-window -Z
@@ -117,6 +138,7 @@ in
         home-manager.users.${config.modules.users.userName} = {
           programs.tmux = tmuxCfg { inherit pkgs; };
           programs.zsh.shellAliases = tmuxAliases;
+          home.packages = tmuxDeps { inherit lib pkgs; };
         };
       };
     };
@@ -133,6 +155,7 @@ in
       config = lib.mkIf config.modules.tmux.enable {
         programs.tmux = tmuxCfg { inherit pkgs; };
         programs.zsh.shellAliases = tmuxAliases;
+        home.packages = tmuxDeps { inherit lib pkgs; };
       };
     };
 }

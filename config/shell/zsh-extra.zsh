@@ -80,6 +80,40 @@ bindkey '^T' _tv_smart_autocomplete
 bindkey '^R' _tv_shell_history
 
 # ===============================================
+# OSC 133 semantic prompt markers (tmux prompt jump)
+# ===============================================
+# tmux (>= 3.4) can jump between shell prompts in scrollback and locate
+# command output boundaries (previous-prompt / next-prompt, and the -o
+# flag) only when the shell emits OSC 133 markers. Starship does not emit
+# them yet, so emit A (prompt start) / C (command output start) / D (exit
+# status) from zsh hooks. Gated on $TMUX: outside tmux the outer
+# terminal's own shell integration owns the markers.
+if [[ -n $TMUX ]]; then
+	typeset -g _osc133_executing=''
+
+	_osc133_precmd() {
+		local ret=$?
+		if [[ -n $_osc133_executing ]]; then
+			printf '\e]133;D;%s\a' "$ret"
+		fi
+		printf '\e]133;A\a'
+		_osc133_executing=1
+	}
+
+	_osc133_preexec() {
+		printf '\e]133;C\a'
+	}
+
+	autoload -Uz add-zsh-hook
+	add-zsh-hook precmd _osc133_precmd
+	add-zsh-hook preexec _osc133_preexec
+
+	# printf from precmd counts as output to zsh's PROMPT_SP tracker and
+	# would otherwise paint a stray replaced-% above every prompt.
+	typeset -g PROMPT_EOL_MARK=''
+fi
+
+# ===============================================
 # Tmux Auto-Start
 # ===============================================
 tmux_auto_start
