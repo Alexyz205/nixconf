@@ -3,13 +3,13 @@ let
   tmuxAliases = {
     t = "tmux new-session -A -s dev";
   };
-  # Plugin dependencies that must be on $PATH inside tmux: tmux-fzf needs
-  # fzf, tmux-yank needs a system-clipboard tool on Linux (macOS ships
-  # pbcopy).
+  # Plugin dependencies that must be on $PATH inside tmux: tmux-yank needs a
+  # system-clipboard tool on Linux (macOS ships pbcopy). The session switcher
+  # uses tv (television), which is its own feature module.
   tmuxDeps =
     { lib, pkgs }:
     with pkgs;
-    [ fzf ] ++ lib.optionals pkgs.stdenv.hostPlatform.isLinux [ wl-clipboard ];
+    lib.optionals pkgs.stdenv.hostPlatform.isLinux [ wl-clipboard ];
   tmuxCfg = { pkgs }: {
     enable = true;
     # home-manager writes this in the base config (before any plugin
@@ -48,7 +48,6 @@ let
           set -g @catppuccin_status_connect_separator "no"
         '';
       }
-      { plugin = tmux-fzf; }
       { plugin = yank; }
       { plugin = open; }
     ];
@@ -87,8 +86,9 @@ let
       # markers are emitted by the shell (config/shell/zsh-extra.zsh).
       bind-key -T copy-mode-vi '[' send-keys -X previous-prompt
       bind-key -T copy-mode-vi ']' send-keys -X next-prompt
-      # Jump straight to the start of the most recent command from the shell.
-      bind P copy-mode \; send-keys -X previous-prompt
+      # Jump straight to the start of the most recent command from the shell
+      # without touching copy-mode first (single keypress; q exits).
+      bind P copy-mode \; send-keys -X previous-prompt \; send-keys -X clear-selection
       # Copy the previous command's output to the system clipboard: the -o
       # flag moves to the command output's START mark, so the selection spans
       # exactly the output lines between that mark and the current prompt.
@@ -108,6 +108,10 @@ let
       bind R display-popup -w 70% -h 60% -E "${pkgs.writeShellScript "repo-switcher" ''
         exec ${../../config/tmux/repo-switcher.sh}
       ''}"
+      # Session/window switcher on tv (television), same pattern as R. The
+      # script content is inlined via readFile so the store wrapper is
+      # executable regardless of the git mode of the source file.
+      bind F display-popup -w 70% -h 60% -E "${pkgs.writeShellScript "session-switcher" (builtins.readFile ../../config/tmux/session-switcher.sh)}"
       bind d display-menu -T "#[align=centre]Nixconf" -x C -y C \
         "New session" n "display-popup -d '#{pane_current_path}' -E 'exec bash ${../../config/tmux/nixconf-menu.sh} new-session'" \
         "Switch repo"  r "display-popup -w 70% -h 60% -E 'exec bash ${../../config/tmux/nixconf-menu.sh} repo-switch'" \

@@ -9,6 +9,7 @@ log "== invoke args='${1:-}' cwd='$(pwd)' =="
 
 NIXCONF="${NIXCONF:-$HOME/repos/personal/nixconf}"
 REPO_SWITCHER="$NIXCONF/config/tmux/repo-switcher.sh"
+SESSION_SWITCHER="$NIXCONF/config/tmux/session-switcher.sh"
 
 [ -d "$NIXCONF/config" ] || {
   log "NIXCONF missing: $NIXCONF"
@@ -19,7 +20,7 @@ REPO_SWITCHER="$NIXCONF/config/tmux/repo-switcher.sh"
 case "${1:-}" in
 sessions)
   log "sessions"
-  exec tmux choose-session
+  exec bash "$SESSION_SWITCHER"
   ;;
 new-session)
   log "new-session"
