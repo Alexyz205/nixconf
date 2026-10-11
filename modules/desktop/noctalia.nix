@@ -4,175 +4,180 @@
   ...
 }:
 {
-  perSystem = { pkgs, ... }: {
-    packages.noctalia-shell = inputs.wrapper-modules.wrappers.noctalia-shell.wrap {
-      inherit pkgs;
+  perSystem =
+    { pkgs, system, ... }:
+    if system == "x86_64-linux" then
+      {
+        packages.noctalia-shell = inputs.wrapper-modules.wrappers.noctalia-shell.wrap {
+          inherit pkgs;
 
-      settings = {
-        bar = {
-          barType = "simple";
-          position = "top";
-          enableExclusionZoneInset = true;
-          outerCorners = false;
-          marginHorizontal = 0;
-          marginVertical = 0;
-          widgets = {
-            left = [
-              {
-                id = "Workspace";
-                labelMode = "name";
-                characterCount = 7;
-              }
-              { id = "SystemMonitor"; }
-            ];
-            center = [ ];
-            right = [
-              {
-                id = "MediaMini";
-                hideMode = "hidden";
-              }
-              {
-                id = "Tray";
-                drawerEnabled = true;
-              }
-              { id = "NotificationHistory"; }
-              { id = "Volume"; }
-              { id = "Network"; }
-              { id = "Battery"; }
-              { id = "Clock"; }
-              { id = "ControlCenter"; }
-            ];
+          settings = {
+            bar = {
+              barType = "simple";
+              position = "top";
+              enableExclusionZoneInset = true;
+              outerCorners = false;
+              marginHorizontal = 0;
+              marginVertical = 0;
+              widgets = {
+                left = [
+                  {
+                    id = "Workspace";
+                    labelMode = "name";
+                    characterCount = 7;
+                  }
+                  { id = "SystemMonitor"; }
+                ];
+                center = [ ];
+                right = [
+                  {
+                    id = "MediaMini";
+                    hideMode = "hidden";
+                  }
+                  {
+                    id = "Tray";
+                    drawerEnabled = true;
+                  }
+                  { id = "NotificationHistory"; }
+                  { id = "Volume"; }
+                  { id = "Network"; }
+                  { id = "Battery"; }
+                  { id = "Clock"; }
+                  { id = "ControlCenter"; }
+                ];
+              };
+            };
+
+            appLauncher = {
+              position = "center";
+              viewMode = "list";
+              showCategories = true;
+              overviewLayer = true;
+              enableClipboardHistory = true;
+            };
+
+            controlCenter = {
+              position = "close_to_bar_button";
+              cards = [
+                {
+                  id = "profile-card";
+                  enabled = true;
+                }
+                {
+                  id = "shortcuts-card";
+                  enabled = true;
+                }
+                {
+                  id = "audio-card";
+                  enabled = true;
+                }
+                {
+                  id = "brightness-card";
+                  enabled = true;
+                }
+                {
+                  id = "weather-card";
+                  enabled = true;
+                }
+              ];
+            };
+
+            general = {
+              animationSpeed = 1;
+              showScreenCorners = false;
+              showSessionButtonsOnLockScreen = true;
+              lockOnSuspend = false;
+              dimmerOpacity = 0.15;
+            };
+
+            dock = {
+              enabled = false;
+            };
+
+            notifications = {
+              enabled = true;
+              location = "top_right";
+            };
+
+            osd = {
+              enabled = true;
+              location = "bottom";
+              autoHideMs = 3000;
+            };
+
+            sessionMenu = {
+              position = "center";
+              countdownDuration = 10000;
+              enableCountdown = true;
+              # Hibernate disabled: this host has no resume config and its swap is
+              # smaller than RAM, so `systemctl hibernate` always fails. Keep the
+              # button out of the menu instead of showing a dead action.
+              powerOptions = [
+                {
+                  action = "lock";
+                  enabled = true;
+                  keybind = "1";
+                }
+                {
+                  action = "suspend";
+                  enabled = true;
+                  keybind = "2";
+                }
+                {
+                  action = "hibernate";
+                  enabled = false;
+                  keybind = "3";
+                }
+                {
+                  action = "reboot";
+                  enabled = true;
+                  keybind = "4";
+                }
+                {
+                  action = "logout";
+                  enabled = true;
+                  keybind = "5";
+                }
+                {
+                  action = "shutdown";
+                  enabled = true;
+                  keybind = "6";
+                }
+                {
+                  action = "rebootToUefi";
+                  enabled = true;
+                  keybind = "7";
+                }
+              ];
+            };
+
+            wallpaper = {
+              enabled = false;
+            };
+
+            settingsVersion = 32;
+          };
+
+          colors = {
+            mError = "#f38ba8";
+            mOnError = "#1e1e2e";
+            mOnPrimary = "#1e1e2e";
+            mOnSecondary = "#1e1e2e";
+            mOnSurface = "#cdd6f4";
+            mOnSurfaceVariant = "#a6adc8";
+            mOnTertiary = "#1e1e2e";
+            mOutline = "#7f849c";
+            mPrimary = "#cba6f7";
+            mSecondary = "#a6adc8";
+            mShadow = "#000000";
+            mSurface = "#1e1e2e";
+            mSurfaceVariant = "#313244";
+            mTertiary = "#b4befe";
           };
         };
-
-        appLauncher = {
-          position = "center";
-          viewMode = "list";
-          showCategories = true;
-          overviewLayer = true;
-          enableClipboardHistory = true;
-        };
-
-        controlCenter = {
-          position = "close_to_bar_button";
-          cards = [
-            {
-              id = "profile-card";
-              enabled = true;
-            }
-            {
-              id = "shortcuts-card";
-              enabled = true;
-            }
-            {
-              id = "audio-card";
-              enabled = true;
-            }
-            {
-              id = "brightness-card";
-              enabled = true;
-            }
-            {
-              id = "weather-card";
-              enabled = true;
-            }
-          ];
-        };
-
-        general = {
-          animationSpeed = 1;
-          showScreenCorners = false;
-          showSessionButtonsOnLockScreen = true;
-          lockOnSuspend = false;
-          dimmerOpacity = 0.15;
-        };
-
-        dock = {
-          enabled = false;
-        };
-
-        notifications = {
-          enabled = true;
-          location = "top_right";
-        };
-
-        osd = {
-          enabled = true;
-          location = "bottom";
-          autoHideMs = 3000;
-        };
-
-        sessionMenu = {
-          position = "center";
-          countdownDuration = 10000;
-          enableCountdown = true;
-          # Hibernate disabled: this host has no resume config and its swap is
-          # smaller than RAM, so `systemctl hibernate` always fails. Keep the
-          # button out of the menu instead of showing a dead action.
-          powerOptions = [
-            {
-              action = "lock";
-              enabled = true;
-              keybind = "1";
-            }
-            {
-              action = "suspend";
-              enabled = true;
-              keybind = "2";
-            }
-            {
-              action = "hibernate";
-              enabled = false;
-              keybind = "3";
-            }
-            {
-              action = "reboot";
-              enabled = true;
-              keybind = "4";
-            }
-            {
-              action = "logout";
-              enabled = true;
-              keybind = "5";
-            }
-            {
-              action = "shutdown";
-              enabled = true;
-              keybind = "6";
-            }
-            {
-              action = "rebootToUefi";
-              enabled = true;
-              keybind = "7";
-            }
-          ];
-        };
-
-        wallpaper = {
-          enabled = false;
-        };
-
-        settingsVersion = 32;
-      };
-
-      colors = {
-        mError = "#f38ba8";
-        mOnError = "#1e1e2e";
-        mOnPrimary = "#1e1e2e";
-        mOnSecondary = "#1e1e2e";
-        mOnSurface = "#cdd6f4";
-        mOnSurfaceVariant = "#a6adc8";
-        mOnTertiary = "#1e1e2e";
-        mOutline = "#7f849c";
-        mPrimary = "#cba6f7";
-        mSecondary = "#a6adc8";
-        mShadow = "#000000";
-        mSurface = "#1e1e2e";
-        mSurfaceVariant = "#313244";
-        mTertiary = "#b4befe";
-      };
-    };
-  };
+      }
+    else
+      { };
 
   flake.modules.nixos.noctalia =
     {

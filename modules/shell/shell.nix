@@ -31,9 +31,9 @@ let
     drc = "sudo darwin-rebuild check --flake $NIXCONF";
   };
   hmAliases = {
-    hm = "home-manager switch --flake $NIXCONF";
-    hmb = "home-manager build --flake $NIXCONF";
-    hmc = "home-manager build --flake $NIXCONF --check";
+    hm = "home-manager switch --flake $NIXCONF#alexis@macos";
+    hmb = "home-manager build --flake $NIXCONF#alexis@macos";
+    hmc = "home-manager build --flake $NIXCONF#alexis@macos --check";
   };
   sharedFunctions = builtins.readFile ../../config/shell/functions.sh;
   zshExtra = builtins.readFile ../../config/shell/zsh-extra.zsh;

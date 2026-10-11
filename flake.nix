@@ -44,5 +44,15 @@
     };
   };
 
-  outputs = inputs: inputs.flake-parts.lib.mkFlake { inherit inputs; } (inputs.import-tree ./modules);
+  outputs =
+    inputs:
+    inputs.flake-parts.lib.mkFlake { inherit inputs; } {
+      imports = [
+        inputs.flake-parts.flakeModules.touchup
+        {
+          touchup.attr.formatter.enable = false;
+        }
+      ]
+      ++ (inputs.import-tree ./modules { }).imports;
+    };
 }
