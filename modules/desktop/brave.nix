@@ -43,6 +43,10 @@ let
         name = "Dev Dashy";
         url = "https://dev-dashy.alexyz.org";
       }
+      {
+        name = "Proxmox";
+        url = "https://192.168.1.110:8006";
+      }
     ];
   };
 

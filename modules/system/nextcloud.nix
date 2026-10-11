@@ -1,10 +1,9 @@
 {
-  config,
   lib,
   ...
 }:
 let
-  url = "https://dev-nextcloud.alexyz.org/remote.php/dav/files/alexyz";
+  url = "https://nextcloud.alexyz.org/remote.php/dav/files/alexyz";
   username = "alexyz";
   secretName = "NEXTCLOUD_PASSWORD";
   secretFile = ../../secrets/secrets.yaml;
