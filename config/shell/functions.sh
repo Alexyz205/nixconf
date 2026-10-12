@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 # ===============================================
 # Shared Shell Functions
 # ===============================================
@@ -38,6 +39,27 @@ function tmux_auto_start() {
   # Attach to existing session or create new one (atomic)
   echo "Starting tmux..."
   tmux new-session -A -s dev
+}
+
+# Attach to (or create) the persistent remote tmux session on a host, from any
+# SSH-capable machine. `tmux new -A` reuses the session, so after you detach the
+# remote tmux server keeps it alive and a fresh SSH from anywhere reattaches.
+# This is the portable one-liner behind the tmux ssh-switcher's persistent mode.
+function sshh() {
+  if [ "$#" -eq 0 ]; then
+    echo "usage: sshh <host> [remote-tmux-session]" >&2
+    return 1
+  fi
+  local host="$1"
+  local session="${TMUX_SSH_SESSION:-main}"
+  if [ "$#" -ge 2 ]; then
+    session="$2"
+  fi
+  if ! [[ $session =~ ^[A-Za-z0-9_-]+$ ]]; then
+    echo "invalid tmux session name: $session" >&2
+    return 1
+  fi
+  ssh -tt "$host" "tmux new -A -s $session"
 }
 
 # ===============================================

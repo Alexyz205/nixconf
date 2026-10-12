@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 
 # List all git repos under ~/repos/{personal,work} and open the selected one
-# in a new tmux session: nvim (left, 60%) + shell (right).
+# in a new tmux session: window 1 = nvim (left) + lazygit (right), window 2 =
+# opencode (left) + shell (right). Windows are explicitly named and protected
+# from auto-renaming.
 #
 # Uses `tv` (television) as the picker via --source-command so selection is
 # captured with --source-output "{}". Falls back to plain select if absent.
@@ -86,12 +88,30 @@ fi
 
 log "creating session=$session"
 
-tmux new-session -d -s "$session" -c "$repo" "${EDITOR:-nvim}" 2>>"$DEBUG_LOG"
+# Window 1: editor + lazygit side by side.
+tmux new-session -d -s "$session" -n nvim -c "$repo" "${EDITOR:-nvim}" 2>>"$DEBUG_LOG"
 log "new-session rc=$?"
-tmux split-window -h -p 40 -c "$repo" 2>>"$DEBUG_LOG"
-log "split rc=$?"
-tmux select-pane -L 2>>"$DEBUG_LOG"
-log "select-pane rc=$?"
+{
+  tmux set-window-option -t "$session:nvim" automatic-rename off
+  tmux set-window-option -t "$session:nvim" allow-rename off
+} 2>>"$DEBUG_LOG"
+tmux split-window -h -p 40 -t "$session:nvim" -c "$repo" lazygit 2>>"$DEBUG_LOG"
+log "split lazygit rc=$?"
+tmux select-pane -t "$session:nvim.1" 2>>"$DEBUG_LOG"
+log "select editor pane rc=$?"
+
+# Window 2: opencode agent + shell side by side.
+tmux new-window -t "$session" -n opencode -c "$repo" opencode 2>>"$DEBUG_LOG"
+log "new-window opencode rc=$?"
+{
+  tmux set-window-option -t "$session:opencode" automatic-rename off
+  tmux set-window-option -t "$session:opencode" allow-rename off
+} 2>>"$DEBUG_LOG"
+tmux split-window -h -p 40 -t "$session:opencode" -c "$repo" 2>>"$DEBUG_LOG"
+log "split shell rc=$?"
+
+tmux select-window -t "$session:nvim" 2>>"$DEBUG_LOG"
+log "select window rc=$?"
 tmux switch-client -t "$session" 2>>"$DEBUG_LOG"
 log "switch rc=$?"
 log "== done =="

@@ -10,6 +10,7 @@ log "== invoke args='${1:-}' cwd='$(pwd)' =="
 NIXCONF="${NIXCONF:-$HOME/repos/personal/nixconf}"
 REPO_SWITCHER="$NIXCONF/config/tmux/repo-switcher.sh"
 SESSION_SWITCHER="$NIXCONF/config/tmux/session-switcher.sh"
+SSH_SWITCHER="$NIXCONF/config/tmux/ssh-switcher.sh"
 
 [ -d "$NIXCONF/config" ] || {
   log "NIXCONF missing: $NIXCONF"
@@ -31,6 +32,10 @@ new-session)
 repo-switch)
   log "repo-switch"
   exec "$REPO_SWITCHER"
+  ;;
+ssh)
+  log "ssh"
+  exec bash "$SSH_SWITCHER"
   ;;
 lazygit)
   log "lazygit"
