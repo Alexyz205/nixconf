@@ -63,9 +63,21 @@ let
       swayimg
       { modules.swayimg.enable = true; }
     ];
-    gimp = [
-      gimp
-      { modules.gimp.enable = true; }
+    photocraft = [
+      photocraft
+      { modules.photocraft.enable = true; }
+    ];
+    lightcraft = [
+      lightcraft
+      { modules.lightcraft.enable = true; }
+    ];
+    pdfcraft = [
+      pdfcraft
+      { modules.pdfcraft.enable = true; }
+    ];
+    filmcraft = [
+      filmcraft
+      { modules.filmcraft.enable = true; }
     ];
   };
   # Extras for interactive desktop hosts (macos, linux, RNSL).
@@ -162,33 +174,37 @@ let
   }) containerUsers;
 in
 {
-  flake.homeConfigurations = {
-    "alexis@macos" = mkHome {
-      system = "aarch64-darwin";
-      username = "alexis";
-      homeDirectory = "/Users/alexis";
-      extra = desktopExtras ++ extras.nextcloudMacos;
-    };
-    "alexis@linux" = mkHome {
-      system = "x86_64-linux";
-      username = "alexis";
-      homeDirectory = "/home/alexis";
-      extra = desktopExtras ++ extras.nextcloud ++ extras.swayimg ++ extras.gimp;
-    };
-    "alexis.pigeon@RNSL-APIGEON5" = mkHome {
-      system = "x86_64-linux";
-      username = "alexis.pigeon";
-      homeDirectory = "/home/alexis.pigeon";
-      extra = desktopExtras ++ extras.gitlab;
-    };
-    # Headless Ubuntu server: terminal-only, no GUI extras. sops + nextcloud
-    # for the WebDAV mount credentials.
-    "alexis@server" = mkHome {
-      system = "x86_64-linux";
-      username = "alexis";
-      homeDirectory = "/home/alexis";
-      extra = extras.sops ++ extras.nextcloud;
-    };
-  }
-  // containerConfigs;
+  flake.homeConfigurations =
+    let
+      artcraft = extras.photocraft ++ extras.lightcraft ++ extras.pdfcraft ++ extras.filmcraft;
+    in
+    {
+      "alexis@macos" = mkHome {
+        system = "aarch64-darwin";
+        username = "alexis";
+        homeDirectory = "/Users/alexis";
+        extra = desktopExtras ++ extras.nextcloudMacos;
+      };
+      "alexis@linux" = mkHome {
+        system = "x86_64-linux";
+        username = "alexis";
+        homeDirectory = "/home/alexis";
+        extra = desktopExtras ++ extras.nextcloud ++ extras.swayimg ++ artcraft;
+      };
+      "alexis.pigeon@RNSL-APIGEON5" = mkHome {
+        system = "x86_64-linux";
+        username = "alexis.pigeon";
+        homeDirectory = "/home/alexis.pigeon";
+        extra = desktopExtras ++ extras.gitlab ++ artcraft;
+      };
+      # Headless Ubuntu server: terminal-only, no GUI extras. sops + nextcloud
+      # for the WebDAV mount credentials.
+      "alexis@server" = mkHome {
+        system = "x86_64-linux";
+        username = "alexis";
+        homeDirectory = "/home/alexis";
+        extra = extras.sops ++ extras.nextcloud;
+      };
+    }
+    // containerConfigs;
 }

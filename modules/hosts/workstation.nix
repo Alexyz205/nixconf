@@ -237,7 +237,10 @@ let
               youtubeMusic.enable = true;
               cap.enable = true;
               swayimg.enable = true;
-              gimp.enable = true;
+              photocraft.enable = true;
+              lightcraft.enable = true;
+              pdfcraft.enable = true;
+              filmcraft.enable = true;
             };
 
             home-manager.users.${config.modules.users.userName} = {

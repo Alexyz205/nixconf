@@ -107,7 +107,10 @@ in
           youtubeMusic
           cap
           swayimg
-          gimp
+          photocraft
+          lightcraft
+          pdfcraft
+          filmcraft
         ]);
     };
     inherit mkHostCommon;
