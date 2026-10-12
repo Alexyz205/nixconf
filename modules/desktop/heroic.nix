@@ -24,6 +24,9 @@
               ];
           })
         ];
+        # nixpkgs' steam module mkDefault's these to false; a plain assignment
+        # here overrides that. Heroic and steam both set them to true (equal
+        # values merge cleanly), so either launcher gets the daemons.
         programs.gamescope.enable = true;
         programs.gamemode.enable = true;
       };

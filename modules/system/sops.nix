@@ -1,7 +1,6 @@
 {
   inputs,
   config,
-  lib,
   ...
 }:
 let
@@ -88,6 +87,15 @@ in
     {
       options.modules.sops = {
         enable = lib.mkEnableOption "Sops secrets (env.yaml, GITHUB_TOKEN, sec/sece aliases)";
+        useYubikey = lib.mkOption {
+          type = lib.types.bool;
+          default = true;
+          description = ''
+            Whether the age identity lives on a YubiKey. When false, the
+            age-plugin-yubikey package is not installed (hosts that decrypt with
+            a software age key, e.g. the workstation).
+          '';
+        };
         ageKeyFile = lib.mkOption {
           type = lib.types.str;
           default = "${config.home.homeDirectory}/repos/personal/nixconf/config/sops/yubi-age-identity";
@@ -105,7 +113,7 @@ in
         sops = {
           age = {
             keyFile = config.modules.sops.ageKeyFile;
-            plugins = [ pkgs.age-plugin-yubikey ];
+            plugins = lib.optional config.modules.sops.useYubikey pkgs.age-plugin-yubikey;
           };
           defaultSopsFile = envFile;
           secrets.GITHUB_TOKEN = { };

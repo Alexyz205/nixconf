@@ -6,8 +6,8 @@ _: {
       ...
     }:
     {
-      options.modules.homebrew.enable = lib.mkEnableOption "Homebrew";
-      config = lib.mkIf config.modules.homebrew.enable {
+      options.modules.darwin.homebrew.enable = lib.mkEnableOption "Homebrew";
+      config = lib.mkIf config.modules.darwin.homebrew.enable {
         homebrew = {
           enable = true;
           onActivation = {

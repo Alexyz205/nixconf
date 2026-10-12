@@ -7,8 +7,8 @@ _: {
       ...
     }:
     {
-      options.modules.fonts.enable = lib.mkEnableOption "macOS fonts";
-      config = lib.mkIf config.modules.fonts.enable {
+      options.modules.darwin.fonts.enable = lib.mkEnableOption "macOS fonts";
+      config = lib.mkIf config.modules.darwin.fonts.enable {
         fonts.packages = with pkgs; [
           nerd-fonts.jetbrains-mono
           nerd-fonts.symbols-only

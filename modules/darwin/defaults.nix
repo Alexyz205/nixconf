@@ -6,8 +6,8 @@ _: {
       ...
     }:
     {
-      options.modules.defaults.enable = lib.mkEnableOption "macOS system defaults";
-      config = lib.mkIf config.modules.defaults.enable {
+      options.modules.darwin.defaults.enable = lib.mkEnableOption "macOS system defaults";
+      config = lib.mkIf config.modules.darwin.defaults.enable {
         system.defaults = {
           NSGlobalDomain = {
             AppleInterfaceStyle = "Dark";

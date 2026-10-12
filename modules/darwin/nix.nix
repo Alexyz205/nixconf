@@ -7,8 +7,8 @@ _: {
       ...
     }:
     {
-      options.modules.nix.enable = lib.mkEnableOption "Nix daemon settings on macOS";
-      config = lib.mkIf config.modules.nix.enable {
+      options.modules.darwin.nix.enable = lib.mkEnableOption "Nix daemon settings on macOS";
+      config = lib.mkIf config.modules.darwin.nix.enable {
         # Latest stable Nix for the daemon + CLI.
         nix.package = lib.mkForce pkgs.nixVersions.latest;
         nix.settings = {

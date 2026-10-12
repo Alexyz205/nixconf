@@ -108,7 +108,9 @@ let
     {
       options.modules.${name}.enable = lib.mkEnableOption apps.${name}.label;
       config = lib.mkIf config.modules.${name}.enable (
-        lib.setAttrByPath (lib.splitString "." target) [ self.packages.${pkgs.system}.${name} ]
+        lib.setAttrByPath (lib.splitString "." target) [
+          self.packages.${pkgs.stdenv.hostPlatform.system}.${name}
+        ]
       );
     };
 in

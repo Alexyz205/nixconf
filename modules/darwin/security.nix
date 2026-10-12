@@ -6,8 +6,8 @@ _: {
       ...
     }:
     {
-      options.modules.security.enable = lib.mkEnableOption "macOS security settings";
-      config = lib.mkIf config.modules.security.enable {
+      options.modules.darwin.security.enable = lib.mkEnableOption "macOS security settings";
+      config = lib.mkIf config.modules.darwin.security.enable {
         # Use Touch ID for sudo authentication.
         security.pam.services.sudo_local.touchIdAuth = true;
         networking.applicationFirewall = {

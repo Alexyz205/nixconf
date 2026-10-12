@@ -7,8 +7,8 @@ _: {
       ...
     }:
     {
-      options.modules.system.enable = lib.mkEnableOption "macOS base system settings";
-      config = lib.mkIf config.modules.system.enable {
+      options.modules.darwin.system.enable = lib.mkEnableOption "macOS base system settings";
+      config = lib.mkIf config.modules.darwin.system.enable {
         # Create /etc/zshrc that loads the nix-darwin environment.
         programs.zsh.enable = true;
         environment.shells = [ pkgs.zsh ];

@@ -43,7 +43,6 @@ let
         ];
         desktop = [
           vlc
-          libreoffice
         ];
       };
       enabled = n: config.modules.packages.${n};
@@ -57,6 +56,11 @@ let
     in
     {
       options.modules.packages = {
+        enable = lib.mkOption {
+          type = lib.types.bool;
+          default = true;
+          description = "Master switch for the base package groups (each group is toggled individually below).";
+        };
         basic = lib.mkOption {
           type = lib.types.bool;
           default = true;
@@ -83,8 +87,10 @@ let
           description = "Desktop applications.";
         };
       };
-      # Non-empty when any group is enabled (all groups are non-empty).
-      packageList = lib.concatLists (map (n: lib.optionals (enabled n) groups.${n}) order);
+      # Non-empty when the bundle is on and any group is enabled.
+      packageList = lib.optionals config.modules.packages.enable (
+        lib.concatLists (map (n: lib.optionals (enabled n) groups.${n}) order)
+      );
     };
 in
 {

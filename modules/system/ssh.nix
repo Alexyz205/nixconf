@@ -1,4 +1,4 @@
-{ lib, ... }:
+_:
 let
   # Shared SSH client config. The default identity is the plain `id_ed25519`
   # key; feature modules append their own keys (e.g. the resident YubiKey) via

@@ -51,6 +51,8 @@ in
       config = lib.mkIf config.modules.steam.enable {
         programs.steam.enable = true;
         # System-wide gaming daemons so launch wrappers work in Steam AND Heroic.
+        # Plain assignment (overrides nixpkgs' steam-module mkDefault false);
+        # heroic sets the same values, which merge cleanly.
         programs.gamemode.enable = true;
         programs.gamescope.enable = true;
         # Steam's CEF (web view) renders black / no window under niri's XWayland

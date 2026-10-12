@@ -25,7 +25,6 @@ let
     opencode
     devenv
     tv
-    nextcloudRclone
     btop
   ];
 in
@@ -53,7 +52,6 @@ in
               enable = true;
               desktop = true;
             };
-            nextcloudRclone.enable = true;
             tv.enable = true;
             nix.enable = true;
             shell.enable = true;
@@ -72,6 +70,7 @@ in
             opencode.enable = true;
             devenv.enable = true;
             btop.enable = true;
+            shell.hmProfile = "alexis@macos";
           };
         };
       })
@@ -80,12 +79,12 @@ in
     ++ [
       {
         modules = {
-          system.enable = true;
-          nix.enable = true;
-          defaults.enable = true;
-          security.enable = true;
-          homebrew.enable = true;
-          fonts.enable = true;
+          darwin.system.enable = true;
+          darwin.nix.enable = true;
+          darwin.defaults.enable = true;
+          darwin.security.enable = true;
+          darwin.homebrew.enable = true;
+          darwin.fonts.enable = true;
         };
       }
     ];

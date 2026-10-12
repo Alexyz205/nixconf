@@ -15,7 +15,7 @@ let
   homeConfig =
     { pkgs }:
     {
-      home.packages = [ inputs.claude-desktop.packages.${pkgs.system}.default ];
+      home.packages = [ inputs.claude-desktop.packages.${pkgs.stdenv.hostPlatform.system}.default ];
       home.file.".config/Claude/claude_desktop_config.json" = claudeConfigFile;
     };
 in
@@ -30,7 +30,9 @@ in
     {
       options.modules.claude.enable = lib.mkEnableOption "Claude desktop app";
       config = lib.mkIf config.modules.claude.enable {
-        environment.systemPackages = [ inputs.claude-desktop.packages.${pkgs.system}.default ];
+        environment.systemPackages = [
+          inputs.claude-desktop.packages.${pkgs.stdenv.hostPlatform.system}.default
+        ];
         home-manager.users.${config.modules.users.userName} = homeConfig { inherit pkgs; };
       };
     };
@@ -44,13 +46,8 @@ in
     }:
     {
       options.modules.claude.enable = lib.mkEnableOption "Claude desktop app";
-      config = lib.mkIf config.modules.claude.enable (
-        homeConfig {
-          inherit pkgs;
-        }
-        // {
-          nixpkgs.config.allowUnfreePredicate = pkg: lib.getName pkg == "claude-desktop";
-        }
-      );
+      config = lib.mkIf config.modules.claude.enable (homeConfig {
+        inherit pkgs;
+      });
     };
 }

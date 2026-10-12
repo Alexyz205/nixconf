@@ -30,10 +30,14 @@ let
     drb = "sudo darwin-rebuild build --flake $NIXCONF";
     drc = "sudo darwin-rebuild check --flake $NIXCONF";
   };
-  hmAliases = {
-    hm = "home-manager switch --flake $NIXCONF#alexis@macos";
-    hmb = "home-manager build --flake $NIXCONF#alexis@macos";
-    hmc = "home-manager build --flake $NIXCONF#alexis@macos --check";
+  # The hm aliases must target the profile the shell actually runs in. Each
+  # standalone profile sets modules.shell.hmProfile to its own flake key
+  # (username@profile); only then are the aliases defined (a null hmProfile, as
+  # on nix-darwin, means no hm alias).
+  hmAliases = profile: {
+    hm = "home-manager switch --flake $NIXCONF#${profile}";
+    hmb = "home-manager build --flake $NIXCONF#${profile}";
+    hmc = "home-manager build --flake $NIXCONF#${profile} --check";
   };
   sharedFunctions = builtins.readFile ../../config/shell/functions.sh;
   zshExtra = builtins.readFile ../../config/shell/zsh-extra.zsh;
@@ -157,13 +161,22 @@ in
       ...
     }:
     {
-      options.modules.shell.enable = lib.mkEnableOption "Shell (Zsh + env)";
+      options.modules.shell = {
+        enable = lib.mkEnableOption "Shell (Zsh + env)";
+        hmProfile = lib.mkOption {
+          type = lib.types.nullOr lib.types.str;
+          default = null;
+          description = "Standalone home-manager profile key (username@profile) that the hm/hmb/hmc aliases switch/build against.";
+        };
+      };
       config = lib.mkIf config.modules.shell.enable (
         let
           aliases =
             baseAliases
             // nixAliases
-            // hmAliases
+            // lib.optionalAttrs (config.modules.shell.hmProfile != null) (
+              hmAliases config.modules.shell.hmProfile
+            )
             // lib.optionalAttrs pkgs.stdenv.hostPlatform.isDarwin darwinAliases;
         in
         lib.mkMerge [

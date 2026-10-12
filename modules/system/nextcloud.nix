@@ -200,7 +200,4 @@ in
     };
 
   flake.modules.homeManager.nextcloud = mkHomeModule "nextcloud" "davfs";
-
-  # macOS: davfs2 is Linux-only (FUSE), so mount via rclone + macFUSE instead.
-  flake.modules.homeManager.nextcloudRclone = mkHomeModule "nextcloudRclone" "rclone";
 }

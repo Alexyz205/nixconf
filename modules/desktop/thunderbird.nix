@@ -39,7 +39,7 @@ let
         }" "$out/share/mozilla/extensions/{ec8030f7-c20a-464f-9b0e-13a3a9e97384}/${themeId}.xpi"
       '';
       infomaniak = lib.optionalAttrs (email != null) {
-        accounts.email.accounts.infomaniak = {
+        infomaniak = {
           primary = true;
           address = email;
           userName = email;
@@ -62,27 +62,33 @@ let
       };
     in
     {
-      programs.thunderbird = {
-        enable = true;
-        profiles.main = {
-          isDefault = true;
-          extensions = [ theme ];
-          settings = {
-            "datareporting.healthreport.uploadEnabled" = false;
-            "datareporting.policy.dataSubmissionEnabled" = false;
-            # Install the Catppuccin theme without it being auto-disabled, and
-            # make it the active theme (installing a static theme XPI does not
-            # select it on its own).
-            "extensions.autoDisableScopes" = 0;
-            "extensions.activeThemeID" = themeId;
+      programs = {
+        thunderbird = {
+          enable = true;
+          profiles.main = {
+            isDefault = true;
+            extensions = [ theme ];
+            settings = {
+              "datareporting.healthreport.uploadEnabled" = false;
+              "datareporting.policy.dataSubmissionEnabled" = false;
+              # Install the Catppuccin theme without it being auto-disabled, and
+              # make it the active theme (installing a static theme XPI does not
+              # select it on its own).
+              "extensions.autoDisableScopes" = 0;
+              "extensions.activeThemeID" = themeId;
+            };
           };
         };
+        zsh.shellAliases = {
+          tb = "thunderbird";
+        };
       };
-      programs.zsh.shellAliases = {
-        tb = "thunderbird";
-      };
-    }
-    // infomaniak;
+      # Unconditional key: the home-manager side returns this attrset as the
+      # module `config`, so its top-level keys must not depend on `config`
+      # (reading `config.modules.thunderbird.*` while building the attrset spine
+      # via `// infomaniak` caused infinite recursion on standalone profiles).
+      accounts.email.accounts = infomaniak;
+    };
 in
 {
   flake.modules.nixos.thunderbird =

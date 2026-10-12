@@ -190,6 +190,10 @@ in
         };
       };
       config = lib.mkIf config.modules.lazyvim.enable {
+        # Unlike the other NixOS->home-manager bridges (which call their cfg
+        # function directly), lazyvim also has to pull in the upstream
+        # home-manager module, so the module value is `imports` merged with the
+        # cfg attrset.
         home-manager.users.${config.modules.users.userName} = {
           imports = [ inputs.lazyvim.homeManagerModules.default ];
         }

@@ -55,7 +55,22 @@ in
     {
       options.modules.cap.enable = lib.mkEnableOption "Cap screen recorder";
       config = lib.mkIf config.modules.cap.enable {
-        environment.systemPackages = [ self.packages.${pkgs.system}.cap ];
+        environment.systemPackages = [ self.packages.${pkgs.stdenv.hostPlatform.system}.cap ];
+      };
+    };
+
+  flake.modules.homeManager.cap =
+    {
+      config,
+      lib,
+      self,
+      pkgs,
+      ...
+    }:
+    {
+      options.modules.cap.enable = lib.mkEnableOption "Cap screen recorder";
+      config = lib.mkIf config.modules.cap.enable {
+        home.packages = [ self.packages.${pkgs.stdenv.hostPlatform.system}.cap ];
       };
     };
 }

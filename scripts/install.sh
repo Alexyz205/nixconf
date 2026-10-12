@@ -11,6 +11,9 @@
 #   server               Bootstrap a new server / image: install Nix
 #                        (multi-user daemon), clone the repo, activate the
 #                        server home-manager profile.
+#   desktop              Bootstrap a desktop Ubuntu (GNOME) machine: multi-user
+#                        Nix, clone the repo, activate the work home-manager
+#                        profile (apps + tools on top of the distro WM).
 #
 # Usage:  ./scripts/install.sh [command] [options]
 # =========================================================
@@ -35,6 +38,9 @@ Commands:
                        (full dotfiles: zsh, starship, tmux, tools, aliases).
   server               Bootstrap a new server/image: multi-user Nix (daemon),
                        clone repo, activate the server home-manager profile.
+  desktop              Bootstrap a desktop Ubuntu (GNOME) work machine:
+                       multi-user Nix, clone repo, activate the RNSW
+                       home-manager profile (apps + tools), set zsh login shell.
   -h, --help           Show this help message
 
 Options:
@@ -305,13 +311,40 @@ Next steps:
 EOF
 }
 
+cmd_desktop() {
+  check_deps
+  HM_CONFIG="alexis.pigeon@RNSW-APIGEON1"
+  ensure_nix daemon
+  ensure_flakes
+  clone_repo
+  activate_home
+  set_login_shell
+
+  cat <<EOF
+
+Desktop bootstrap complete.
+
+What was set up:
+  - Nix:          multi-user (daemon mode) — GNOME keeps managing the display
+  - Repo:         $INSTALL_DIR
+  - Home-manager: $HM_CONFIG (tools + default apps: gitlab, youtube-music,
+                   brave, cap, artcraft (photocraft/lightcraft/pdfcraft/
+                   filmcraft), vlc, swayimg, sops, containers, devpod)
+  - Login shell:  zsh
+
+Next steps:
+  1. Restart your shell (or 'source ~/.zshrc') so the tools + aliases are active.
+  2. Manage it later with 'home-manager switch --flake $INSTALL_DIR#$HM_CONFIG'.
+EOF
+}
+
 # -----------------------------------------------------------
 # arg parsing
 # -----------------------------------------------------------
 
 main() {
   # First positional arg selects the command; the rest are flags / dirs.
-  if [[ $# -gt 0 ]] && [[ $1 == "container" || $1 == "server" ]]; then
+  if [[ $# -gt 0 ]] && [[ $1 == "container" || $1 == "server" || $1 == "desktop" ]]; then
     COMMAND="$1"
     shift
   fi
@@ -336,6 +369,7 @@ main() {
   case "$COMMAND" in
   container) cmd_container ;;
   server) cmd_server ;;
+  desktop) cmd_desktop ;;
   esac
 }
 

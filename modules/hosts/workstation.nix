@@ -211,6 +211,8 @@ let
               bat.enable = true;
               eza.enable = true;
               btop.enable = true;
+              # RTX 4090: enable btop's CUDA GPU-usage support.
+              btop.cudaSupport = true;
               lazygit.enable = true;
               yazi.enable = true;
               zoxide.enable = true;
@@ -236,6 +238,7 @@ let
               };
               youtubeMusic.enable = true;
               cap.enable = true;
+              gitlab.enable = true;
               swayimg.enable = true;
               photocraft.enable = true;
               lightcraft.enable = true;
@@ -247,6 +250,7 @@ let
               # Same software age key as the NixOS side (see modules.sops above):
               # decrypts GITHUB_TOKEN and the sec/sece aliases on this host.
               modules.sops.ageKeyFile = "/home/alexis/.config/sops/age/keys.txt";
+              modules.sops.useYubikey = false;
               services.cliphist = {
                 enable = true;
                 allowImages = true;

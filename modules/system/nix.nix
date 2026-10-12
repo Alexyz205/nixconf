@@ -1,4 +1,4 @@
-{ inputs, lib, ... }:
+{ lib, ... }:
 let
   # nixpkgs' fetchgit (nix-prefetch-git) assigns GIT_SSL_CAINFO without
   # `export`, so the builder's git never sees it and falls back to nixpkgs'

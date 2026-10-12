@@ -1,7 +1,4 @@
-{
-  lib,
-  ...
-}:
+_:
 let
   # Shared btrfs layout: the subvolume set every disko-managed host uses.
   # `luks = true` wraps it in a LUKS container (workstation); bare otherwise

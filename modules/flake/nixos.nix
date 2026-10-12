@@ -106,6 +106,7 @@ in
           thunderbird
           youtubeMusic
           cap
+          gitlab
           swayimg
           photocraft
           lightcraft

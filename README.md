@@ -50,41 +50,55 @@ the flake.
 Two standalone bootstrap scripts let anyone get the nixconf tooling without
 installing a full host config or home-manager.
 
-### `scripts/install.sh` — container / server bootstrap
+### `scripts/install.sh` — container / server / desktop bootstrap
 
-Bootstrap a container or server with the full nixconf dotfiles (zsh, starship,
-tmux, tools, aliases) from a standalone home-manager profile:
+Bootstrap a container, server, or desktop with the full nixconf dotfiles (zsh,
+starship, tmux, tools, aliases) from a standalone home-manager profile:
 
 ```bash
 ./scripts/install.sh container   # default: single-user Nix in a container/devpod
 ./scripts/install.sh server      # multi-user Nix (daemon) on a server/image
+./scripts/install.sh desktop     # multi-user Nix (daemon) on a desktop (keeps GNOME)
 ```
 
 It installs Nix via the official installer (downloaded to a temp file — never
 `curl | sh`), clones this repo, and activates the matching home-manager config
-(`<user>@container` for containers, `alexis@server` for servers). The container
-user is picked at runtime from `id -un` (`root@container` or `vscode@container`).
+(`<user>@container` for containers, `alexis@server` for servers,
+`alexis.pigeon@RNSW-APIGEON1` for desktops). The container user is picked at
+runtime from `id -un` (`root@container` or `vscode@container`). `desktop` also
+sets zsh as the login shell.
 
 ## Hosts
 
 | Host              | Platform       | Type    | Key Features                                                                            |
 | ----------------- | -------------- | ------- | --------------------------------------------------------------------------------------- |
-| `macbook`         | aarch64-darwin | Laptop  | nix-darwin, Homebrew, Ghostty, Nextcloud (rclone)                                       |
+| `macbook`         | aarch64-darwin | Laptop  | nix-darwin, Homebrew, Ghostty                                                           |
 | `workstation`     | x86_64-linux   | Desktop | Niri WM, Catppuccin (stylix), greetd, pipewire, YubiKey LUKS + sudo, Nextcloud (davfs2) |
-| `headless-worker` | x86_64-linux   | Server  | systemd-networkd, btrfs disko, SSH via YubiKey key, Nextcloud (davfs2), weekly GC       |
+| `headless-worker` | x86_64-linux   | Server  | systemd-networkd, btrfs disko, SSH via YubiKey key, weekly GC                           |
 | `proxmox-vm`      | x86_64-linux   | VM      | cloud-init, Proxmox image, qemu-guest, minimal                                          |
 | `installer-iso`   | x86_64-linux   | USB ISO | Guided installer script with YubiKey auth                                               |
 
 Standalone home-manager profiles (`flake.homeConfigurations`):
 
-| Config                        | Username      | Platform       | Notes                                |
-| ----------------------------- | ------------- | -------------- | ------------------------------------ |
-| `alexis@macos`                | alexis        | aarch64-darwin | macOS profile                        |
-| `alexis@linux`                | alexis        | x86_64-linux   | Linux profile                        |
-| `alexis.pigeon@RNSL-APIGEON5` | alexis.pigeon | x86_64-linux   | Professional machine profile         |
-| `alexis@server`               | alexis        | x86_64-linux   | Headless server (terminal-only)      |
-| `root@container`              | root          | x86_64-linux   | Container profile (root)             |
-| `vscode@container`            | vscode        | x86_64-linux   | Devcontainer profile (non-root user) |
+| Config                        | Username      | Platform       | Notes                                      |
+| ----------------------------- | ------------- | -------------- | ------------------------------------------ |
+| `alexis@macos`                | alexis        | aarch64-darwin | macOS profile                              |
+| `alexis@linux`                | alexis        | x86_64-linux   | Linux profile                              |
+| `alexis.pigeon@RNSL-APIGEON5` | alexis.pigeon | x86_64-linux   | Work station (shared config)               |
+| `alexis.pigeon@RNSW-APIGEON1` | alexis.pigeon | x86_64-linux   | Work station, Ubuntu/GNOME (shared config) |
+| `alexis@server`               | alexis        | x86_64-linux   | Headless server (terminal-only)            |
+| `root@container`              | root          | x86_64-linux   | Container profile (root)                   |
+| `vscode@container`            | vscode        | x86_64-linux   | Devcontainer profile (non-root user)       |
+
+The profile extras are layered (`modules/flake/home-manager.nix`):
+`defaultExtra` is the base every interactive Linux profile starts from (sops,
+yubikey, ghostty, containers plus gitlab, youtube-music, brave, cap, artcraft
+and vlc); `personalExtra` builds on it with claude, thunderbird and Nextcloud;
+`workExtra` is the default set the two `RNSL`/`RNSW` work stations share so they
+can't drift. macOS gets a cross-platform subset (`macosExtra`) since
+brave/cap/artcraft/youtube-music are Linux-only. The work profiles run on the
+distro's own desktop (GNOME) — no niri/noctalia/stylix and no Nextcloud.
+`swayimg` (yazi's image opener) is a default on every Linux profile.
 
 Hosts are referenced by their flake attribute: `nixosConfigurations.workstation`,
 `darwinConfigurations.macbook`, `homeConfigurations."alexis@linux"`, etc.
@@ -249,26 +263,26 @@ YubiKey-based age identity.
   (run from a machine with the YubiKey).
 - GitLab tooling (`glab`, the `gitlab.nvim` LazyVim plugin, and the
   `GITLAB_TOKEN` secret) lives in the standalone `gitlab` feature module and is
-  only enabled on the `alexis.pigeon@RNSL-APIGEON5` home-manager profile.
+  part of the default desktop set — enabled on the workstation and every
+  interactive Linux profile (`alexis@linux`, `alexis.pigeon@RNSL-APIGEON5`,
+  `alexis.pigeon@RNSW-APIGEON1`).
 
 ## Nextcloud
 
 The `nextcloud` feature module (`modules/system/nextcloud.nix`) mounts the
 homelab Nextcloud WebDAV share (`https://nextcloud.alexyz.org`) like a local
-drive. The password lives in `secrets/secrets.yaml` under `NEXTCLOUD_PASSWORD`
-(never exported into the shell) and is decrypted by sops on each mount, so no
+drive. It is enabled on the `workstation` and on the personal Linux profile
+(`personalExtra`); every other host and standalone profile leaves it off. The
+password lives in `secrets/secrets.yaml` under `NEXTCLOUD_PASSWORD` (never
+exported into the shell) and is decrypted by sops on each mount, so no
 plaintext credentials are stored anywhere.
 
 - **Linux** (`modules.nextcloud.enable`): davfs2 mount at `/mnt/nextcloud` on
-  NixOS hosts; standalone profiles mount `~/nextcloud`. Both go through the
-  setuid `mount.davfs` helper (called by its `/run/wrappers/bin/...` path on
-  NixOS) and read credentials from `~/.davfs2/secrets`. Certificates come from
-  Let's Encrypt (Cloudflare DNS), so davfs2/rclone verify against the public
-  trust store.
-- **macOS** (`modules.nextcloudRclone.enable`): davfs2 is Linux-only, so the
-  mount uses `rclone` + macFUSE (installed via the `macfuse` Homebrew cask),
-  mounting `~/nextcloud`.
-- Aliases everywhere: `ncm` mounts, `ncu` unmounts.
+  NixOS hosts. It goes through the setuid `mount.davfs` helper (called by its
+  `/run/wrappers/bin/...` path on NixOS) and reads credentials from
+  `~/.davfs2/secrets`. Certificates come from Let's Encrypt (Cloudflare DNS), so
+  davfs2 verifies against the public trust store.
+- Aliases: `ncm` mounts, `ncu` unmounts.
 
 New secrets are created on a machine with the YubiKey (see above); if one is
 created from the workstation it must be re-keyed with
