@@ -35,8 +35,30 @@ let
     mantle = "#181825";
     crust = "#11111b";
   };
+  raw = builtins.mapAttrs (_: c: builtins.substring 1 (builtins.stringLength c) c) colors;
 in
 colors
 // {
-  raw = builtins.mapAttrs (_: c: builtins.substring 1 (builtins.stringLength c) c) colors;
+  inherit raw;
+
+  # base16 mapping matching base16-schemes' catppuccin-mocha.yaml, so stylix can
+  # consume the same palette without the base16-schemes dependency.
+  base16 = {
+    base00 = raw.base;
+    base01 = raw.surface0;
+    base02 = raw.surface1;
+    base03 = raw.overlay0;
+    base04 = raw.subtext0;
+    base05 = raw.text;
+    base06 = raw.rosewater;
+    base07 = raw.lavender;
+    base08 = raw.red;
+    base09 = raw.peach;
+    base0A = raw.yellow;
+    base0B = raw.green;
+    base0C = raw.teal;
+    base0D = raw.blue;
+    base0E = raw.mauve;
+    base0F = raw.flamingo;
+  };
 }

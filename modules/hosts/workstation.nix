@@ -128,7 +128,12 @@ let
             stylix = {
               enable = true;
               autoEnable = true;
-              base16Scheme = "${pkgs.base16-schemes}/share/themes/catppuccin-mocha.yaml";
+              # Same palette as everything else (config/theme/catppuccin-mocha.nix),
+              # inlined as a base16 scheme so stylix consumes the single source
+              # instead of the base16-schemes package.
+              base16Scheme = palette.base16 // {
+                scheme = "catppuccin-mocha";
+              };
               polarity = "dark";
               # Same catppuccin-mocha wallpaper niri shows; used by wallpaper-aware
               # stylix targets (e.g. hyprlock's lock-screen background).
@@ -153,7 +158,6 @@ let
 
             environment.systemPackages = with pkgs; [
               polkit_gnome
-              base16-schemes
             ];
 
             modules = {
