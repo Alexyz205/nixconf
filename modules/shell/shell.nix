@@ -185,8 +185,8 @@ in
             # Standalone home-manager cannot change the OS login shell (that
             # needs sudo + /etc/shells + chsh, deliberately out of scope for
             # HM), so on non-NixOS hosts the passwd shell stays bash and
-            # tmux-restore (which falls back to passwd/default-shell) spawns
-            # bash. Bridge it: an interactive bash exec's straight into zsh,
+            # tmux (or anything that falls back to the passwd/default shell)
+            # spawns bash. Bridge it: an interactive bash exec's straight into zsh,
             # so every terminal and every restored tmux pane lands in zsh —
             # purely declaratively, no chsh/sudo. NixOS doesn't need this:
             # the shell module already sets users.users.<name>.shell = zsh.

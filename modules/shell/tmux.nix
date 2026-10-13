@@ -102,29 +102,11 @@ let
     in
     {
       enable = true;
-      # home-manager writes this in the base config (before any plugin
-      # run-shell), so continuum's background auto-restore — which spawns panes
-      # before extraConfig is applied — already has a zsh default-shell to fall
-      # back to instead of the passwd login shell.
+      # Pin tmux's default-shell to zsh so panes never fall back to the passwd
+      # login shell.
       shell = "${pkgs.zsh}/bin/zsh";
       plugins = with pkgs.tmuxPlugins; [
         { plugin = vim-tmux-navigator; }
-        {
-          plugin = resurrect;
-          extraConfig = ''
-            set -g @resurrect-strategy-nvim 'session'
-            set -g @resurrect-capture-pane-contents 'on'
-            set -g @resurrect-processes 'ssh:no,node:no'
-          '';
-        }
-        {
-          plugin = continuum;
-          extraConfig = ''
-            set -g @continuum-restore 'on'
-            set -g @continuum-boot 'off'
-            set -g @continuum-save-interval '10'
-          '';
-        }
         {
           plugin = catppuccin;
           extraConfig = ''
@@ -177,12 +159,11 @@ let
         set -g default-command "${pkgs.zsh}/bin/zsh -l"
         # tmux-agent-status' pulses and sidebar need a 1s status-interval.
         set -g status-interval 1
-        # Continuum drives its periodic auto-save off a `#()` hook in the status
-        # line. We own status-right here (catppuccin), so re-inject the hook;
-        # otherwise the theme overwriting status-right silently kills auto-save.
-        # tmux-agent-status' status-line summary is injected the same way (its
-        # own status-right append runs before extraConfig and gets overwritten).
-        set -g status-right "#(${agentStatusPkg}/share/tmux-plugins/tmux-agent-status/scripts/status-line.sh) #(${pkgs.tmuxPlugins.continuum}/share/tmux-plugins/continuum/scripts/continuum_save.sh)#{E:@catppuccin_status_user}#{E:@catppuccin_status_host}#{E:@catppuccin_status_session}"
+        # tmux-agent-status injects its status-line summary by appending to
+        # status-right, but it runs before extraConfig and the catppuccin theme
+        # also writes status-right, so re-inject both the agent summary and the
+        # catppuccin segments here (extraConfig runs last).
+        set -g status-right "#(${agentStatusPkg}/share/tmux-plugins/tmux-agent-status/scripts/status-line.sh) #{E:@catppuccin_status_user}#{E:@catppuccin_status_host}#{E:@catppuccin_status_session}"
         set -g pane-border-lines simple
         set -g pane-active-border-style "fg=#fab387"
         set -g renumber-windows on
