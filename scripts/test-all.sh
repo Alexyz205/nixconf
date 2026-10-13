@@ -6,7 +6,8 @@ SELF="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$(basename "${BASH_SOURCE[0]
 cd "$SCRIPT_DIR"
 
 NIXOS_HOSTS=(workstation headless-worker proxmox-vm installer-iso)
-HOME_CONFIGS=("alexis@linux" "alexis.pigeon@RNSL-APIGEON5" "alexis@server" "root@container")
+DARWIN_HOSTS=(macbook)
+HOME_CONFIGS=("alexis@linux" "alexis@macos" "alexis.pigeon@RNSL-APIGEON5" "alexis@server" "root@container")
 DISKO_HOSTS=(workstation headless-worker)
 ALL_TESTS=(flake eval disko iso vm shellcheck)
 
@@ -41,6 +42,13 @@ test_eval() {
   for h in "${NIXOS_HOSTS[@]}"; do
     log "  .#nixosConfigurations.$h"
     nix build --dry-run ".#nixosConfigurations.$h.config.system.build.toplevel" >/dev/null
+  done
+
+  log "evaluating nix-darwin configurations"
+  local d
+  for d in "${DARWIN_HOSTS[@]}"; do
+    log "  .#darwinConfigurations.$d"
+    nix build --dry-run ".#darwinConfigurations.$d.config.system.build.toplevel" >/dev/null
   done
 
   log "evaluating home-manager configurations"

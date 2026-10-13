@@ -41,9 +41,8 @@ let
           fabric-ai
           lazydocker
         ];
-        desktop = [
-          vlc
-        ];
+        # vlc ships no aarch64-darwin build, so gate the group to Linux.
+        desktop = lib.optionals stdenv.hostPlatform.isLinux [ vlc ];
       };
       enabled = n: config.modules.packages.${n};
       order = [

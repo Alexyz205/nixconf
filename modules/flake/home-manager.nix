@@ -164,8 +164,9 @@ let
   # keep the name so work-only additions have an obvious home.
   workExtra = defaultExtra;
 
-  # macOS can't run the Linux-only packages (brave/cap/artcraft/youtube-music),
-  # so it gets a cross-platform subset of the default set (vlc included).
+  # macOS can't run the Linux-only packages (brave/cap/artcraft/youtube-music,
+  # and the `desktop` group's vlc which has no aarch64-darwin build), so it gets
+  # a cross-platform subset of the default set.
   macosExtra =
     extras.sops
     ++ extras.yubikey
