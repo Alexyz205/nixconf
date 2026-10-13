@@ -1,5 +1,6 @@
 _:
 let
+  palette = import ../../config/theme/catppuccin-mocha.nix;
   starshipCfg = {
     enable = true;
     enableZshIntegration = true;
@@ -11,18 +12,18 @@ let
       right_format = "[](surface0)$status[](bg:color_peach fg:surface0)$cmd_duration[](fg:color_peach bg:color_green)$shlvl$jobs[](fg:color_green bg:color_sapphire)$localip[](fg:color_sapphire bg:color_blue)$memory_usage[](fg:color_blue bg:color_pink)$time[ ](fg:color_pink)";
       palette = "catppuccin_mocha";
       palettes.catppuccin_mocha = {
-        color_fg0 = "#cdd6f4";
-        color_fg1 = "#1e1e2e";
-        color_pink = "#f5c2e7";
-        color_blue = "#89b4fa";
-        color_sapphire = "#74c7ec";
-        color_green = "#a6e3a1";
-        color_teal = "#94e2d5";
-        surface0 = "#313244";
-        color_purple = "#cba6f7";
-        color_red = "#cc241d";
-        color_peach = "#fab387";
-        color_grey = "#6c7086";
+        color_fg0 = "${palette.text}";
+        color_fg1 = "${palette.base}";
+        color_pink = "${palette.pink}";
+        color_blue = "${palette.blue}";
+        color_sapphire = "${palette.sapphire}";
+        color_green = "${palette.green}";
+        color_teal = "${palette.teal}";
+        surface0 = "${palette.surface0}";
+        color_purple = "${palette.mauve}";
+        color_red = "${palette.red}";
+        color_peach = "${palette.peach}";
+        color_grey = "${palette.overlay0}";
       };
       os = {
         disabled = false;

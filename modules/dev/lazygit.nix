@@ -1,5 +1,6 @@
 _:
 let
+  palette = import ../../config/theme/catppuccin-mocha.nix;
   lazygitAliases = {
     lg = "lazygit";
   };
@@ -12,25 +13,25 @@ let
     settings = {
       gui.theme = {
         activeBorderColor = [
-          "#89b4fa"
+          "${palette.blue}"
           "bold"
         ];
-        inactiveBorderColor = [ "#a6adc8" ];
-        searchingActiveBorderColor = [ "#f9e2af" ];
-        optionsTextColor = [ "#89b4fa" ];
-        selectedLineBgColor = [ "#313244" ];
-        inactiveViewSelectedLineBgColor = [ "#6c7086" ];
-        cherryPickedCommitFgColor = [ "#89b4fa" ];
-        cherryPickedCommitBgColor = [ "#45475a" ];
-        markedBaseCommitFgColor = [ "#89b4fa" ];
-        markedBaseCommitBgColor = [ "#f9e2af" ];
-        unstagedChangesColor = [ "#f38ba8" ];
-        defaultFgColor = [ "#cdd6f4" ];
+        inactiveBorderColor = [ "${palette.subtext0}" ];
+        searchingActiveBorderColor = [ "${palette.yellow}" ];
+        optionsTextColor = [ "${palette.blue}" ];
+        selectedLineBgColor = [ "${palette.surface0}" ];
+        inactiveViewSelectedLineBgColor = [ "${palette.overlay0}" ];
+        cherryPickedCommitFgColor = [ "${palette.blue}" ];
+        cherryPickedCommitBgColor = [ "${palette.surface1}" ];
+        markedBaseCommitFgColor = [ "${palette.blue}" ];
+        markedBaseCommitBgColor = [ "${palette.yellow}" ];
+        unstagedChangesColor = [ "${palette.red}" ];
+        defaultFgColor = [ "${palette.text}" ];
         # Moved under gui.theme in lazygit 0.66 (was gui.authorColors).
         authorColors = {
-          "*" = "#b4befe";
-          Alexyz205 = "#74c7ec";
-          "Alexis Pigeon" = "#74c7ec";
+          "*" = "${palette.lavender}";
+          Alexyz205 = "${palette.sapphire}";
+          "Alexis Pigeon" = "${palette.sapphire}";
         };
       };
       git.diffRenderers = [

@@ -1,5 +1,6 @@
 _:
 let
+  palette = import ../../config/theme/catppuccin-mocha.nix;
   tmuxAliases = {
     t = "tmux new-session -A -s dev";
   };
@@ -165,7 +166,7 @@ let
         # catppuccin segments here (extraConfig runs last).
         set -g status-right "#(${agentStatusPkg}/share/tmux-plugins/tmux-agent-status/scripts/status-line.sh) #{E:@catppuccin_status_user}#{E:@catppuccin_status_host}#{E:@catppuccin_status_session}"
         set -g pane-border-lines simple
-        set -g pane-active-border-style "fg=#fab387"
+        set -g pane-active-border-style "fg=${palette.peach}"
         set -g renumber-windows on
         set -sg escape-time 0
         set -g history-limit 50000

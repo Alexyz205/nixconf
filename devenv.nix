@@ -93,6 +93,15 @@
   #   3. the slow image-build gate on push (disko, iso, vm)
   # Layers 2-3 are custom `always_run` hooks that mirror scripts/test-all.sh;
   # they re-enter via `devenv shell` when tools are missing.
+  #
+  # Explicit `priority` (prek-only; devenv defaults `git-hooks.package` to
+  # pkgs.prek) pins the run order: ascending priority, equal priority runs in
+  # parallel, and each group is a barrier so later groups see formatted files.
+  # Without it, prek derives priority from the hook's index in the generated
+  # config (alphabetical), which ran the test suite before nixfmt.
+  #   0  format  - mutating formatters, disjoint file sets -> parallel
+  #   10 lint    - read-only linters -> parallel, after formatting
+  #   20 test    - fast full-suite gate, alone, after format + lint
   git-hooks = {
     enable = true;
     hooks = {
@@ -100,6 +109,7 @@
         enable = true;
         # shellcheck can't parse zsh; only lint real sh/bash scripts.
         files = "\\.(sh|bash)$";
+        priority = 10;
       };
       shfmt = {
         enable = true;
@@ -107,16 +117,30 @@
         files = "\\.(sh|bash)$";
         settings.indent = 2;
         settings.simplify = true;
+        priority = 0;
       };
-      nixfmt.enable = true;
+      nixfmt = {
+        enable = true;
+        priority = 0;
+      };
       statix = {
         enable = true;
         # See statix.toml: repeated_keys is disabled (import-tree design).
         settings.config = "statix.toml";
+        priority = 10;
       };
-      deadnix.enable = true;
-      luacheck.enable = true;
-      stylua.enable = true;
+      deadnix = {
+        enable = true;
+        priority = 10;
+      };
+      luacheck = {
+        enable = true;
+        priority = 10;
+      };
+      stylua = {
+        enable = true;
+        priority = 0;
+      };
 
       nixconf-fast = {
         enable = true;
@@ -126,6 +150,7 @@
         pass_filenames = false;
         always_run = true;
         stages = [ "pre-commit" ];
+        priority = 20;
       };
 
       nixconf-slow = {
@@ -136,6 +161,7 @@
         pass_filenames = false;
         always_run = true;
         stages = [ "pre-push" ];
+        priority = 0;
       };
     };
   };

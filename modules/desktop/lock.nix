@@ -1,4 +1,8 @@
-_: {
+_:
+let
+  palette = import ../../config/theme/catppuccin-mocha.nix;
+in
+{
   flake.modules.nixos.lock =
     {
       config,
@@ -150,7 +154,7 @@ _: {
                   fade_on_empty = false;
                   outline_thickness = 3;
                   rounding = 8;
-                  placeholder_text = "<span foreground=\"##a6adc8\">Type password...</span>";
+                  placeholder_text = "<span foreground=\"##${palette.raw.subtext0}\">Type password...</span>";
                   shadow_passes = 2;
                 };
                 label = [
@@ -158,7 +162,7 @@ _: {
                   {
                     monitor = "";
                     text = "hello alexyz";
-                    color = "rgb(cdd6f4)";
+                    color = "rgb(${palette.raw.text})";
                     font_size = 42;
                     font_family = "JetBrainsMono Nerd Font";
                     position = "0, 180";
@@ -168,7 +172,7 @@ _: {
                   {
                     monitor = "";
                     text = "$TIME";
-                    color = "rgb(cdd6f4)";
+                    color = "rgb(${palette.raw.text})";
                     font_size = 30;
                     font_family = "JetBrainsMono Nerd Font";
                     position = "0, 60";
@@ -178,7 +182,7 @@ _: {
                   {
                     monitor = "";
                     text = "cmd[update:60000] date +\"%A, %d %B %Y\"";
-                    color = "rgb(a6adc8)";
+                    color = "rgb(${palette.raw.subtext0})";
                     font_size = 16;
                     font_family = "JetBrainsMono Nerd Font";
                     position = "0, 15";

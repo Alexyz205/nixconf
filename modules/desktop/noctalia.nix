@@ -3,6 +3,9 @@
   self,
   ...
 }:
+let
+  palette = import ../../config/theme/catppuccin-mocha.nix;
+in
 {
   perSystem =
     { pkgs, system, ... }:
@@ -109,9 +112,9 @@
               position = "center";
               countdownDuration = 10000;
               enableCountdown = true;
-              # Hibernate disabled: this host has no resume config and its swap is
-              # smaller than RAM, so `systemctl hibernate` always fails. Keep the
-              # button out of the menu instead of showing a dead action.
+              # Hibernate disabled: no resume config and swap < RAM, so
+              # `systemctl hibernate` always fails. Keep the dead action out of
+              # the menu.
               powerOptions = [
                 {
                   action = "lock";
@@ -155,24 +158,30 @@
               enabled = false;
             };
 
+            # Leave this at the version the settings were authored at so
+            # noctalia runs its schema migrations on load (several, e.g. v35,
+            # v37, v45, touch the bar). Setting it to the app's current version
+            # skips them and leaves the bar unconfigured. The store config is
+            # read-only, so migrations apply in-memory each start (the
+            # write-back is a logged no-op).
             settingsVersion = 32;
           };
 
           colors = {
-            mError = "#f38ba8";
-            mOnError = "#1e1e2e";
-            mOnPrimary = "#1e1e2e";
-            mOnSecondary = "#1e1e2e";
-            mOnSurface = "#cdd6f4";
-            mOnSurfaceVariant = "#a6adc8";
-            mOnTertiary = "#1e1e2e";
-            mOutline = "#7f849c";
-            mPrimary = "#cba6f7";
-            mSecondary = "#a6adc8";
+            mError = palette.red;
+            mOnError = palette.base;
+            mOnPrimary = palette.base;
+            mOnSecondary = palette.base;
+            mOnSurface = palette.text;
+            mOnSurfaceVariant = palette.subtext0;
+            mOnTertiary = palette.base;
+            mOutline = palette.overlay1;
+            mPrimary = palette.mauve;
+            mSecondary = palette.subtext0;
             mShadow = "#000000";
-            mSurface = "#1e1e2e";
-            mSurfaceVariant = "#313244";
-            mTertiary = "#b4befe";
+            mSurface = palette.base;
+            mSurfaceVariant = palette.surface0;
+            mTertiary = palette.lavender;
           };
         };
       }

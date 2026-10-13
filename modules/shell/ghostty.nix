@@ -1,5 +1,6 @@
 _:
 let
+  palette = import ../../config/theme/catppuccin-mocha.nix;
   ghosttyCfg = { pkgs }: {
     enable = true;
     settings = {
@@ -14,29 +15,29 @@ let
     };
     themes."catppuccin-mocha" = {
       palette = [
-        "0=#45475a"
-        "1=#f38ba8"
-        "2=#a6e3a1"
-        "3=#f9e2af"
-        "4=#89b4fa"
-        "5=#f5c2e7"
-        "6=#94e2d5"
-        "7=#a6adc8"
-        "8=#585b70"
-        "9=#f38ba8"
-        "10=#a6e3a1"
-        "11=#f9e2af"
-        "12=#89b4fa"
-        "13=#f5c2e7"
-        "14=#94e2d5"
-        "15=#bac2de"
+        "0=${palette.surface1}"
+        "1=${palette.red}"
+        "2=${palette.green}"
+        "3=${palette.yellow}"
+        "4=${palette.blue}"
+        "5=${palette.pink}"
+        "6=${palette.teal}"
+        "7=${palette.subtext0}"
+        "8=${palette.surface2}"
+        "9=${palette.red}"
+        "10=${palette.green}"
+        "11=${palette.yellow}"
+        "12=${palette.blue}"
+        "13=${palette.pink}"
+        "14=${palette.teal}"
+        "15=${palette.subtext1}"
       ];
-      background = "1e1e2e";
-      foreground = "cdd6f4";
-      cursor-color = "f5e0dc";
-      cursor-text = "1e1e2e";
+      background = palette.raw.base;
+      foreground = palette.raw.text;
+      cursor-color = palette.raw.rosewater;
+      cursor-text = palette.raw.base;
       selection-background = "353749";
-      selection-foreground = "cdd6f4";
+      selection-foreground = palette.raw.text;
     };
   };
 in
@@ -75,28 +76,28 @@ in
             copy-on-select = true
             fullscreen = true
 
-            background = 1e1e2e
-            foreground = cdd6f4
-            cursor-color = f5e0dc
-            cursor-text = 1e1e2e
+            background = ${palette.raw.base}
+            foreground = ${palette.raw.text}
+            cursor-color = ${palette.raw.rosewater}
+            cursor-text = ${palette.raw.base}
             selection-background = 353749
-            selection-foreground = cdd6f4
-            palette = 0=#45475a
-            palette = 1=#f38ba8
-            palette = 2=#a6e3a1
-            palette = 3=#f9e2af
-            palette = 4=#89b4fa
-            palette = 5=#f5c2e7
-            palette = 6=#94e2d5
-            palette = 7=#a6adc8
-            palette = 8=#585b70
-            palette = 9=#f38ba8
-            palette = 10=#a6e3a1
-            palette = 11=#f9e2af
-            palette = 12=#89b4fa
-            palette = 13=#f5c2e7
-            palette = 14=#94e2d5
-            palette = 15=#bac2de
+            selection-foreground = ${palette.raw.text}
+            palette = 0=${palette.surface1}
+            palette = 1=${palette.red}
+            palette = 2=${palette.green}
+            palette = 3=${palette.yellow}
+            palette = 4=${palette.blue}
+            palette = 5=${palette.pink}
+            palette = 6=${palette.teal}
+            palette = 7=${palette.subtext0}
+            palette = 8=${palette.surface2}
+            palette = 9=${palette.red}
+            palette = 10=${palette.green}
+            palette = 11=${palette.yellow}
+            palette = 12=${palette.blue}
+            palette = 13=${palette.pink}
+            palette = 14=${palette.teal}
+            palette = 15=${palette.subtext1}
           '';
         };
         programs.ghostty = lib.mkIf (!pkgs.stdenv.hostPlatform.isDarwin) (ghosttyCfg {

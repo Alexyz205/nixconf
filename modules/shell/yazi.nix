@@ -1,5 +1,6 @@
 { lib, ... }:
 let
+  palette = import ../../config/theme/catppuccin-mocha.nix;
   yaziCfg = {
     enable = true;
     shellWrapperName = "y";
@@ -14,135 +15,135 @@ let
     theme = {
       mgr = {
         cwd = {
-          fg = "#94e2d5";
+          fg = "${palette.teal}";
         };
         find_keyword = {
-          fg = "#f9e2af";
+          fg = "${palette.yellow}";
           bold = true;
           italic = true;
           underline = true;
         };
         find_position = {
-          fg = "#f5c2e7";
+          fg = "${palette.pink}";
           bg = "reset";
           bold = true;
           italic = true;
         };
         marker_copied = {
-          fg = "#a6e3a1";
-          bg = "#a6e3a1";
+          fg = "${palette.green}";
+          bg = "${palette.green}";
         };
         marker_cut = {
-          fg = "#f38ba8";
-          bg = "#f38ba8";
+          fg = "${palette.red}";
+          bg = "${palette.red}";
         };
         marker_marked = {
-          fg = "#94e2d5";
-          bg = "#94e2d5";
+          fg = "${palette.teal}";
+          bg = "${palette.teal}";
         };
         marker_selected = {
-          fg = "#f9e2af";
-          bg = "#f9e2af";
+          fg = "${palette.yellow}";
+          bg = "${palette.yellow}";
         };
         count_copied = {
-          fg = "#1e1e2e";
-          bg = "#a6e3a1";
+          fg = "${palette.base}";
+          bg = "${palette.green}";
         };
         count_cut = {
-          fg = "#1e1e2e";
-          bg = "#f38ba8";
+          fg = "${palette.base}";
+          bg = "${palette.red}";
         };
         count_selected = {
-          fg = "#1e1e2e";
-          bg = "#f9e2af";
+          fg = "${palette.base}";
+          bg = "${palette.yellow}";
         };
         border_symbol = "│";
         border_style = {
-          fg = "#7f849c";
+          fg = "${palette.overlay1}";
         };
       };
       tabs = {
         active = {
-          fg = "#1e1e2e";
-          bg = "#89b4fa";
+          fg = "${palette.base}";
+          bg = "${palette.blue}";
           bold = true;
         };
         inactive = {
-          fg = "#89b4fa";
-          bg = "#313244";
+          fg = "${palette.blue}";
+          bg = "${palette.surface0}";
         };
       };
       mode = {
         normal_main = {
-          fg = "#1e1e2e";
-          bg = "#89b4fa";
+          fg = "${palette.base}";
+          bg = "${palette.blue}";
           bold = true;
         };
         normal_alt = {
-          fg = "#89b4fa";
-          bg = "#313244";
+          fg = "${palette.blue}";
+          bg = "${palette.surface0}";
         };
         select_main = {
-          fg = "#1e1e2e";
-          bg = "#94e2d5";
+          fg = "${palette.base}";
+          bg = "${palette.teal}";
           bold = true;
         };
         select_alt = {
-          fg = "#94e2d5";
-          bg = "#313244";
+          fg = "${palette.teal}";
+          bg = "${palette.surface0}";
         };
         unset_main = {
-          fg = "#1e1e2e";
-          bg = "#f2cdcd";
+          fg = "${palette.base}";
+          bg = "${palette.flamingo}";
           bold = true;
         };
         unset_alt = {
-          fg = "#f2cdcd";
-          bg = "#313244";
+          fg = "${palette.flamingo}";
+          bg = "${palette.surface0}";
         };
       };
       status = {
         perm_sep = {
-          fg = "#7f849c";
+          fg = "${palette.overlay1}";
         };
         perm_type = {
-          fg = "#89b4fa";
+          fg = "${palette.blue}";
         };
         perm_read = {
-          fg = "#f9e2af";
+          fg = "${palette.yellow}";
         };
         perm_write = {
-          fg = "#f38ba8";
+          fg = "${palette.red}";
         };
         perm_exec = {
-          fg = "#a6e3a1";
+          fg = "${palette.green}";
         };
         progress_label = {
           fg = "#ffffff";
           bold = true;
         };
         progress_normal = {
-          fg = "#a6e3a1";
-          bg = "#45475a";
+          fg = "${palette.green}";
+          bg = "${palette.surface1}";
         };
         progress_error = {
-          fg = "#f9e2af";
-          bg = "#f38ba8";
+          fg = "${palette.yellow}";
+          bg = "${palette.red}";
         };
       };
       pick = {
         border = {
-          fg = "#89b4fa";
+          fg = "${palette.blue}";
         };
         active = {
-          fg = "#f5c2e7";
+          fg = "${palette.pink}";
           bold = true;
         };
         inactive = { };
       };
       input = {
         border = {
-          fg = "#89b4fa";
+          fg = "${palette.blue}";
         };
         title = { };
         value = { };
@@ -151,240 +152,240 @@ let
         };
       };
       cmp.border = {
-        fg = "#89b4fa";
+        fg = "${palette.blue}";
       };
       tasks = {
         border = {
-          fg = "#89b4fa";
+          fg = "${palette.blue}";
         };
         title = { };
         hovered = {
-          fg = "#f5c2e7";
+          fg = "${palette.pink}";
           bold = true;
         };
       };
       which = {
         mask = {
-          bg = "#313244";
+          bg = "${palette.surface0}";
         };
         cand = {
-          fg = "#94e2d5";
+          fg = "${palette.teal}";
         };
         rest = {
-          fg = "#9399b2";
+          fg = "${palette.overlay2}";
         };
         desc = {
-          fg = "#f5c2e7";
+          fg = "${palette.pink}";
         };
         separator = "  ";
         separator_style = {
-          fg = "#585b70";
+          fg = "${palette.surface2}";
         };
       };
       help = {
         on = {
-          fg = "#94e2d5";
+          fg = "${palette.teal}";
         };
         run = {
-          fg = "#f5c2e7";
+          fg = "${palette.pink}";
         };
         hovered = {
           reversed = true;
           bold = true;
         };
         footer = {
-          fg = "#313244";
-          bg = "#cdd6f4";
+          fg = "${palette.surface0}";
+          bg = "${palette.text}";
         };
       };
       spot = {
         border = {
-          fg = "#89b4fa";
+          fg = "${palette.blue}";
         };
         title = {
-          fg = "#89b4fa";
+          fg = "${palette.blue}";
         };
         tbl_col = {
-          fg = "#94e2d5";
+          fg = "${palette.teal}";
         };
         tbl_cell = {
-          fg = "#f5c2e7";
-          bg = "#45475a";
+          fg = "${palette.pink}";
+          bg = "${palette.surface1}";
         };
       };
       notify = {
         title_info = {
-          fg = "#a6e3a1";
+          fg = "${palette.green}";
         };
         title_warn = {
-          fg = "#f9e2af";
+          fg = "${palette.yellow}";
         };
         title_error = {
-          fg = "#f38ba8";
+          fg = "${palette.red}";
         };
       };
       filetype.rules = [
         {
           mime = "image/*";
-          fg = "#94e2d5";
+          fg = "${palette.teal}";
         }
         {
           mime = "{audio,video}/*";
-          fg = "#f9e2af";
+          fg = "${palette.yellow}";
         }
         {
           mime = "application/{zip,rar,7z*,tar,gzip,xz,zstd,bzip*,lzma,compress,archive,cpio,arj,xar,ms-cab*}";
-          fg = "#f5c2e7";
+          fg = "${palette.pink}";
         }
         {
           mime = "application/{pdf,doc,rtf}";
-          fg = "#a6e3a1";
+          fg = "${palette.green}";
         }
         {
           mime = "vfs/{absent,stale}";
-          fg = "#9399b2";
+          fg = "${palette.overlay2}";
         }
         {
           url = "*";
-          fg = "#cdd6f4";
+          fg = "${palette.text}";
         }
         {
           url = "*/";
-          fg = "#89b4fa";
+          fg = "${palette.blue}";
         }
       ];
       icon.dirs = [
         {
           name = ".config";
           text = "";
-          fg = "#f5c2e7";
+          fg = "${palette.pink}";
         }
         {
           name = ".git";
           text = "";
-          fg = "#94e2d5";
+          fg = "${palette.teal}";
         }
         {
           name = ".github";
           text = "";
-          fg = "#89b4fa";
+          fg = "${palette.blue}";
         }
         {
           name = ".npm";
           text = "";
-          fg = "#89b4fa";
+          fg = "${palette.blue}";
         }
         {
           name = "Desktop";
           text = "";
-          fg = "#94e2d5";
+          fg = "${palette.teal}";
         }
         {
           name = "Development";
           text = "";
-          fg = "#94e2d5";
+          fg = "${palette.teal}";
         }
         {
           name = "Documents";
           text = "";
-          fg = "#94e2d5";
+          fg = "${palette.teal}";
         }
         {
           name = "Downloads";
           text = "";
-          fg = "#94e2d5";
+          fg = "${palette.teal}";
         }
         {
           name = "Library";
           text = "";
-          fg = "#94e2d5";
+          fg = "${palette.teal}";
         }
         {
           name = "Movies";
           text = "";
-          fg = "#94e2d5";
+          fg = "${palette.teal}";
         }
         {
           name = "Music";
           text = "";
-          fg = "#94e2d5";
+          fg = "${palette.teal}";
         }
         {
           name = "Pictures";
           text = "";
-          fg = "#94e2d5";
+          fg = "${palette.teal}";
         }
         {
           name = "Public";
           text = "";
-          fg = "#94e2d5";
+          fg = "${palette.teal}";
         }
         {
           name = "Videos";
           text = "";
-          fg = "#94e2d5";
+          fg = "${palette.teal}";
         }
       ];
       icon.conds = [
         {
           "if" = "orphan";
           text = "";
-          fg = "#cdd6f4";
+          fg = "${palette.text}";
         }
         {
           "if" = "link";
           text = "";
-          fg = "#7f849c";
+          fg = "${palette.overlay1}";
         }
         {
           "if" = "block";
           text = "";
-          fg = "#f2cdcd";
+          fg = "${palette.flamingo}";
         }
         {
           "if" = "char";
           text = "";
-          fg = "#f2cdcd";
+          fg = "${palette.flamingo}";
         }
         {
           "if" = "fifo";
           text = "";
-          fg = "#f2cdcd";
+          fg = "${palette.flamingo}";
         }
         {
           "if" = "sock";
           text = "";
-          fg = "#f2cdcd";
+          fg = "${palette.flamingo}";
         }
         {
           "if" = "sticky";
           text = "";
-          fg = "#f2cdcd";
+          fg = "${palette.flamingo}";
         }
         {
           "if" = "dummy";
           text = "";
-          fg = "#f38ba8";
+          fg = "${palette.red}";
         }
         {
           "if" = "dir & hovered";
           text = "";
-          fg = "#89b4fa";
+          fg = "${palette.blue}";
         }
         {
           "if" = "dir";
           text = "";
-          fg = "#89b4fa";
+          fg = "${palette.blue}";
         }
         {
           "if" = "exec";
           text = "";
-          fg = "#a6e3a1";
+          fg = "${palette.green}";
         }
         {
           "if" = "!dir";
           text = "";
-          fg = "#cdd6f4";
+          fg = "${palette.text}";
         }
       ];
     };
@@ -509,33 +510,33 @@ let
 
     theme.git = {
       unstaged = {
-        fg = "#f38ba8";
+        fg = "${palette.red}";
       };
       staged = {
-        fg = "#a6e3a1";
+        fg = "${palette.green}";
       };
       added = {
-        fg = "#a6e3a1";
+        fg = "${palette.green}";
         bold = true;
       };
       deleted = {
-        fg = "#f38ba8";
+        fg = "${palette.red}";
         bold = true;
       };
       updated = {
-        fg = "#89b4fa";
+        fg = "${palette.blue}";
       };
       untracked = {
-        fg = "#f9e2af";
+        fg = "${palette.yellow}";
       };
       ignored = {
-        fg = "#585b70";
+        fg = "${palette.surface2}";
       };
       clean = {
-        fg = "#a6e3a1";
+        fg = "${palette.green}";
       };
       unknown = {
-        fg = "#7f849c";
+        fg = "${palette.overlay1}";
       };
       unstaged_sign = "M";
       staged_sign = "A";

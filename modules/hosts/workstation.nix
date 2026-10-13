@@ -7,6 +7,7 @@ let
   system = "x86_64-linux";
   features = config.flake.nixosFeatures.desktop;
   mkHostCommon = config.flake.mkHostCommon;
+  palette = import ../../config/theme/catppuccin-mocha.nix;
 
   mkWorkstation =
     {
@@ -89,22 +90,22 @@ let
                       fill_mode = "crop";
                     };
                     palette = {
-                      primary = "#cba6f7";
-                      on_primary = "#1e1e2e";
-                      secondary = "#a6adc8";
-                      on_secondary = "#1e1e2e";
-                      tertiary = "#b4befe";
-                      on_tertiary = "#1e1e2e";
-                      error = "#f38ba8";
-                      on_error = "#1e1e2e";
-                      surface = "#1e1e2e";
-                      on_surface = "#cdd6f4";
-                      surface_variant = "#313244";
-                      on_surface_variant = "#a6adc8";
-                      outline = "#7f849c";
+                      primary = palette.mauve;
+                      on_primary = palette.base;
+                      secondary = palette.subtext0;
+                      on_secondary = palette.base;
+                      tertiary = palette.lavender;
+                      on_tertiary = palette.base;
+                      error = palette.red;
+                      on_error = palette.base;
+                      surface = palette.base;
+                      on_surface = palette.text;
+                      surface_variant = palette.surface0;
+                      on_surface_variant = palette.subtext0;
+                      outline = palette.overlay1;
                       shadow = "#000000";
-                      hover = "#cba6f7";
-                      on_hover = "#1e1e2e";
+                      hover = palette.mauve;
+                      on_hover = palette.base;
                     };
                   };
                 };
@@ -221,7 +222,21 @@ let
               ghostty.enable = true;
               opencode.enable = true;
               devenv.enable = true;
-              niri.enable = true;
+              niri = {
+                enable = true;
+                # Match the greeter (below) and lock screen (stylix -> hyprlock).
+                wallpaper = config.stylix.image;
+                settings = {
+                  # The MSI MAG401QR reports 60 Hz as its preferred mode, so force
+                  # the 155 Hz mode. Must match `niri msg outputs` down to three
+                  # decimals.
+                  outputs."DP-3".mode = "3440x1440@155.000";
+                  # NVIDIA: force a full modeset on resume. Without this, waking
+                  # from suspend leaves niri's DRM output corrupted and the screen
+                  # freezes/greys on the first redraw after unlock.
+                  debug."force-disable-connectors-on-resume" = _: { };
+                };
+              };
               noctalia.enable = true;
               lock.enable = true;
               hiddenApps.enable = true;
