@@ -5,20 +5,25 @@ let
   };
   # Plugin dependencies that must be on $PATH inside tmux: tmux-yank needs a
   # system-clipboard tool on Linux (macOS ships pbcopy). jq is used by the
-  # tmux-agent-status patch to read opencode-session-status state files. The
-  # session switcher uses tv (television), which is its own feature module.
+  # opencode bridge to read opencode-session-status state files. The fzf
+  # switcher (prefix+S) needs fzf, and the collector serializes itself with
+  # flock (util-linux on Linux; macOS falls back to Perl).
   tmuxDeps =
     { lib, pkgs }:
     with pkgs;
     [
+      fzf
       jq
     ]
-    ++ lib.optionals pkgs.stdenv.hostPlatform.isLinux [ wl-clipboard ];
-  # tmux-ssh-split and tmux-agent-status are not yet in nixpkgs' tmuxPlugins,
-  # so build them from upstream tarballs. Each is a tmux plugin with an .rtp
-  # passthru so home-manager can run-shell it like any other plugin.
-  # tmux-ssh-split is upstream (its pgid-based detection works outside the
-  # devenv nested-pty case, which we don't support for SSH splits).
+    ++ lib.optionals pkgs.stdenv.hostPlatform.isLinux [
+      wl-clipboard
+      util-linux
+    ];
+  # tmux-ssh-split and samleeney/tmux-agent-status are not yet in nixpkgs'
+  # tmuxPlugins, so build them from upstream tarballs. Each is a tmux plugin
+  # with an .rtp passthru so home-manager can run-shell it like any other
+  # plugin. tmux-ssh-split is upstream (its pgid-based detection works outside
+  # the devenv nested-pty case, which we don't support for SSH splits).
   sshSplit =
     { pkgs }:
     pkgs.stdenvNoCC.mkDerivation (finalAttrs: {
@@ -46,45 +51,46 @@ let
         license = pkgs.lib.licenses.gpl3;
       };
     });
+  # opencode is tracked via the opencode-session-status event plugin (its JSON
+  # is keyed by TMUX_PANE), which the appended bridge maps onto the per-pane
+  # status files this plugin's collector reads. claude/codex/devin are
+  # presence-detected automatically; hook-based live states need their per-CLI
+  # hooks configured, which nixconf does not manage.
+  opencodeBridgeSrc = builtins.readFile ../../config/tmux/patches/opencode-bridge.sh;
   agentStatus =
     { pkgs }:
     let
-      # TMUX_PANE-env fallback for agents on a nested pty, appended to
-      # classify.sh at build time (see the file for the rationale).
-      classifyPatch = pkgs.writeText "agent-status-classify.sh" (
-        builtins.readFile ../../config/tmux/patches/agent-status-classify.sh
-      );
+      opencodeBridge = pkgs.writeText "opencode-bridge.sh" opencodeBridgeSrc;
     in
     pkgs.stdenvNoCC.mkDerivation (finalAttrs: {
       pname = "tmuxplugins-agent-status";
-      version = "bc7364f";
+      version = "c5babfbc";
       src = pkgs.fetchurl {
-        url = "https://github.com/RatulMaharaj/tmux-agent-status/archive/${finalAttrs.version}.tar.gz";
-        hash = "sha256-CitAh7sEtwpd0JIQ9ASCgevSpOCiwQAN6KrzT5y9c4c=";
+        url = "https://github.com/samleeney/tmux-agent-status/archive/${finalAttrs.version}.tar.gz";
+        hash = "sha256-aN53VqMjccpgJsSrPMAY6ZXC8D/DJSnwWFqYuS+hego=";
       };
       dontBuild = true;
       # Needed in the sandbox so installPhase can `cat` it.
-      nativeBuildInputs = [ classifyPatch ];
+      nativeBuildInputs = [ opencodeBridge ];
       installPhase = ''
         runHook preInstall
         mkdir -p $out/share/tmux-plugins/tmux-agent-status
-        cp -r agent-status.tmux lib scripts README.md LICENSE $out/share/tmux-plugins/tmux-agent-status/
-        cat ${classifyPatch} >> $out/share/tmux-plugins/tmux-agent-status/lib/classify.sh
-        # keep the badge minimal: dot only (space+●), no "(working)" label, and
-        # always carry the state so our colour conditional works for every agent.
-        sed -i \
-          -e 's|@agent_status "\$icon (\$label) "|@agent_status " ●"|' \
-          -e 's|@agent_status "\$icon "|@agent_status " ●"|' \
-          -e 's|tmux set-option -wu -t "\$window_id" @agent_status_state 2>/dev/null|tmux set-option -w -t "\$window_id" @agent_status_state "\$best_state"|' \
-          $out/share/tmux-plugins/tmux-agent-status/scripts/refresh.sh
-        chmod +x $out/share/tmux-plugins/tmux-agent-status/agent-status.tmux \
-          $out/share/tmux-plugins/tmux-agent-status/scripts/*.sh
+        cp -r tmux-agent-status.tmux hooks scripts sounds README.md $out/share/tmux-plugins/tmux-agent-status/
+        # opencode bridge: call it at the top of collect_data, then append the
+        # function itself. Writes are tmp+mv + change-only so the collector's
+        # mtime fast-path keeps skipping rebuilds while nothing changes.
+        sed -i '/^collect_data() {$/a\    opencode_state_bridge' \
+          $out/share/tmux-plugins/tmux-agent-status/scripts/lib/collect.sh
+        cat ${opencodeBridge} >> $out/share/tmux-plugins/tmux-agent-status/scripts/lib/collect.sh
+        chmod +x $out/share/tmux-plugins/tmux-agent-status/tmux-agent-status.tmux \
+          $out/share/tmux-plugins/tmux-agent-status/scripts/*.sh \
+          $out/share/tmux-plugins/tmux-agent-status/hooks/*.sh
         runHook postInstall
       '';
-      passthru.rtp = "${finalAttrs.finalPackage}/share/tmux-plugins/tmux-agent-status/agent-status.tmux";
+      passthru.rtp = "${finalAttrs.finalPackage}/share/tmux-plugins/tmux-agent-status/tmux-agent-status.tmux";
       meta = {
-        description = "Live agent status badges (Claude Code, Codex, opencode) in tmux";
-        homepage = "https://github.com/RatulMaharaj/tmux-agent-status";
+        description = "AI agent session manager for tmux: sidebar, fzf switcher, hook-based Claude/Codex status (plus opencode via nixconf bridge)";
+        homepage = "https://github.com/samleeney/tmux-agent-status";
         license = pkgs.lib.licenses.mit;
       };
     });
@@ -124,16 +130,8 @@ let
           extraConfig = ''
             set -g @catppuccin_flavor "mocha"
             set -g @catppuccin_window_status_style "rounded"
-            # Live agent badge (tmux-agent-status) baked INSIDE the window
-            # segment — between the name and the rounded separator — because
-            # the plugin's own append would land after it. Colors follow
-            # catppuccin mocha; empty state (presence-only, e.g. opencode)
-            # falls back to the dim surface colour. Written as literal nested
-            # format text (NOT `#{E:@option}`): tmux only single-substitutes
-            # option references, but recursively expands text baked into the
-            # window-status-format by catppuccin at build time.
-            set -g @catppuccin_window_text " #W#[fg=#{?#{==:#{@agent_status_state},working},#f9e2af,#{?#{==:#{@agent_status_state},blocked},#f38ba8,#{?#{==:#{@agent_status_state},done},#89b4fa,#{?#{==:#{@agent_status_state},idle},#a6e3a1,#565f89}}}}]#{@agent_status}#[fg=default]"
-            set -g @catppuccin_window_current_text " #W#[fg=#{?#{==:#{@agent_status_state},working},#f9e2af,#{?#{==:#{@agent_status_state},blocked},#f38ba8,#{?#{==:#{@agent_status_state},done},#89b4fa,#{?#{==:#{@agent_status_state},idle},#a6e3a1,#565f89}}}}]#{@agent_status}#[fg=default]"
+            set -g @catppuccin_window_text " #W"
+            set -g @catppuccin_window_current_text " #W"
             set -g @catppuccin_window_flags "none"
             set -g @catppuccin_status_left_separator ""
             set -g @catppuccin_status_right_separator ""
@@ -143,22 +141,14 @@ let
         { plugin = yank; }
         { plugin = open; }
         {
-          # Live agent status badges (Claude Code/Codex/opencode) in the status
-          # bar + window chooser, polled by a daemon. Statusbar append is off:
-          # catppuccin's window text renders @agent_badge inside the segment.
+          # Live agent status (sidebar + status-line summary) from
+          # samleeney/tmux-agent-status. Agent states come from hooks for
+          # claude/codex/devin and from the opencode-session-status bridge for
+          # opencode. Default keys: prefix+S switcher, prefix+o sidebar,
+          # prefix+N next done, prefix+W wait, prefix+p park.
           plugin = agentStatusPkg;
           extraConfig = ''
-            set -g @agent_status_agents "claude codex opencode .opencode-wrapp"
-            # Plain dot glyph (not an emoji) so the state fg colour applies to
-            # the icon itself: yellow=working, red=blocked, green=idle.
-            set -g @agent_status_icon "●"
-            set -g @agent_status_color_working "#f9e2af"
-            set -g @agent_status_color_blocked "#f38ba8"
-            set -g @agent_status_color_done "#89b4fa"
-            set -g @agent_status_color_idle "#a6e3a1"
-            set -g @agent_status_statusbar off
-            set -g @agent_status_notify "${if pkgs.stdenv.hostPlatform.isDarwin then "done blocked" else ""}"
-            set -g @agent_status_rename off
+            set -g @agent-notification-sound none
           '';
         }
         {
@@ -185,17 +175,20 @@ let
         # tmux to the outer terminal (Ghostty/kitty/wezterm).
         set -g allow-passthrough on
         set -g default-command "${pkgs.zsh}/bin/zsh -l"
+        # tmux-agent-status' pulses and sidebar need a 1s status-interval.
+        set -g status-interval 1
         # Continuum drives its periodic auto-save off a `#()` hook in the status
         # line. We own status-right here (catppuccin), so re-inject the hook;
         # otherwise the theme overwriting status-right silently kills auto-save.
-        set -g status-right "#(${pkgs.tmuxPlugins.continuum}/share/tmux-plugins/continuum/scripts/continuum_save.sh)#{E:@catppuccin_status_user}#{E:@catppuccin_status_host}#{E:@catppuccin_status_session}"
+        # tmux-agent-status' status-line summary is injected the same way (its
+        # own status-right append runs before extraConfig and gets overwritten).
+        set -g status-right "#(${agentStatusPkg}/share/tmux-plugins/tmux-agent-status/scripts/status-line.sh) #(${pkgs.tmuxPlugins.continuum}/share/tmux-plugins/continuum/scripts/continuum_save.sh)#{E:@catppuccin_status_user}#{E:@catppuccin_status_host}#{E:@catppuccin_status_session}"
         set -g pane-border-lines simple
         set -g pane-active-border-style "fg=#fab387"
         set -g renumber-windows on
         set -sg escape-time 0
         set -g history-limit 50000
         set -g display-time 4000
-        set -g status-interval 5
         set -g focus-events on
         setw -g aggressive-resize on
         set -g base-index 1
@@ -234,26 +227,30 @@ let
           exec ${../../config/tmux/repo-switcher.sh}
         ''}"
         # SSH host picker: popup -> pick a host from ~/.ssh/config -> attach a
-        # tmux session on it (persistent) or a plain shell.
-        bind S display-popup -w 70% -h 60% -E "${pkgs.writeShellScript "ssh-switcher" (builtins.readFile ../../config/tmux/ssh-switcher.sh)}"
+        # tmux session on it (persistent) or a plain shell. Bound to h (not S:
+        # prefix+S belongs to the tmux-agent-status fzf target switcher).
+        bind h display-popup -w 70% -h 60% -E "${pkgs.writeShellScript "ssh-switcher" (builtins.readFile ../../config/tmux/ssh-switcher.sh)}"
         # Session/window switcher on tv (television), same pattern as R. The
         # script content is inlined via readFile so the store wrapper is
         # executable regardless of the git mode of the source file.
         bind F display-popup -w 70% -h 60% -E "${pkgs.writeShellScript "session-switcher" (builtins.readFile ../../config/tmux/session-switcher.sh)}"
+        # Keybinding reference: prefix+? dumps every binding, paged.
+        bind ? display-popup -w 90% -h 90% -E "${pkgs.writeShellScript "list-keys" ''
+          tmux list-keys | ${pkgs.less}/bin/less -R
+        ''}"
         bind d display-menu -T "#[align=centre]Nixconf" -x C -y C \
           "New session" n "display-popup -d '#{pane_current_path}' -E 'exec bash ${../../config/tmux/nixconf-menu.sh} new-session'" \
           "Switch repo"  r "display-popup -w 70% -h 60% -E 'exec bash ${../../config/tmux/nixconf-menu.sh} repo-switch'" \
           "Sessions"     s "display-popup -d '#{pane_current_path}' -E 'exec bash ${../../config/tmux/nixconf-menu.sh} sessions'" \
           "Lazygit"      l "display-popup -d '#{pane_current_path}' -w 80% -h 60% -E 'exec bash ${../../config/tmux/nixconf-menu.sh} lazygit'" \
           "Yazi"         y "display-popup -d '#{pane_current_path}' -w 80% -h 60% -E 'exec bash ${../../config/tmux/nixconf-menu.sh} yazi'" \
-          "OpenCode"     o "new-window -c '#{pane_current_path}' 'opencode'" \
           "SSH host"     h "display-popup -w 70% -h 60% -E 'exec bash ${../../config/tmux/nixconf-menu.sh} ssh'" \
           "Exit"         q ""
         set -g set-titles on
         set -g set-titles-string "#S - #W"
         set -g status-position top
         set -g status-left-length 100
-        set -g status-right-length 100
+        set -g status-right-length 140
         set -g status-left "#{E:@catppuccin_status_application}"
       '';
     };
@@ -290,6 +287,11 @@ in
         programs.tmux = tmuxCfg { inherit pkgs; };
         programs.zsh.shellAliases = tmuxAliases;
         home.packages = tmuxDeps { inherit lib pkgs; };
+        # The plugin's scripts need bash 4+ (associative arrays); macOS ships
+        # bash 3.2, so point the plugin at nixpkgs' bash.
+        home.sessionVariables = lib.mkIf pkgs.stdenv.hostPlatform.isDarwin {
+          TMUX_AGENT_STATUS_BASH = "${pkgs.bash}/bin/bash";
+        };
       };
     };
 }
