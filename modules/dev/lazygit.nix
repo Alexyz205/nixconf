@@ -26,11 +26,12 @@ let
         markedBaseCommitBgColor = [ "#f9e2af" ];
         unstagedChangesColor = [ "#f38ba8" ];
         defaultFgColor = [ "#cdd6f4" ];
-      };
-      gui.authorColors = {
-        "*" = "#b4befe";
-        Alexyz205 = "#74c7ec";
-        "Alexis Pigeon" = "#74c7ec";
+        # Moved under gui.theme in lazygit 0.66 (was gui.authorColors).
+        authorColors = {
+          "*" = "#b4befe";
+          Alexyz205 = "#74c7ec";
+          "Alexis Pigeon" = "#74c7ec";
+        };
       };
       git.diffRenderers = [
         {
@@ -53,7 +54,15 @@ in
       options.modules.lazygit.enable = lib.mkEnableOption "Lazygit";
       config = lib.mkIf config.modules.lazygit.enable {
         environment.systemPackages = [ pkgs.lazygit ];
-        home-manager.users.${config.modules.users.userName} = homeCfg;
+        home-manager.users.${config.modules.users.userName} =
+          homeCfg
+          // lib.optionalAttrs (config ? stylix) {
+            # We ship our own catppuccin theme; stylix's lazygit target would
+            # concat its gui.theme color lists onto ours (home-manager list
+            # merge), producing doubled/duplicated colors. Same guard as
+            # yazi/starship/bat.
+            stylix.targets.lazygit.enable = false;
+          };
       };
     };
 
