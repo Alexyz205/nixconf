@@ -1,5 +1,5 @@
 _: {
-  flake.modules.darwin.defaults =
+  nixconf.modules.darwin.defaults =
     {
       config,
       lib,

@@ -105,7 +105,7 @@ let
   };
 in
 {
-  flake.modules.nixos.git =
+  nixconf.modules.nixos.git =
     {
       config,
       lib,
@@ -131,7 +131,7 @@ in
       };
     };
 
-  flake.modules.homeManager.git =
+  nixconf.modules.homeManager.git =
     {
       config,
       lib,

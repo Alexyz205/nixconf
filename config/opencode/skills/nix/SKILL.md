@@ -28,7 +28,7 @@ owns its `enable` option, packages, and aliases:
 
 ```nix
 {
-  flake.modules.nixos.lazygit = { config, pkgs, ... }: {
+  nixconf.modules.nixos.lazygit = { config, pkgs, ... }: {
     options.modules.lazygit.enable = lib.mkEnableOption "Lazygit";
     config = lib.mkIf config.modules.lazygit.enable {
       environment.systemPackages = [ pkgs.lazygit ];
@@ -36,7 +36,7 @@ owns its `enable` option, packages, and aliases:
     };
   };
 
-  flake.modules.homeManager.lazygit = { pkgs, ... }: {
+  nixconf.modules.homeManager.lazygit = { pkgs, ... }: {
     home.packages = [ pkgs.lazygit ];
   };
 }
@@ -48,7 +48,7 @@ owns its `enable` option, packages, and aliases:
 
 ## Composition Tiers
 
-- `config.flake.modules.nixos` collects every feature module (from `import-tree`)
+- `config.nixconf.modules.nixos` collects every feature module (from `import-tree`)
 - `flake/nixos.nix` bundles them into tiers: `nixosFeatures.base` → `server` → `desktop` (each extends the previous)
 - `flake/home-manager.nix` composes `baseModules` + `extras` (each extra = module + `enable` flag)
 - Compose features into tiers instead of listing every module in every host

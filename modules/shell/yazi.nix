@@ -551,7 +551,7 @@ let
   };
 in
 {
-  flake.modules.nixos.yazi =
+  nixconf.modules.nixos.yazi =
     {
       config,
       lib,
@@ -573,7 +573,7 @@ in
       };
     };
 
-  flake.modules.homeManager.yazi =
+  nixconf.modules.homeManager.yazi =
     {
       config,
       lib,

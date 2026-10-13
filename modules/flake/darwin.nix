@@ -4,10 +4,10 @@
   ...
 }:
 let
-  features = config.flake.modules.darwin;
+  features = config.nixconf.modules.darwin;
   # Flake-level overlays. The inner nix-darwin module shadows `config`, so bind
   # the flake config first.
-  flakeOverlays = config.flake.modules.overlays;
+  flakeOverlays = config.nixconf.modules.overlays;
 
   # Shared nix-darwin boilerplate: host identity + home-manager wiring that
   # every darwin host repeats. Keeps hosts to their deltas only.
@@ -53,7 +53,12 @@ let
     };
 in
 {
-  config.flake = {
+  config.flake-file.inputs.nix-darwin = {
+    url = "github:LnL7/nix-darwin";
+    inputs.nixpkgs.follows = "nixpkgs";
+  };
+
+  config.nixconf = {
     darwinFeatures = {
       # Everything the macOS hosts share: base system, nix, defaults, security,
       # Homebrew and fonts. Hosts add only their deltas.

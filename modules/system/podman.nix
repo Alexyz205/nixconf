@@ -1,5 +1,5 @@
 _: {
-  flake.modules.nixos.podman =
+  nixconf.modules.nixos.podman =
     {
       config,
       lib,

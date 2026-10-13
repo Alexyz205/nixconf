@@ -42,7 +42,7 @@ let
   };
 in
 {
-  flake.modules.nixos.ghostty =
+  nixconf.modules.nixos.ghostty =
     {
       config,
       lib,
@@ -56,7 +56,7 @@ in
       };
     };
 
-  flake.modules.homeManager.ghostty =
+  nixconf.modules.homeManager.ghostty =
     {
       config,
       pkgs,

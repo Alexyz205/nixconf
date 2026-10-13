@@ -4,7 +4,7 @@
   ...
 }:
 let
-  hmModules = with config.flake.modules.homeManager; [
+  hmModules = with config.nixconf.modules.homeManager; [
     packages
     nix
     shell
@@ -33,7 +33,7 @@ in
     modules = [
       { nixpkgs.hostPlatform = "aarch64-darwin"; }
       inputs.home-manager.darwinModules.home-manager
-      (config.flake.mkDarwinCommon {
+      (config.nixconf.mkDarwinCommon {
         hostName = "macbook";
         systemStateVersion = 7;
         homeStateVersion = "26.05";
@@ -75,7 +75,7 @@ in
         };
       })
     ]
-    ++ config.flake.darwinFeatures.base
+    ++ config.nixconf.darwinFeatures.base
     ++ [
       {
         modules = {

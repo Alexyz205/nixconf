@@ -37,7 +37,7 @@ let
     };
 in
 {
-  flake.modules.nixos.ssh =
+  nixconf.modules.nixos.ssh =
     {
       config,
       lib,
@@ -59,5 +59,5 @@ in
       };
     };
 
-  flake.modules.homeManager.ssh = sshClient;
+  nixconf.modules.homeManager.ssh = sshClient;
 }

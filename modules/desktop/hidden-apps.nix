@@ -1,5 +1,5 @@
 _: {
-  flake.modules.nixos.hiddenApps =
+  nixconf.modules.nixos.hiddenApps =
     {
       config,
       lib,

@@ -44,7 +44,7 @@ let
     };
 in
 {
-  flake.modules.nixos.opencode =
+  nixconf.modules.nixos.opencode =
     {
       config,
       lib,
@@ -59,7 +59,7 @@ in
       };
     };
 
-  flake.modules.homeManager.opencode =
+  nixconf.modules.homeManager.opencode =
     {
       config,
       lib,

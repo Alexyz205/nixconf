@@ -1,5 +1,5 @@
 _: {
-  flake.modules.nixos.swayimg =
+  nixconf.modules.nixos.swayimg =
     {
       config,
       lib,
@@ -13,7 +13,7 @@ _: {
       };
     };
 
-  flake.modules.homeManager.swayimg =
+  nixconf.modules.homeManager.swayimg =
     {
       config,
       lib,

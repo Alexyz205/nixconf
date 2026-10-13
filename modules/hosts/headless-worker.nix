@@ -6,9 +6,9 @@
 let
   system = "x86_64-linux";
   yubiPub = ../../config/ssh/id_ed25519_sk_rk_alexis-perso.pub;
-  features = config.flake.nixosFeatures.server;
-  mkBtrfsLayout = config.flake.mkBtrfsLayout;
-  mkHostCommon = config.flake.mkHostCommon;
+  features = config.nixconf.nixosFeatures.server;
+  mkBtrfsLayout = config.nixconf.mkBtrfsLayout;
+  mkHostCommon = config.nixconf.mkHostCommon;
 
   mkServer =
     {

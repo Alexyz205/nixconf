@@ -5,8 +5,8 @@
 }:
 let
   system = "x86_64-linux";
-  features = config.flake.nixosFeatures.desktop;
-  mkHostCommon = config.flake.mkHostCommon;
+  features = config.nixconf.nixosFeatures.desktop;
+  mkHostCommon = config.nixconf.mkHostCommon;
   palette = import ../../config/theme/catppuccin-mocha.nix;
 
   mkWorkstation =
@@ -28,7 +28,7 @@ let
       ]
       ++ features
       ++ [
-        config.flake.modules.nixos.networkTuning
+        config.nixconf.modules.nixos.networkTuning
         (
           {
             config,
@@ -326,6 +326,11 @@ let
     };
 in
 {
+  flake-file.inputs.stylix = {
+    url = "github:danth/stylix";
+    inputs.nixpkgs.follows = "nixpkgs";
+  };
+
   flake.nixosConfigurations.workstation = mkWorkstation {
     hostName = "workstation";
   };

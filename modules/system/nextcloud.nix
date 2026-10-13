@@ -120,7 +120,7 @@ let
     };
 in
 {
-  flake.modules.nixos.nextcloud =
+  nixconf.modules.nixos.nextcloud =
     {
       config,
       lib,
@@ -199,5 +199,5 @@ in
       };
     };
 
-  flake.modules.homeManager.nextcloud = mkHomeModule "nextcloud" "davfs";
+  nixconf.modules.homeManager.nextcloud = mkHomeModule "nextcloud" "davfs";
 }

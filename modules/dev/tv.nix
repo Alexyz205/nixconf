@@ -13,7 +13,7 @@ let
     };
 in
 {
-  flake.modules.nixos.tv =
+  nixconf.modules.nixos.tv =
     {
       config,
       lib,
@@ -28,7 +28,7 @@ in
       };
     };
 
-  flake.modules.homeManager.tv =
+  nixconf.modules.homeManager.tv =
     {
       config,
       lib,

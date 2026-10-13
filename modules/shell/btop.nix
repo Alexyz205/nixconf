@@ -74,7 +74,7 @@ let
   };
 in
 _: {
-  flake.modules.nixos.btop =
+  nixconf.modules.nixos.btop =
     {
       config,
       lib,
@@ -102,7 +102,7 @@ _: {
       );
     };
 
-  flake.modules.homeManager.btop =
+  nixconf.modules.homeManager.btop =
     {
       config,
       lib,

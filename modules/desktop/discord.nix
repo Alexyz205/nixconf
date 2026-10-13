@@ -1,5 +1,5 @@
 _: {
-  flake.modules.nixos.discord =
+  nixconf.modules.nixos.discord =
     {
       config,
       lib,

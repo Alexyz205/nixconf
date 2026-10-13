@@ -1,6 +1,7 @@
 {
   config,
   inputs,
+  lib,
   self,
   ...
 }:
@@ -13,7 +14,7 @@ in
     specialArgs = { inherit diskoPkg; };
     modules = [
       "${inputs.nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix"
-      { nixpkgs.overlays = config.flake.modules.overlays; }
+      { nixpkgs.overlays = config.nixconf.modules.overlays; }
       (
         {
           pkgs,
@@ -321,6 +322,10 @@ in
           services.openssh.enable = true;
           users.users.root = {
             password = "nixos";
+            # The install-CD profile sets initialHashedPassword = ""; force it
+            # null so only `password` is set (silences the multiple-password
+            # options warning without changing root login).
+            initialHashedPassword = lib.mkForce null;
           };
 
           environment.etc."yubi-age-identity".source = ../../config/sops/yubi-age-identity;

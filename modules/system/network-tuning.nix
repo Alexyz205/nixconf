@@ -1,5 +1,5 @@
 _: {
-  flake.modules.nixos.networkTuning =
+  nixconf.modules.nixos.networkTuning =
     {
       config,
       pkgs,

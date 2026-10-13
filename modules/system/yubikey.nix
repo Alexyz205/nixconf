@@ -39,7 +39,7 @@ let
     };
 in
 {
-  flake.modules.nixos.yubikey =
+  nixconf.modules.nixos.yubikey =
     {
       config,
       lib,
@@ -116,7 +116,7 @@ in
       };
     };
 
-  flake.modules.homeManager.yubikey =
+  nixconf.modules.homeManager.yubikey =
     {
       config,
       lib,

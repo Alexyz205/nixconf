@@ -173,7 +173,7 @@ let
     };
 in
 {
-  flake.modules.nixos.brave =
+  nixconf.modules.nixos.brave =
     {
       config,
       lib,
@@ -186,7 +186,7 @@ in
       };
     };
 
-  flake.modules.homeManager.brave =
+  nixconf.modules.homeManager.brave =
     {
       config,
       lib,

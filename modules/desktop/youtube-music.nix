@@ -1,5 +1,5 @@
 _: {
-  flake.modules.nixos.youtubeMusic =
+  nixconf.modules.nixos.youtubeMusic =
     {
       config,
       lib,
@@ -13,7 +13,7 @@ _: {
       };
     };
 
-  flake.modules.homeManager.youtubeMusic =
+  nixconf.modules.homeManager.youtubeMusic =
     {
       config,
       lib,

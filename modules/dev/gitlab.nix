@@ -32,7 +32,7 @@ let
   };
 in
 {
-  flake.modules.nixos.gitlab =
+  nixconf.modules.nixos.gitlab =
     {
       config,
       lib,
@@ -55,7 +55,7 @@ in
       };
     };
 
-  flake.modules.homeManager.gitlab =
+  nixconf.modules.homeManager.gitlab =
     {
       config,
       lib,

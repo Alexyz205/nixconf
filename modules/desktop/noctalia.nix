@@ -188,7 +188,7 @@ in
     else
       { };
 
-  flake.modules.nixos.noctalia =
+  nixconf.modules.nixos.noctalia =
     {
       config,
       lib,

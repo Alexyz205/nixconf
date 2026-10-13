@@ -44,7 +44,7 @@ let
   };
 in
 {
-  flake.modules.nixos.lazygit =
+  nixconf.modules.nixos.lazygit =
     {
       config,
       lib,
@@ -67,7 +67,7 @@ in
       };
     };
 
-  flake.modules.homeManager.lazygit =
+  nixconf.modules.homeManager.lazygit =
     {
       config,
       lib,

@@ -46,7 +46,7 @@ in
   # Overlays applied to every host/profile's pkgs. Shared through the flake
   # `modules` namespace (freeform raw attrset) and threaded into home-manager
   # and each nixosSystem's nixpkgs.overlays.
-  flake.modules.overlays = [
+  nixconf.modules.overlays = [
     (final: prev: {
       fetchgit = prev.fetchgit.override {
         config = {
@@ -64,7 +64,7 @@ in
     })
   ];
 
-  flake.modules.nixos.nix =
+  nixconf.modules.nixos.nix =
     {
       config,
       lib,
@@ -83,7 +83,7 @@ in
       };
     };
 
-  flake.modules.homeManager.nix =
+  nixconf.modules.homeManager.nix =
     {
       config,
       lib,

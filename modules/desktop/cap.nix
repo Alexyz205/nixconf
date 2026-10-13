@@ -71,7 +71,7 @@ in
     else
       { };
 
-  flake.modules.nixos.cap =
+  nixconf.modules.nixos.cap =
     {
       config,
       lib,
@@ -85,7 +85,7 @@ in
       };
     };
 
-  flake.modules.homeManager.cap =
+  nixconf.modules.homeManager.cap =
     {
       config,
       lib,

@@ -328,6 +328,8 @@ let
     };
 in
 {
+  flake-file.inputs.wrapper-modules.url = "github:BirdeeHub/nix-wrapper-modules";
+
   perSystem =
     {
       pkgs,
@@ -346,7 +348,7 @@ in
     else
       { };
 
-  flake.modules.nixos.niri =
+  nixconf.modules.nixos.niri =
     {
       config,
       lib,

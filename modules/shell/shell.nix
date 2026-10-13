@@ -262,7 +262,7 @@ let
     };
 in
 {
-  flake.modules.nixos.shell =
+  nixconf.modules.nixos.shell =
     {
       config,
       lib,
@@ -285,7 +285,7 @@ in
       };
     };
 
-  flake.modules.homeManager.shell =
+  nixconf.modules.homeManager.shell =
     args@{
       config,
       lib,

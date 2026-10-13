@@ -51,7 +51,7 @@ let
     };
 in
 {
-  flake.modules.nixos.containers =
+  nixconf.modules.nixos.containers =
     {
       config,
       lib,
@@ -72,7 +72,7 @@ in
       };
     };
 
-  flake.modules.homeManager.containers =
+  nixconf.modules.homeManager.containers =
     {
       config,
       lib,

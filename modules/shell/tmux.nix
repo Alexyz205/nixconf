@@ -238,7 +238,7 @@ let
     };
 in
 {
-  flake.modules.nixos.tmux =
+  nixconf.modules.nixos.tmux =
     {
       config,
       lib,
@@ -256,7 +256,7 @@ in
       };
     };
 
-  flake.modules.homeManager.tmux =
+  nixconf.modules.homeManager.tmux =
     {
       config,
       lib,

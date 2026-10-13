@@ -5,7 +5,7 @@ let
   };
 in
 _: {
-  flake.modules.nixos.zoxide =
+  nixconf.modules.nixos.zoxide =
     {
       config,
       lib,
@@ -20,7 +20,7 @@ _: {
       };
     };
 
-  flake.modules.homeManager.zoxide =
+  nixconf.modules.homeManager.zoxide =
     {
       config,
       lib,

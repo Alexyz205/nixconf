@@ -6,10 +6,15 @@
 let
   envFile = ../../secrets/env.yaml;
   yubiIdentity = ../../config/sops/yubi-age-identity;
-  homeSopsModule = config.flake.modules.homeManager.sops;
+  homeSopsModule = config.nixconf.modules.homeManager.sops;
 in
 {
-  flake.modules.nixos.sops =
+  flake-file.inputs.sops-nix = {
+    url = "github:Mic92/sops-nix";
+    inputs.nixpkgs.follows = "nixpkgs";
+  };
+
+  nixconf.modules.nixos.sops =
     {
       config,
       lib,
@@ -60,7 +65,7 @@ in
       };
     };
 
-  flake.modules.homeManager.sops =
+  nixconf.modules.homeManager.sops =
     {
       config,
       lib,

@@ -91,7 +91,7 @@ let
     };
 in
 {
-  flake.modules.nixos.thunderbird =
+  nixconf.modules.nixos.thunderbird =
     {
       config,
       pkgs,
@@ -108,7 +108,7 @@ in
       };
     };
 
-  flake.modules.homeManager.thunderbird =
+  nixconf.modules.homeManager.thunderbird =
     {
       config,
       pkgs,

@@ -159,7 +159,7 @@ in
       packages = builtins.mapAttrs (name: _: mkArtCraft pkgs name) apps;
     };
 
-  flake.modules = {
+  nixconf.modules = {
     nixos = builtins.mapAttrs (name: _: mkFeature "environment.systemPackages" name) apps;
     homeManager = builtins.mapAttrs (name: _: mkFeature "home.packages" name) apps;
   };

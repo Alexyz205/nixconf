@@ -1,5 +1,5 @@
 _: {
-  flake.modules.darwin.fonts =
+  nixconf.modules.darwin.fonts =
     {
       config,
       lib,

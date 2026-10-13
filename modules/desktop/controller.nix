@@ -1,5 +1,5 @@
 {
-  flake.modules.nixos.controller =
+  nixconf.modules.nixos.controller =
     {
       config,
       lib,

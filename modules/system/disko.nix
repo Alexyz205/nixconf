@@ -2,7 +2,7 @@ _:
 let
   # Shared btrfs layout: the subvolume set every disko-managed host uses.
   # `luks = true` wraps it in a LUKS container (workstation); bare otherwise
-  # (headless-worker). Exposed as config.flake.mkBtrfsLayout for hosts to reuse.
+  # (headless-worker). Exposed as config.nixconf.mkBtrfsLayout for hosts to reuse.
   btrfsLayout =
     {
       swapSize ? "8G",
@@ -53,9 +53,15 @@ let
       fs;
 in
 {
-  flake.mkBtrfsLayout = btrfsLayout;
+  # This feature owns the disko input; hosts import its nixosModule.
+  flake-file.inputs.disko = {
+    url = "github:nix-community/disko/master";
+    inputs.nixpkgs.follows = "nixpkgs";
+  };
 
-  flake.modules.nixos.disko =
+  nixconf.mkBtrfsLayout = btrfsLayout;
+
+  nixconf.modules.nixos.disko =
     {
       config,
       lib,

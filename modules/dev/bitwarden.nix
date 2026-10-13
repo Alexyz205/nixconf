@@ -93,7 +93,7 @@ let
     };
 in
 {
-  flake.modules.nixos.bitwarden =
+  nixconf.modules.nixos.bitwarden =
     {
       config,
       pkgs,
@@ -112,7 +112,7 @@ in
       };
     };
 
-  flake.modules.homeManager.bitwarden =
+  nixconf.modules.homeManager.bitwarden =
     {
       config,
       pkgs,

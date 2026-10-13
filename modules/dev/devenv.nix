@@ -12,7 +12,7 @@ let
     };
 in
 {
-  flake.modules.nixos.devenv =
+  nixconf.modules.nixos.devenv =
     {
       config,
       lib,
@@ -29,7 +29,7 @@ in
       };
     };
 
-  flake.modules.homeManager.devenv =
+  nixconf.modules.homeManager.devenv =
     {
       config,
       lib,

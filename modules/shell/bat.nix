@@ -8,7 +8,7 @@ let
   };
 in
 {
-  flake.modules.nixos.bat =
+  nixconf.modules.nixos.bat =
     {
       config,
       lib,
@@ -28,7 +28,7 @@ in
       };
     };
 
-  flake.modules.homeManager.bat =
+  nixconf.modules.homeManager.bat =
     {
       config,
       lib,

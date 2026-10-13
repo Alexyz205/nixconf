@@ -1,5 +1,5 @@
 {
-  flake.modules.nixos.heroic =
+  nixconf.modules.nixos.heroic =
     {
       config,
       lib,

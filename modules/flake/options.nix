@@ -17,12 +17,12 @@
       }:
       {
         _module.args.pkgs = inputs.nixpkgs.legacyPackages.${system}.extend (
-          inputs.nixpkgs.lib.composeManyExtensions config.flake.modules.overlays
+          inputs.nixpkgs.lib.composeManyExtensions config.nixconf.modules.overlays
         );
       };
   };
 
-  options.flake.modules = {
+  options.nixconf.modules = {
     nixos = inputs.nixpkgs.lib.mkOption {
       type = inputs.nixpkgs.lib.types.lazyAttrsOf inputs.nixpkgs.lib.types.raw;
       default = { };
@@ -35,5 +35,30 @@
       type = inputs.nixpkgs.lib.types.lazyAttrsOf inputs.nixpkgs.lib.types.raw;
       default = { };
     };
+    overlays = inputs.nixpkgs.lib.mkOption {
+      type = inputs.nixpkgs.lib.types.listOf inputs.nixpkgs.lib.types.raw;
+      default = [ ];
+    };
+  };
+
+  # Private namespace for internal helpers. Kept OFF `config.flake.*` so
+  # flake-parts does not expose them as top-level flake outputs (which makes
+  # `nix flake check` warn about unknown outputs).
+  options.nixconf = {
+    nixosFeatures = inputs.nixpkgs.lib.mkOption {
+      type = inputs.nixpkgs.lib.types.lazyAttrsOf (
+        inputs.nixpkgs.lib.types.listOf inputs.nixpkgs.lib.types.raw
+      );
+      default = { };
+    };
+    darwinFeatures = inputs.nixpkgs.lib.mkOption {
+      type = inputs.nixpkgs.lib.types.lazyAttrsOf (
+        inputs.nixpkgs.lib.types.listOf inputs.nixpkgs.lib.types.raw
+      );
+      default = { };
+    };
+    mkHostCommon = inputs.nixpkgs.lib.mkOption { type = inputs.nixpkgs.lib.types.raw; };
+    mkDarwinCommon = inputs.nixpkgs.lib.mkOption { type = inputs.nixpkgs.lib.types.raw; };
+    mkBtrfsLayout = inputs.nixpkgs.lib.mkOption { type = inputs.nixpkgs.lib.types.raw; };
   };
 }

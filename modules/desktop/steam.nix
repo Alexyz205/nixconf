@@ -39,7 +39,7 @@ let
     };
 in
 {
-  flake.modules.nixos.steam =
+  nixconf.modules.nixos.steam =
     {
       config,
       lib,

@@ -3,7 +3,7 @@ let
   palette = import ../../config/theme/catppuccin-mocha.nix;
 in
 {
-  flake.modules.nixos.lock =
+  nixconf.modules.nixos.lock =
     {
       config,
       lib,

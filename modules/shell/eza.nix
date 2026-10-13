@@ -21,7 +21,7 @@ let
   };
 in
 _: {
-  flake.modules.nixos.eza =
+  nixconf.modules.nixos.eza =
     {
       config,
       lib,
@@ -36,7 +36,7 @@ _: {
       };
     };
 
-  flake.modules.homeManager.eza =
+  nixconf.modules.homeManager.eza =
     {
       config,
       lib,

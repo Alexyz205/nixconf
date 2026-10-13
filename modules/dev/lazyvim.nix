@@ -173,7 +173,12 @@ let
     };
 in
 {
-  flake.modules.nixos.lazyvim =
+  flake-file.inputs.lazyvim = {
+    url = "github:pfassina/lazyvim-nix";
+    inputs.nixpkgs.follows = "nixpkgs";
+  };
+
+  nixconf.modules.nixos.lazyvim =
     {
       config,
       lib,
@@ -204,7 +209,7 @@ in
       };
     };
 
-  flake.modules.homeManager.lazyvim =
+  nixconf.modules.homeManager.lazyvim =
     {
       config,
       lib,

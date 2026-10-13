@@ -20,7 +20,12 @@ let
     };
 in
 {
-  flake.modules.nixos.claude =
+  flake-file.inputs.claude-desktop = {
+    url = "github:GoByeBye/claude-desktop-nix";
+    inputs.nixpkgs.follows = "nixpkgs";
+  };
+
+  nixconf.modules.nixos.claude =
     {
       config,
       lib,
@@ -37,7 +42,7 @@ in
       };
     };
 
-  flake.modules.homeManager.claude =
+  nixconf.modules.homeManager.claude =
     {
       config,
       lib,

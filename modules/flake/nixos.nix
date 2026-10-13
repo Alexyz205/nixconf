@@ -4,7 +4,7 @@
   ...
 }:
 let
-  features = config.flake.modules.nixos;
+  features = config.nixconf.modules.nixos;
 
   # Shared NixOS host boilerplate: system defaults + home-manager wiring that
   # every disko-managed host repeats. Keeps hosts to their deltas only.
@@ -14,10 +14,10 @@ let
       stateVersion,
     }:
     let
-      sshClient = config.flake.modules.homeManager.ssh;
+      sshClient = config.nixconf.modules.homeManager.ssh;
       # Flake-level overlays (e.g. the fetchgit CA wrapper). The inner NixOS
       # module shadows `config`, so bind the flake config first.
-      flakeOverlays = config.flake.modules.overlays;
+      flakeOverlays = config.nixconf.modules.overlays;
     in
     {
       config,
@@ -50,7 +50,7 @@ let
     };
 in
 {
-  config.flake = {
+  config.nixconf = {
     nixosFeatures = {
       # Terminal-only tooling: the default for every NixOS host with home-manager.
       base = with features; [
@@ -75,7 +75,7 @@ in
       ];
       # Full headless server: base + storage, secrets and the container runtime.
       server =
-        config.flake.nixosFeatures.base
+        config.nixconf.nixosFeatures.base
         ++ (with features; [
           boot
           disko
@@ -86,7 +86,7 @@ in
         ]);
       # Interactive desktop host on top of the server stack.
       desktop =
-        config.flake.nixosFeatures.server
+        config.nixconf.nixosFeatures.server
         ++ (with features; [
           network
           yubikey

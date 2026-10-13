@@ -1,5 +1,5 @@
 _: {
-  flake.modules.nixos.network =
+  nixconf.modules.nixos.network =
     {
       config,
       lib,

@@ -1,5 +1,5 @@
 _: {
-  flake.modules.darwin.homebrew =
+  nixconf.modules.darwin.homebrew =
     {
       config,
       lib,

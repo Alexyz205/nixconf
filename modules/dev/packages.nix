@@ -94,7 +94,7 @@ let
     };
 in
 {
-  flake.modules.nixos.packages =
+  nixconf.modules.nixos.packages =
     {
       config,
       lib,
@@ -111,7 +111,7 @@ in
       };
     };
 
-  flake.modules.homeManager.packages =
+  nixconf.modules.homeManager.packages =
     {
       config,
       lib,

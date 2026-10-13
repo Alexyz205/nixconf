@@ -1,5 +1,5 @@
 _: {
-  flake.modules.nixos.boot =
+  nixconf.modules.nixos.boot =
     {
       config,
       lib,

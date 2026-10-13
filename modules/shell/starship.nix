@@ -221,7 +221,7 @@ let
   };
 in
 {
-  flake.modules.nixos.starship =
+  nixconf.modules.nixos.starship =
     {
       config,
       lib,
@@ -239,7 +239,7 @@ in
       };
     };
 
-  flake.modules.homeManager.starship =
+  nixconf.modules.homeManager.starship =
     {
       config,
       lib,

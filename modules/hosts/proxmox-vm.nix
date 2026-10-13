@@ -7,7 +7,7 @@
 let
   system = "x86_64-linux";
   yubiPub = ../../config/ssh/id_ed25519_sk_rk_alexis-perso.pub;
-  features = with config.flake.modules.nixos; [
+  features = with config.nixconf.modules.nixos; [
     ssh
     users
     nix
@@ -17,7 +17,7 @@ in
   flake.nixosConfigurations.proxmox-vm = inputs.nixpkgs.lib.nixosSystem {
     modules = [
       { nixpkgs.hostPlatform = system; }
-      { nixpkgs.overlays = config.flake.modules.overlays; }
+      { nixpkgs.overlays = config.nixconf.modules.overlays; }
     ]
     ++ features
     ++ [

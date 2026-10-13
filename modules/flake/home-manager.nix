@@ -7,7 +7,7 @@
 let
   # Terminal-only tooling: the default for every host. Nothing GUI, hardware,
   # secret, or platform-specific lives here — those are opt-in extras.
-  baseModules = with config.flake.modules.homeManager; [
+  baseModules = with config.nixconf.modules.homeManager; [
     packages
     nix
     shell
@@ -30,7 +30,7 @@ let
   ];
   # Opt-in extras, each gated by its own `enable` option. Every extra follows
   # the same shape: the feature module + the flag that switches it on.
-  extras = with config.flake.modules.homeManager; {
+  extras = with config.nixconf.modules.homeManager; {
     sops = [
       inputs.sops-nix.homeManagerModules.sops
       sops
@@ -247,7 +247,7 @@ let
       # Apply the flake's overlays (e.g. the fetchgit CA wrapper) so standalone
       # profiles get the same patched fetchers as NixOS hosts.
       pkgs = inputs.nixpkgs.legacyPackages.${system}.extend (
-        inputs.nixpkgs.lib.composeManyExtensions config.flake.modules.overlays
+        inputs.nixpkgs.lib.composeManyExtensions config.nixconf.modules.overlays
       );
       extraSpecialArgs = {
         inherit (inputs) lazyvim;
@@ -274,6 +274,11 @@ let
   }) containerUsers;
 in
 {
+  flake-file.inputs.home-manager = {
+    url = "github:nix-community/home-manager";
+    inputs.nixpkgs.follows = "nixpkgs";
+  };
+
   flake.homeConfigurations = {
     "alexis@macos" = mkHome {
       system = "aarch64-darwin";
