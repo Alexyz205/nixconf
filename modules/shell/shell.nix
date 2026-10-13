@@ -1,5 +1,6 @@
 _:
 let
+  palette = import ../../config/theme/catppuccin-mocha.nix;
   nixconf = "$HOME/repos/personal/nixconf";
   baseAliases = {
     nf = "cd $NIXCONF";
@@ -51,6 +52,8 @@ let
       ...
     }:
     let
+      # eza's theme.yml uses upper-case hex; the palette stores lower-case.
+      c = lib.toUpper;
       environmentVariables = {
         SHELL = "${pkgs.zsh}/bin/zsh";
         VISUAL = "nvim";
@@ -92,12 +95,141 @@ let
           config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/repos/personal/nixconf/config/opencode/agents";
         ".config/opencode/skills".source =
           config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/repos/personal/nixconf/config/opencode/skills";
-        ".config/delta/catppuccin.gitconfig".source =
-          config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/repos/personal/nixconf/config/delta/catppuccin.gitconfig";
+        ".config/delta/catppuccin.gitconfig".text = ''
+          # Generated from config/theme/catppuccin-mocha.nix — do not edit by hand.
+          [delta "catppuccin-mocha"]
+            blame-palette = "${palette.base} ${palette.mantle} ${palette.crust} ${palette.surface0} ${palette.surface1}"
+            commit-decoration-style = "${palette.overlay0} bold box ul"
+            dark = true
+            file-decoration-style = "${palette.overlay0}"
+            file-style = "${palette.text}"
+            hunk-header-decoration-style = "${palette.overlay0} box ul"
+            hunk-header-file-style = bold
+            hunk-header-line-number-style = bold "${palette.subtext0}"
+            hunk-header-style = file line-number syntax
+            line-numbers-left-style = "${palette.overlay0}"
+            line-numbers-minus-style = bold "${palette.red}"
+            line-numbers-plus-style = bold "${palette.green}"
+            line-numbers-right-style = "${palette.overlay0}"
+            line-numbers-zero-style = "${palette.overlay0}"
+            minus-emph-style = bold syntax "#694559"
+            minus-style = syntax "#493447"
+            plus-emph-style = bold syntax "#4e6356"
+            plus-style = syntax "#394545"
+            map-styles = \
+              bold purple => syntax "#5b4e74", \
+              bold blue => syntax "#445375", \
+              bold cyan => syntax "#446170", \
+              bold yellow => syntax "#6b635b"
+            syntax-theme = Catppuccin Mocha
+        '';
         ".config/git/config-personal".source =
           config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/repos/personal/nixconf/config/git/config-personal";
-        ".config/eza/theme.yml".source =
-          config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/repos/personal/nixconf/config/eza/theme.yml";
+        ".config/eza/theme.yml".text = ''
+          # Generated from config/theme/catppuccin-mocha.nix — do not edit by hand.
+          colourful: true
+
+          filekinds:
+            normal: {foreground: "${c palette.subtext1}"}
+            directory: {foreground: "${c palette.blue}"}
+            symlink: {foreground: "${c palette.sky}"}
+            pipe: {foreground: "${c palette.overlay1}"}
+            block_device: {foreground: "${c palette.maroon}"}
+            char_device: {foreground: "${c palette.maroon}"}
+            socket: {foreground: "${c palette.surface2}"}
+            special: {foreground: "${c palette.mauve}"}
+            executable: {foreground: "${c palette.green}"}
+            mount_point: {foreground: "${c palette.sapphire}"}
+
+          perms:
+            user_read: {foreground: "${c palette.text}"}
+            user_write: {foreground: "${c palette.yellow}"}
+            user_execute_file: {foreground: "${c palette.green}"}
+            user_execute_other: {foreground: "${c palette.green}"}
+            group_read: {foreground: "${c palette.subtext1}"}
+            group_write: {foreground: "${c palette.yellow}"}
+            group_execute: {foreground: "${c palette.green}"}
+            other_read: {foreground: "${c palette.subtext0}"}
+            other_write: {foreground: "${c palette.yellow}"}
+            other_execute: {foreground: "${c palette.green}"}
+            special_user_file: {foreground: "${c palette.mauve}"}
+            special_other: {foreground: "${c palette.surface2}"}
+            attribute: {foreground: "${c palette.subtext0}"}
+
+          size:
+            major: {foreground: "${c palette.subtext0}"}
+            minor: {foreground: "${c palette.sky}"}
+            number_byte: {foreground: "${c palette.text}"}
+            number_kilo: {foreground: "${c palette.subtext1}"}
+            number_mega: {foreground: "${c palette.blue}"}
+            number_giga: {foreground: "${c palette.mauve}"}
+            number_huge: {foreground: "${c palette.mauve}"}
+            unit_byte: {foreground: "${c palette.subtext0}"}
+            unit_kilo: {foreground: "${c palette.blue}"}
+            unit_mega: {foreground: "${c palette.mauve}"}
+            unit_giga: {foreground: "${c palette.mauve}"}
+            unit_huge: {foreground: "${c palette.sapphire}"}
+
+          users:
+            user_you: {foreground: "${c palette.text}"}
+            user_root: {foreground: "${c palette.red}"}
+            user_other: {foreground: "${c palette.mauve}"}
+            group_yours: {foreground: "${c palette.subtext1}"}
+            group_other: {foreground: "${c palette.overlay1}"}
+            group_root: {foreground: "${c palette.red}"}
+
+          links:
+            normal: {foreground: "${c palette.sky}"}
+            multi_link_file: {foreground: "${c palette.sapphire}"}
+
+          git:
+            new: {foreground: "${c palette.green}"}
+            modified: {foreground: "${c palette.yellow}"}
+            deleted: {foreground: "${c palette.red}"}
+            renamed: {foreground: "${c palette.teal}"}
+            typechange: {foreground: "${c palette.pink}"}
+            ignored: {foreground: "${c palette.overlay1}"}
+            conflicted: {foreground: "${c palette.maroon}"}
+
+          git_repo:
+            branch_main: {foreground: "${c palette.text}"}
+            branch_other: {foreground: "${c palette.mauve}"}
+            git_clean: {foreground: "${c palette.green}"}
+            git_dirty: {foreground: "${c palette.red}"}
+
+          security_context:
+            colon: {foreground: "${c palette.overlay1}"}
+            user: {foreground: "${c palette.subtext1}"}
+            role: {foreground: "${c palette.mauve}"}
+            typ: {foreground: "${c palette.surface2}"}
+            range: {foreground: "${c palette.mauve}"}
+
+          file_type:
+            image: {foreground: "${c palette.yellow}"}
+            video: {foreground: "${c palette.red}"}
+            music: {foreground: "${c palette.green}"}
+            lossless: {foreground: "${c palette.teal}"}
+            crypto: {foreground: "${c palette.surface2}"}
+            document: {foreground: "${c palette.text}"}
+            compressed: {foreground: "${c palette.pink}"}
+            temp: {foreground: "${c palette.maroon}"}
+            compiled: {foreground: "${c palette.sapphire}"}
+            build: {foreground: "${c palette.surface2}"}
+            source: {foreground: "${c palette.blue}"}
+
+          punctuation: {foreground: "${c palette.overlay1}"}
+          date: {foreground: "${c palette.yellow}"}
+          inode: {foreground: "${c palette.subtext0}"}
+          blocks: {foreground: "${c palette.overlay2}"}
+          header: {foreground: "${c palette.text}"}
+          octal: {foreground: "${c palette.teal}"}
+          flags: {foreground: "${c palette.mauve}"}
+
+          symlink_path: {foreground: "${c palette.sky}"}
+          control_char: {foreground: "${c palette.sapphire}"}
+          broken_symlink: {foreground: "${c palette.red}"}
+          broken_path_overlay: {foreground: "${c palette.surface2}"}
+        '';
       };
       programs.zsh = {
         enable = true;
