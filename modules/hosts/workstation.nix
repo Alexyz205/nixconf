@@ -244,6 +244,11 @@ let
               lightcraft.enable = true;
               pdfcraft.enable = true;
               filmcraft.enable = true;
+              wordcraft.enable = true;
+              gridcraft.enable = true;
+              cadcraft.enable = true;
+              deckcraft.enable = true;
+              soundcraft.enable = true;
             };
 
             home-manager.users.${config.modules.users.userName} = {

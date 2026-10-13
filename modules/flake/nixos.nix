@@ -112,6 +112,11 @@ in
           lightcraft
           pdfcraft
           filmcraft
+          wordcraft
+          gridcraft
+          cadcraft
+          deckcraft
+          soundcraft
         ]);
     };
     inherit mkHostCommon;

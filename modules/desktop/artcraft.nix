@@ -52,6 +52,40 @@ let
           libva
         ];
     };
+    wordcraft = {
+      version = "0.5.0";
+      hash = "sha256-mUuzdkee9tdnNc9AKeXvPC1SqFpMms3is3wzsZxXAgM=";
+      label = "WordCraft word processor";
+      description = "Word processor, a clean-room Microsoft Word reimplementation";
+    };
+    gridcraft = {
+      version = "0.5.0";
+      hash = "sha256-5lBcL5KfmFTDUKDfJhicTlbIrfh8xhYl+A1qjuwrYo0=";
+      label = "GridCraft spreadsheet";
+      description = "Spreadsheet, a clean-room Microsoft Excel reimplementation";
+    };
+    cadcraft = {
+      version = "0.5.0";
+      hash = "sha256-A2w7QBmHtqmZG1/Hugl9W3F+jRhSL3w/YmsPajY+II4=";
+      label = "CADCraft CAD and drafting";
+      description = "Computer-aided design and drafting, a clean-room AutoCAD reimplementation";
+    };
+    deckcraft = {
+      version = "0.5.0";
+      hash = "sha256-wmSMYHH2MezGY5zmt9YPaO7YPd6rprFVmwfFBGhjEXw=";
+      label = "DeckCraft presentations";
+      description = "Presentations and slide shows, a clean-room Microsoft PowerPoint reimplementation";
+      extraBuildInputs = pkgs: [ pkgs.alsa-lib ];
+      extraRuntimeLibs = pkgs: [ pkgs.alsa-lib ];
+    };
+    soundcraft = {
+      version = "0.5.0";
+      hash = "sha256-sTBbGnunuFYyBAhNwN5lLvQjZ2nM9Gpef1RaShBg6AM=";
+      label = "SoundCraft audio workstation";
+      description = "Digital audio workstation, a clean-room Avid Pro Tools reimplementation";
+      extraBuildInputs = pkgs: [ pkgs.alsa-lib ];
+      extraRuntimeLibs = pkgs: [ pkgs.alsa-lib ];
+    };
   };
 
   mkArtCraft =

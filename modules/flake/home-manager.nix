@@ -92,10 +92,39 @@ let
       filmcraft
       { modules.filmcraft.enable = true; }
     ];
+    wordcraft = [
+      wordcraft
+      { modules.wordcraft.enable = true; }
+    ];
+    gridcraft = [
+      gridcraft
+      { modules.gridcraft.enable = true; }
+    ];
+    cadcraft = [
+      cadcraft
+      { modules.cadcraft.enable = true; }
+    ];
+    deckcraft = [
+      deckcraft
+      { modules.deckcraft.enable = true; }
+    ];
+    soundcraft = [
+      soundcraft
+      { modules.soundcraft.enable = true; }
+    ];
   };
-  # Photo/video/PDF editing suite (Linux-only flake packages), part of the
-  # default desktop set.
-  artcraft = extras.photocraft ++ extras.lightcraft ++ extras.pdfcraft ++ extras.filmcraft;
+  # Full ArtCraft suite (Linux-only flake packages), part of the default
+  # desktop set.
+  artcraft =
+    extras.photocraft
+    ++ extras.lightcraft
+    ++ extras.pdfcraft
+    ++ extras.filmcraft
+    ++ extras.wordcraft
+    ++ extras.gridcraft
+    ++ extras.cadcraft
+    ++ extras.deckcraft
+    ++ extras.soundcraft;
 
   # The default set pulls in unfree brave (and personal adds claude), so allow
   # both here in one predicate rather than letting two modules fight over the
