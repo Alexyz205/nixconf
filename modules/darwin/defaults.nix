@@ -10,8 +10,7 @@ _: {
       config = lib.mkIf config.modules.darwin.defaults.enable {
         system.defaults = {
           NSGlobalDomain = {
-            AppleInterfaceStyle = "Dark";
-            AppleInterfaceStyleSwitchesAutomatically = false;
+            AppleInterfaceStyleSwitchesAutomatically = true;
             AppleShowAllExtensions = true;
             ApplePressAndHoldEnabled = false;
             AppleKeyboardUIMode = 3;
@@ -35,8 +34,8 @@ _: {
             autohide = true;
             autohide-delay = 0.1;
             autohide-time-modifier = 0.4;
-            orientation = "bottom";
-            tilesize = 48;
+            orientation = "left";
+            tilesize = 32;
             magnification = false;
             show-recents = false;
             mru-spaces = false;
