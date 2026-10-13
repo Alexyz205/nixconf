@@ -53,7 +53,7 @@ in
               desktop = true;
             };
             tv.enable = true;
-            nix.enable = true;
+            nix.enable = false;
             shell.enable = true;
             git.enable = true;
             ssh.enable = true;
@@ -75,12 +75,18 @@ in
         };
       })
     ]
-    ++ config.nixconf.darwinFeatures.base
+    ++ (with config.nixconf.modules.darwin; [
+      system
+      defaults
+      security
+      homebrew
+      fonts
+    ])
     ++ [
       {
+        nix.enable = false;
         modules = {
           darwin.system.enable = true;
-          darwin.nix.enable = true;
           darwin.defaults.enable = true;
           darwin.security.enable = true;
           darwin.homebrew.enable = true;
