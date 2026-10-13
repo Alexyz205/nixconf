@@ -13,10 +13,16 @@ _: {
         programs.zsh.enable = true;
         environment.shells = [ pkgs.zsh ];
         time.timeZone = "Europe/Paris";
-        networking.knownNetworkServices = [
-          "Wi-Fi"
-          "Ethernet"
-        ];
+        networking = {
+          knownNetworkServices = [
+            "Wi-Fi"
+            "Ethernet"
+          ];
+          # Friendly name for Sharing/AirDrop/scutil; hostName comes from
+          # mkDarwinCommon, so keep all three in sync.
+          computerName = config.networking.hostName;
+          localHostName = config.networking.hostName;
+        };
         # Homebrew first so brew-installed binaries win over nix ones.
         environment.systemPath = lib.mkBefore [
           "/opt/homebrew/bin"

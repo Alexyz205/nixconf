@@ -8,8 +8,11 @@ _: {
     {
       options.modules.darwin.security.enable = lib.mkEnableOption "macOS security settings";
       config = lib.mkIf config.modules.darwin.security.enable {
-        # Use Touch ID for sudo authentication.
-        security.pam.services.sudo_local.touchIdAuth = true;
+        # Touch ID for sudo, with reattach so it keeps working inside tmux/screen.
+        security.pam.services.sudo_local = {
+          touchIdAuth = true;
+          reattach = true;
+        };
         networking.applicationFirewall = {
           enable = true;
           allowSigned = true;

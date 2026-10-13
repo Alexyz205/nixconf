@@ -9,8 +9,9 @@ _: {
     {
       options.modules.darwin.nix.enable = lib.mkEnableOption "Nix daemon settings on macOS";
       config = lib.mkIf config.modules.darwin.nix.enable {
-        # Latest stable Nix for the daemon + CLI.
-        nix.package = lib.mkForce pkgs.nixVersions.latest;
+        # Lix: nix-darwin's recommended Nix implementation (has a real
+        # uninstaller, unlike upstream Nix).
+        nix.package = lib.mkForce pkgs.lix;
         nix.settings = {
           experimental-features = [
             "nix-command"

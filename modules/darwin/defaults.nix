@@ -115,6 +115,8 @@ _: {
             # Prevent Photos from opening automatically when devices are plugged in.
             "com.apple.ImageCapture".disableHotPlug = true;
             "com.apple.AdLib".allowApplePersonalizedAdvertising = false;
+            # Disable inline text completion (no nix-darwin option for this key).
+            NSGlobalDomain.NSAutomaticTextCompletionEnabled = false;
           };
         };
       };

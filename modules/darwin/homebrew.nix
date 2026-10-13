@@ -11,11 +11,14 @@ _: {
         homebrew = {
           enable = true;
           onActivation = {
-            autoUpdate = true;
+            # Keep rebuilds idempotent/offline (nix-darwin's default).
+            autoUpdate = false;
             # Never upgrade on activation: keep the environment stable.
             upgrade = false;
             cleanup = "zap";
           };
+          # Also stop Homebrew auto-updating itself on manual `brew` runs.
+          global.autoUpdate = false;
           brews = [
             "openssh"
             "libfido2"
