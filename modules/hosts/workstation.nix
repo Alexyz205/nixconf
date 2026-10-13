@@ -29,6 +29,7 @@ let
       ++ features
       ++ [
         config.nixconf.modules.nixos.networkTuning
+        config.nixconf.modules.nixos.moonshine
         (
           {
             config,
@@ -216,7 +217,7 @@ let
               bat.enable = true;
               eza.enable = true;
               btop.enable = true;
-              # RTX 4090: enable btop's CUDA GPU-usage support.
+              # RTX 5070: enable btop's CUDA GPU-usage support.
               btop.cudaSupport = true;
               lazygit.enable = true;
               yazi.enable = true;
@@ -250,6 +251,13 @@ let
               steam.enable = true;
               heroic.enable = true;
               controller.enable = true;
+              # Headless Moonlight host for the Xbox: each stream gets its own
+              # isolated 16:9 compositor (host desktop unaffected). LAN-only on
+              # the wired NIC because GameStream is not fully encrypted.
+              moonshine = {
+                enable = true;
+                firewallInterfaces = [ "enp4s0" ];
+              };
               thunderbird = {
                 enable = true;
                 email = "alexis@alexyz.org";
