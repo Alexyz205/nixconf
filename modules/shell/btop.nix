@@ -1,6 +1,26 @@
 let
   palette = import ../../config/theme/catppuccin-mocha.nix;
-  mkBtop = pkgs: cudaSupport: pkgs.btop.override { inherit cudaSupport; };
+  # btop dlopens libnvidia-ml at startup to show GPU usage. A nix-built binary
+  # has no path to a non-NixOS host's driver, so on Linux we wrap it to preload
+  # the first libnvidia-ml we find (NixOS driver dir, then common distro paths).
+  # Where no NVIDIA driver exists the loop is a no-op and btop stays CPU-only.
+  mkBtop =
+    pkgs: cudaSupport:
+    let
+      base = pkgs.btop.override { inherit cudaSupport; };
+    in
+    if pkgs.stdenv.hostPlatform.isLinux then
+      pkgs.writeShellScriptBin "btop" ''
+        for dir in /run/opengl-driver/lib /usr/lib/x86_64-linux-gnu /usr/lib64 /usr/lib /usr/lib/aarch64-linux-gnu; do
+          if [ -e "$dir/libnvidia-ml.so.1" ]; then
+            export LD_PRELOAD="$dir/libnvidia-ml.so.1''${LD_PRELOAD:+:$LD_PRELOAD}"
+            break
+          fi
+        done
+        exec ${base}/bin/btop "$@"
+      ''
+    else
+      base;
 
   btopCfg =
     {

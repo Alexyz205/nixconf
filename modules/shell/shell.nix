@@ -73,6 +73,10 @@ let
     {
       programs.home-manager.enable = true;
       xdg.enable = true;
+      # Manage ~/.config/mimeapps.list so feature modules can set default
+      # applications (browser => brave, images => swayimg, ...) declaratively.
+      # Linux-only: the xdg.mimeApps module asserts non-darwin platforms.
+      xdg.mimeApps.enable = pkgs.stdenv.hostPlatform.isLinux;
       home = {
         sessionPath = [
           # The home-manager profile bin (the generation ~/.nix-profile points

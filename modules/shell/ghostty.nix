@@ -40,6 +40,23 @@ let
       selection-foreground = palette.raw.text;
     };
   };
+
+  # Make Ghostty the default terminal: xdg-terminal-exec for spec-aware apps and
+  # the GNOME org.gnome.desktop.default-applications.terminal setting for GNOME
+  # itself (Default Applications, Nautilus). Linux-only.
+  terminalDefaults = { pkgs }: {
+    xdg.terminal-exec = {
+      enable = true;
+      settings = {
+        default = [ "com.mitchellh.ghostty.desktop" ];
+        GNOME = [ "com.mitchellh.ghostty.desktop" ];
+      };
+    };
+    dconf.settings."org/gnome/desktop/default-applications/terminal" = {
+      exec = "${pkgs.ghostty}/bin/ghostty";
+      exec-arg = "-e";
+    };
+  };
 in
 {
   nixconf.modules.nixos.ghostty =
@@ -52,7 +69,9 @@ in
     {
       options.modules.ghostty.enable = lib.mkEnableOption "Ghostty terminal";
       config = lib.mkIf config.modules.ghostty.enable {
-        home-manager.users.${config.modules.users.userName}.programs.ghostty = ghosttyCfg { inherit pkgs; };
+        home-manager.users.${config.modules.users.userName} = terminalDefaults { inherit pkgs; } // {
+          programs.ghostty = ghosttyCfg { inherit pkgs; };
+        };
       };
     };
 
@@ -103,6 +122,16 @@ in
         programs.ghostty = lib.mkIf (!pkgs.stdenv.hostPlatform.isDarwin) (ghosttyCfg {
           inherit pkgs;
         });
+        xdg.terminal-exec =
+          lib.mkIf (!pkgs.stdenv.hostPlatform.isDarwin)
+            (terminalDefaults {
+              inherit pkgs;
+            }).xdg.terminal-exec;
+        dconf.settings =
+          lib.mkIf (!pkgs.stdenv.hostPlatform.isDarwin)
+            (terminalDefaults {
+              inherit pkgs;
+            }).dconf.settings;
       };
     };
 }
