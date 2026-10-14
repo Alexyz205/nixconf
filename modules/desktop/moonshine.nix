@@ -9,6 +9,7 @@
     let
       cfg = config.modules.moonshine;
       steam = config.programs.steam.package;
+      heroic = config.modules.heroic.package;
       sh = lib.getExe pkgs.bash;
       pgrep = lib.getExe' pkgs.procps "pgrep";
       seq = lib.getExe' pkgs.coreutils "seq";
@@ -84,7 +85,8 @@
               }
             ];
 
-            # Expose every installed Steam game directly in Moonlight.
+            # Expose every installed Steam game directly in Moonlight, plus
+            # Heroic (GOG/Epic/Amazon) titles when the Heroic feature is on.
             application_scanner = [
               {
                 type = "steam";
@@ -93,6 +95,22 @@
                   (lib.getExe steam)
                   "-bigpicture"
                   "steam://rungameid/{game_id}"
+                ];
+                stdout = "journal";
+                stderr = "journal";
+              }
+            ]
+            ++ lib.optionals config.modules.heroic.enable [
+              # --no-gui keeps Heroic's own window out of the stream.
+              # --launcher-skip is read by CD Projekt REDprelauncher
+              # (The Witcher 3, Cyberpunk 2077): without it those games show
+              # the REDlauncher instead of starting (Heroic issue #2202).
+              {
+                type = "heroic";
+                command = [
+                  (lib.getExe heroic)
+                  "--no-gui"
+                  "heroic://launch?appName={app_name}&runner={runner}&arg=--launcher-skip"
                 ];
                 stdout = "journal";
                 stderr = "journal";
