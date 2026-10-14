@@ -257,8 +257,9 @@ Secrets are managed with [sops-nix](https://github.com/Mic92/sops-nix) using a
 YubiKey-based age identity.
 
 - Encrypted files live in `secrets/`, split by concern:
-  - `env.yaml` — environment secrets (`GITHUB_TOKEN`, `GITLAB_TOKEN`) that get
-    exported into the shell at login. Edit with `sece` (alias for
+  - `env.yaml` — environment secrets (`GITHUB_TOKEN`, and the per-host GitLab
+    PATs `GITLAB_DXYZ_TOKEN` / `GITLAB_ALEXYZ_TOKEN`) that
+    get exported into the shell at login. Edit with `sece` (alias for
     `sops $NIXCONF/secrets/env.yaml`).
   - `secrets.yaml` — plain secrets that are **not** loaded into the shell
     environment (`NEXTCLOUD_PASSWORD`, ...). Edit with `sec` (alias for
@@ -283,11 +284,15 @@ YubiKey-based age identity.
   and `modules.sops.useYubikey` for hosts that need the same fallback. Re-keying
   after adding recipients is `sops updatekeys secrets/env.yaml secrets/secrets.yaml`
   (run from a machine with the YubiKey).
-- GitLab tooling (`glab`, the `gitlab.nvim` LazyVim plugin, and the
-  `GITLAB_TOKEN` secret) lives in the standalone `gitlab` feature module and is
+- GitLab tooling (`glab`, the `gitlab.nvim` LazyVim plugin, and the per-host
+  PATs `GITLAB_DXYZ_TOKEN` / `GITLAB_ALEXYZ_TOKEN`) lives in
+  the standalone `gitlab` feature module and is
   part of the default desktop set — enabled on the workstation and every
   interactive Linux profile (`alexis@linux`, `alexis.pigeon@RNSL-APIGEON5`,
-  `alexis.pigeon@RNSW-APIGEON1`).
+  `alexis.pigeon@RNSW-APIGEON1`). gitlab.nvim and the dashboard identify the
+  remote host (`git.dxyz.pro`, `gitlab.alexyz.org`, `github.com`)
+  and switch token/API accordingly; no global `GITLAB_TOKEN` is set so glab can
+  keep per-host credentials.
 
 ## Nextcloud
 

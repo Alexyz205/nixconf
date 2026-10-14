@@ -1,16 +1,31 @@
+-- Resolved once per session: the dashboard only renders at startup, and both
+-- remote predicates below call this, so shelling out repeatedly is wasteful.
+local remote_url_cache
 local function get_remote_url()
-	if not Snacks.git.get_root() then
-		return ""
+	if remote_url_cache == nil then
+		remote_url_cache = Snacks.git.get_root() and vim.fn.system("git remote get-url origin 2>/dev/null"):lower()
+			or ""
 	end
-	return vim.fn.system("git remote get-url origin 2>/dev/null"):lower()
+	return remote_url_cache
+end
+
+local gitlab_hosts = {
+	["git.dxyz.pro"] = true,
+	["gitlab.alexyz.org"] = true,
+}
+
+local function remote_host()
+	local url = get_remote_url()
+	return url:match("^[%w+.-]+://([^/]+)") or url:match("^[^@]+@([^:/]+)") or ""
 end
 
 local function is_gitlab()
-	return get_remote_url():find("git.dxyz.pro") ~= nil
+	local host = remote_host():gsub("^.*@", ""):gsub(":.*$", "")
+	return gitlab_hosts[host] == true
 end
 
 local function is_github()
-	return get_remote_url():find("github.com") ~= nil
+	return remote_host():find("github.com", 1, true) ~= nil
 end
 
 local function gh_run(args, success_msg)

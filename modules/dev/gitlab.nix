@@ -13,23 +13,49 @@ let
     gciv = "glab ci view";
   };
 
-  gitlabCfg = { pkgs }: {
-    home.packages = [
-      pkgs.glab
-      # gitlab.nvim builds its bundled Go server on load, so the toolchain is
-      # required (>= 1.25.1) for the build step to succeed.
-      pkgs.go
-    ];
-    programs = {
-      git.settings.credential."https://git.dxyz.pro".helper = [
-        ""
-        "!${pkgs.glab}/bin/glab auth git-credential"
-      ];
-      lazyvim.plugins.gitlab = gitlabLua;
-      zsh.shellAliases = gitlabAliases;
-    };
-    sops.secrets.GITLAB_TOKEN = { };
+  # Self-hosted instances whose git-over-https credentials glab resolves. The
+  # matching PATs are exported by the sops module (see gitlabSecrets). Tokens
+  # are per-host, so no global GITLAB_TOKEN is set (it would override every
+  # host's stored credential in glab and gitlab.nvim).
+  gitlabHosts = [
+    "git.dxyz.pro"
+    "gitlab.alexyz.org"
+  ];
+
+  credentialHelpers =
+    pkgs:
+    builtins.listToAttrs (
+      map (host: {
+        name = "https://${host}";
+        value.helper = [
+          ""
+          "!${pkgs.glab}/bin/glab auth git-credential"
+        ];
+      }) gitlabHosts
+    );
+
+  gitlabSecrets = {
+    GITLAB_DXYZ_TOKEN = { };
+    GITLAB_ALEXYZ_TOKEN = { };
   };
+
+  gitlabCfg =
+    { pkgs }:
+    {
+      home.packages = [
+        pkgs.glab
+        # gitlab.nvim builds its bundled Go server on first use and caches it
+        # under stdpath("data")/gitlab.nvim/bin, so the toolchain (>= 1.25.1)
+        # is required.
+        pkgs.go
+      ];
+      programs = {
+        git.settings.credential = credentialHelpers pkgs;
+        lazyvim.plugins.gitlab = gitlabLua;
+        zsh.shellAliases = gitlabAliases;
+      };
+      sops.secrets = gitlabSecrets;
+    };
 in
 {
   nixconf.modules.nixos.gitlab =
@@ -40,18 +66,17 @@ in
       ...
     }:
     {
-      options.modules.gitlab.enable = lib.mkEnableOption "GitLab (glab, gitlab.nvim, GITLAB_TOKEN)";
+      options.modules.gitlab.enable = lib.mkEnableOption "GitLab (glab, gitlab.nvim, per-host tokens)";
       config = lib.mkIf config.modules.gitlab.enable {
         environment.systemPackages = [
           pkgs.glab
           pkgs.go
         ];
-        programs.git.config.credential."https://git.dxyz.pro".helper = [
-          ""
-          "!${pkgs.glab}/bin/glab auth git-credential"
-        ];
-        sops.secrets.GITLAB_TOKEN = { };
-        home-manager.users.${config.modules.users.userName} = gitlabCfg { inherit pkgs; };
+        programs.git.config.credential = credentialHelpers pkgs;
+        sops.secrets = gitlabSecrets;
+        home-manager.users.${config.modules.users.userName} = gitlabCfg {
+          inherit pkgs;
+        };
       };
     };
 
@@ -63,7 +88,7 @@ in
       ...
     }:
     {
-      options.modules.gitlab.enable = lib.mkEnableOption "GitLab (glab, gitlab.nvim, GITLAB_TOKEN)";
+      options.modules.gitlab.enable = lib.mkEnableOption "GitLab (glab, gitlab.nvim, per-host tokens)";
       config = lib.mkIf config.modules.gitlab.enable (gitlabCfg {
         inherit pkgs;
       });

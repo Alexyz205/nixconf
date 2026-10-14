@@ -1,17 +1,40 @@
+-- Per-host GitLab personal access tokens, exported into the shell by sops
+-- (secrets/env.yaml). Recognised hosts map to the env var holding their PAT.
+local gitlab_tokens = {
+	["git.dxyz.pro"] = "GITLAB_DXYZ_TOKEN",
+	["gitlab.alexyz.org"] = "GITLAB_ALEXYZ_TOKEN",
+}
+
+-- Resolve the remote URL, preferring "upstream" (forks) over "origin".
+local function remote_url()
+	for _, remote in ipairs({ "upstream", "origin" }) do
+		local out = vim.fn.system({ "git", "remote", "get-url", remote })
+		if vim.v.shell_error == 0 and out ~= "" then
+			return vim.trim(out)
+		end
+	end
+	return nil
+end
+
+-- Extract the hostname from an ssh (`git@host:path`) or url (`https://host/path`) remote.
+local function remote_host()
+	local url = remote_url()
+	if not url then
+		return nil
+	end
+	local host = url:match("^[%w+.-]+://([^/]+)") or url:match("^[^@]+@([^:/]+)")
+	return host and host:gsub("^.*@", ""):gsub(":.*$", "") or nil
+end
+
 return {
 	"harrisoncramer/gitlab.nvim",
-	-- Only load gitlab.nvim in repos hosted on the self-hosted GitLab
-	-- (git.dxyz.pro). `cond` is evaluated at startup: the plugin (and its
-	-- dependencies) stay unloaded for GitHub/local repos.
+	-- Only load in repos hosted on a recognised GitLab instance; the plugin and
+	-- its dependencies stay unloaded for GitHub/local repos.
 	cond = function()
 		if vim.fn.executable("git") == 0 then
 			return false
 		end
-		local out = vim.fn.system({ "git", "remote", "-v" })
-		if vim.v.shell_error ~= 0 then
-			return false
-		end
-		return out:find("git.dxyz.pro", 1, true) ~= nil
+		return gitlab_tokens[remote_host()] ~= nil
 	end,
 	dependencies = {
 		"MunifTanjim/nui.nvim",
@@ -23,27 +46,25 @@ return {
 		require("gitlab.server").build(true)
 	end,
 	config = function()
-		-- Detect the right remote: prefer "upstream" if it exists, else "origin"
+		local host = remote_host()
+		local token_var = gitlab_tokens[host]
+
+		-- Connection: auto-detect remote (upstream for forks, origin otherwise)
 		local function detect_remote()
-			local result = vim.fn.system("git remote")
-			if result:find("upstream") then
-				return "upstream"
-			end
-			return "origin"
+			local remotes = vim.fn.system("git remote")
+			return remotes:find("upstream") and "upstream" or "origin"
 		end
 
 		require("gitlab").setup({
-			-- Auth provider for self-hosted GitLab
-			-- Reads token from GITLAB_TOKEN env var, points API at git.dxyz.pro
+			-- Pick the token and API URL for whichever GitLab host this repo is on.
 			auth_provider = function()
-				local token = os.getenv("GITLAB_TOKEN")
+				local token = token_var and os.getenv(token_var)
 				if not token then
-					return nil, nil, "GITLAB_TOKEN environment variable is not set"
+					return nil, nil, (token_var or "no token configured") .. " is not set for " .. tostring(host)
 				end
-				return token, "https://git.dxyz.pro", nil
+				return token, "https://" .. host, nil
 			end,
 
-			-- Connection: auto-detect remote (upstream for forks, origin otherwise)
 			connection_settings = {
 				remote = detect_remote(),
 			},

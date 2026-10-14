@@ -12,6 +12,12 @@ let
       "clipboard-paste-protection" = false;
       "copy-on-select" = true;
       fullscreen = true;
+      # Ghostty 1.3.x on Linux/Wayland has a GTK single-instance / D-Bus
+      # activation race where the first launch (via keybind/desktop file) creates
+      # a window that never renders: grey/blank, no shell. Launching fresh
+      # processes bypasses it.
+      # https://github.com/ghostty-org/ghostty/discussions/11724
+      "gtk-single-instance" = false;
     };
     themes."catppuccin-mocha" = {
       palette = [
