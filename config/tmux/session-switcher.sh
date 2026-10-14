@@ -2,7 +2,6 @@
 # tmux session/window manager with tv (television) as the picker, mirroring
 # the tmux-fzf flow: pick a window, then pick an action (switch / rename /
 # kill). Falls back to `tmux choose-session` when tv is unavailable.
-# Bind in tmux: bind F display-popup -w 70% -h 60% -E "<wrapped script>"
 
 set -euo pipefail
 DEBUG_LOG="${SESSION_SWITCHER_LOG:-/tmp/session-switcher.log}"

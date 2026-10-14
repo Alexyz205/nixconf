@@ -7,7 +7,6 @@
 #
 # Uses `tv` (television) as the picker via --source-command so selection is
 # captured with --source-output "{}". Falls back to plain select if absent.
-# Bind in tmux: bind R display-popup -w 70% -h 60% -E "<this script>"
 
 set -euo pipefail
 DEBUG_LOG="${REPO_SWITCHER_LOG:-/tmp/repo-switcher.log}"

@@ -132,6 +132,7 @@ let
           plugin = agentStatusPkg;
           extraConfig = ''
             set -g @agent-notification-sound none
+            set -g @agent-sidebar-width 30
           '';
         }
         {
@@ -183,21 +184,7 @@ let
         bind-key -T copy-mode-vi y send-keys -X copy-selection-and-cancel
         bind-key -T copy-mode-vi Enter send-keys -X copy-selection-and-cancel
         bind-key -T copy-mode-vi MouseDragEnd1Pane send-keys -X copy-selection-and-cancel
-        # --- Prompt navigation (OSC 133 semantic markers) ---
-        # Jump between shell prompts in scrollback instead of scrolling; the
-        # markers are emitted by the shell (config/shell/zsh-extra.zsh).
-        bind-key -T copy-mode-vi '[' send-keys -X previous-prompt
-        bind-key -T copy-mode-vi ']' send-keys -X next-prompt
-        # Jump straight to the start of the most recent command from the shell
-        # without touching copy-mode first (single keypress; q exits).
-        bind P copy-mode \; send-keys -X previous-prompt \; send-keys -X clear-selection
-        # Copy the previous command's output to the system clipboard: the -o
-        # flag moves to the command output's START mark, so the selection spans
-        # exactly the output lines between that mark and the current prompt.
-        bind-key -T copy-mode-vi 'Y' send-keys -X previous-prompt -o \; send-keys -X begin-selection \; send-keys -X history-bottom \; send-keys -X cursor-up \; send-keys -X copy-selection-and-cancel
-        bind f resize-pane -Z
         bind q detach-client
-        bind e choose-window -Z
         bind c new-window -c "#{pane_current_path}"
         bind -n C-Tab next-window
         bind -n C-S-Tab previous-window
@@ -205,17 +192,17 @@ let
         bind C-n display-popup -d "#{pane_current_path}" -w 50% -h 25% -T "New session" -E 'exec bash ${../../config/tmux/nixconf-menu.sh} new-session'
         bind C-y display-popup -d "#{pane_current_path}" -w 90% -h 90% -E "yazi"
         bind C-t display-popup -d "#{pane_current_path}" -w 75% -h 75% -E "zsh"
-        bind R display-popup -w 70% -h 60% -E "${pkgs.writeShellScript "repo-switcher" ''
+        bind r display-popup -w 70% -h 60% -E "${pkgs.writeShellScript "repo-switcher" ''
           exec ${../../config/tmux/repo-switcher.sh}
         ''}"
         # SSH host picker: popup -> pick a host from ~/.ssh/config -> attach a
         # tmux session on it (persistent) or a plain shell. Bound to h (not S:
         # prefix+S belongs to the tmux-agent-status fzf target switcher).
         bind h display-popup -w 70% -h 60% -E "${pkgs.writeShellScript "ssh-switcher" (builtins.readFile ../../config/tmux/ssh-switcher.sh)}"
-        # Session/window switcher on tv (television), same pattern as R. The
+        # Session/window switcher on tv (television), same pattern as r. The
         # script content is inlined via readFile so the store wrapper is
         # executable regardless of the git mode of the source file.
-        bind F display-popup -w 70% -h 60% -E "${pkgs.writeShellScript "session-switcher" (builtins.readFile ../../config/tmux/session-switcher.sh)}"
+        bind f display-popup -w 70% -h 60% -E "${pkgs.writeShellScript "session-switcher" (builtins.readFile ../../config/tmux/session-switcher.sh)}"
         # Keybinding reference: prefix+? dumps every binding, paged.
         bind ? display-popup -w 90% -h 90% -E "${pkgs.writeShellScript "list-keys" ''
           tmux list-keys | ${pkgs.less}/bin/less -R
