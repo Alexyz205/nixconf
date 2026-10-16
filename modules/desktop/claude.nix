@@ -17,6 +17,7 @@ let
     {
       home.packages = [ inputs.claude-desktop.packages.${pkgs.stdenv.hostPlatform.system}.default ];
       home.file.".config/Claude/claude_desktop_config.json" = claudeConfigFile;
+      xdg.mimeApps.defaultApplications."x-scheme-handler/claude" = [ "com.anthropic.Claude.desktop" ];
     };
 in
 {

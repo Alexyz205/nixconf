@@ -77,6 +77,9 @@ let
         bwu() { export BW_SESSION="$(bw unlock --raw)" }
         bwl() { bw lock; unset BW_SESSION }
       '';
+      xdg.mimeApps.defaultApplications = lib.mkIf desktop {
+        "x-scheme-handler/bitwarden" = [ "bitwarden.desktop" ];
+      };
     };
 
   # Wire the shared config from the module options (same shape on both sides).

@@ -278,6 +278,9 @@ in
       config = lib.mkIf config.modules.shell.enable {
         programs.zsh.enable = true;
         programs.git.enable = true;
+        # xdg.mimeApps takes ownership of mimeapps.list; desktops write their own
+        # before nixconf does, so back the existing one up instead of failing.
+        home-manager.backupFileExtension = "backup";
         # zsh is the managed shell: make it the login shell too. Otherwise tmux
         # (and anything that falls back to the passwd shell) spawns bash and
         # $SHELL stays wrong.
