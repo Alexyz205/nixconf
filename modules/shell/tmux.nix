@@ -83,6 +83,13 @@ let
         sed -i '/^collect_data() {$/a\    opencode_state_bridge' \
           $out/share/tmux-plugins/tmux-agent-status/scripts/lib/collect.sh
         cat ${opencodeBridge} >> $out/share/tmux-plugins/tmux-agent-status/scripts/lib/collect.sh
+        # The sidebar collector is backgrounded with `&` and inherits this
+        # run-shell's stdout/stderr. tmux runs run-shell synchronously and waits
+        # for EOF on that pipe, so the daemon blocks config parsing forever and
+        # none of the trailing extraConfig (keybindings, theme ordering, mouse,
+        # base-index, ...) is applied. Redirect its streams so run-shell returns.
+        sed -i 's#CURRENT_DIR/scripts/sidebar-collector.sh" &$#CURRENT_DIR/scripts/sidebar-collector.sh" >/dev/null 2>\&1 \&#' \
+          $out/share/tmux-plugins/tmux-agent-status/tmux-agent-status.tmux
         chmod +x $out/share/tmux-plugins/tmux-agent-status/tmux-agent-status.tmux \
           $out/share/tmux-plugins/tmux-agent-status/scripts/*.sh \
           $out/share/tmux-plugins/tmux-agent-status/hooks/*.sh

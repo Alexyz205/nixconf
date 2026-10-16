@@ -1,6 +1,17 @@
 _:
 let
   palette = import ../../config/theme/catppuccin-mocha.nix;
+  # Ghostty launches tmux directly, bypassing the login shell, so the tmux
+  # server would inherit Ghostty's bare GUI PATH (no nix profile). Startup
+  # plugin scripts (catppuccin, tmux-agent-status) shell out to `tmux` and
+  # `bash` via PATH, so they silently fail and the config looks half-applied.
+  # Launch tmux through a login shell (sources ~/.zshenv -> hm-session-vars.sh)
+  # so the server gets the full environment.
+  tmuxAttach =
+    pkgs:
+    pkgs.writeShellScript "ghostty-tmux" ''
+      exec ${pkgs.zsh}/bin/zsh -l -c "exec ${pkgs.tmux}/bin/tmux new-session -A -s dev"
+    '';
   ghosttyCfg = { pkgs }: {
     enable = true;
     settings = {
@@ -93,7 +104,7 @@ in
       config = lib.mkIf config.modules.ghostty.enable {
         home.file = lib.mkIf pkgs.stdenv.hostPlatform.isDarwin {
           ".config/ghostty/config".text = ''
-            command = ${pkgs.tmux}/bin/tmux new-session -A -s dev
+            command = ${tmuxAttach pkgs}
             font-family = JetBrains Mono
             font-size = 14
             mouse-hide-while-typing = true
