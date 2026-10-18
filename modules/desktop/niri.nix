@@ -281,9 +281,17 @@ let
             open-on-workspace = "dev";
           }
           {
-            # Steam client + games (native and Proton windows report as steam_app_<id>).
-            matches = [ { app-id = "^(steam|steam_app_[0-9]+)$"; } ];
+            # Steam client itself (windowed; only the games go fullscreen).
+            matches = [ { app-id = "^steam$"; } ];
             open-on-workspace = "game";
+          }
+          {
+            # Steam games (native and Proton windows report as steam_app_<id>).
+            # Open fullscreen so they fill the ultrawide output and the cursor
+            # is confined, matching how gamescope-launched titles behave.
+            matches = [ { app-id = "^steam_app_[0-9]+$"; } ];
+            open-on-workspace = "game";
+            open-fullscreen = true;
           }
           {
             # Games launched through gamescope present as a single native
