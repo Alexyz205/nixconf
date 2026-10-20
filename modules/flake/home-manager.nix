@@ -16,6 +16,7 @@ let
     ssh
     bat
     eza
+    diskusage
     zoxide
     starship
     tmux
@@ -218,6 +219,7 @@ let
             bitwarden.enable = true;
             bat.enable = true;
             eza.enable = true;
+            diskusage.enable = true;
             zoxide.enable = true;
             starship.enable = true;
             tmux.enable = true;

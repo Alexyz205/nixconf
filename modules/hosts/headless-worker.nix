@@ -98,6 +98,7 @@ let
               tmux.enable = true;
               bat.enable = true;
               eza.enable = true;
+              diskusage.enable = true;
               lazygit.enable = true;
               yazi.enable = true;
               zoxide.enable = true;

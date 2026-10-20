@@ -158,12 +158,24 @@ let
   braveCfg =
     {
       pkgs,
+      config,
       ...
     }:
+    let
+      # Chromium-based browsers need either a setuid chrome-sandbox (NixOS
+      # wrapper) or unprivileged user namespaces. Standalone home-manager on a
+      # non-NixOS host has neither: the nix store can't hold a setuid binary and
+      # Ubuntu 24.04 restricts unprivileged userns, so a nix-built brave crashes
+      # on launch (and its brave-browser.desktop shadows the distro's). On those
+      # hosts don't install the nix package; rely on the distro's own brave .deb,
+      # which shares ~/.config/BraveSoftware, so the bookmarks/extensions below
+      # still apply and xdg-open resolves brave-browser.desktop to the system one.
+      isGenericLinux = config.targets.genericLinux.enable or false;
+    in
     {
       programs.brave = {
         enable = true;
-        package = pkgs.brave;
+        package = if isGenericLinux then null else pkgs.brave;
         inherit extensions;
       };
       home.file.".config/BraveSoftware/Brave-Browser/Default/Bookmarks" = {
@@ -172,7 +184,8 @@ let
       };
       # Default browser: text/html and the http(s) scheme handlers. Brave ships
       # brave-browser.desktop (the visible entry; com.brave.Browser.desktop is
-      # NoDisplay).
+      # NoDisplay). On genericLinux that desktop file comes from the distro's
+      # brave instead of the (uninstalled) nix package.
       xdg.mimeApps.defaultApplications = {
         "application/xhtml+xml" = [ "brave-browser.desktop" ];
         "text/html" = [ "brave-browser.desktop" ];

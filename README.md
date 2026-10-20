@@ -37,7 +37,7 @@ modules/
 ├── flake/              # flake-file.nix (declared inputs), options.nix, nixos.nix (tiers), home-manager.nix
 ├── hosts/              # One file per machine / image
 ├── system/             # boot, disko, network, nextcloud, nix, podman, sops, security, ssh, users, yubikey
-├── shell/              # shell, starship, tmux, zoxide, eza, bat, btop, yazi, ghostty
+├── shell/              # shell, starship, tmux, zoxide, eza, diskusage, bat, btop, yazi, ghostty
 ├── desktop/            # niri, brave, claude, discord, steam, youtube-music, ...
 └── dev/                # devenv, git, gitlab, lazygit, lazyvim, opencode, containers, ...
 config/                 # Dotfiles & static assets referenced from feature modules

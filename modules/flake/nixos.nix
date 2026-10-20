@@ -66,6 +66,7 @@ in
         tmux
         bat
         eza
+        diskusage
         zoxide
         lazygit
         lazyvim

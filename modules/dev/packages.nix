@@ -15,8 +15,6 @@ let
           ripgrep
           fd
           fastfetch
-          dust
-          duf
           yq
           jq
           tree-sitter

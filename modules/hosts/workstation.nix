@@ -216,6 +216,7 @@ let
               tmux.enable = true;
               bat.enable = true;
               eza.enable = true;
+              diskusage.enable = true;
               btop.enable = true;
               # RTX 5070: enable btop's CUDA GPU-usage support.
               btop.cudaSupport = true;

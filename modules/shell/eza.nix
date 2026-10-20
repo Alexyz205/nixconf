@@ -14,6 +14,8 @@ let
     ldir = "eza --long --icons=auto --only-dirs";
     lm = "eza --icons=auto --sort=modified";
     lz = "eza --icons=auto --sort=size";
+    ldu = "eza -l --total-size --icons=auto";
+    ldus = "eza -l --total-size --sort=size --reverse --icons=auto";
   };
   homeCfg = {
     programs.eza = ezaCfg;
