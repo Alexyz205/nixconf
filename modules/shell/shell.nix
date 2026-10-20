@@ -78,6 +78,10 @@ let
       # Linux-only: the xdg.mimeApps module asserts non-darwin platforms.
       xdg.mimeApps.enable = pkgs.stdenv.hostPlatform.isLinux;
       home = {
+        # Standalone profiles have no `home-manager.backupFileExtension`; this
+        # user-level option makes activation move clobbered files (e.g. a
+        # desktop-created ~/.config/mimeapps.list) aside instead of failing.
+        backupFileExtension = "backup";
         sessionPath = [
           # The home-manager profile bin (the generation ~/.nix-profile points
           # at): ensures every managed shell finds the tools without depending
