@@ -90,6 +90,12 @@ let
         # base-index, ...) is applied. Redirect its streams so run-shell returns.
         sed -i 's#CURRENT_DIR/scripts/sidebar-collector.sh" &$#CURRENT_DIR/scripts/sidebar-collector.sh" >/dev/null 2>\&1 \&#' \
           $out/share/tmux-plugins/tmux-agent-status/tmux-agent-status.tmux
+        # opencode is tracked only as per-pane markers by the bridge above, so
+        # park-session.sh's guard (claude/codex/devin processes or a
+        # session-level status file) would exit 1 on an opencode-only session.
+        # Let a pane-level status file count as parkable state too.
+        sed -i 's#if ! has_agent_in_session "$current_session" && ! is_ssh_session "$current_session"; then#if ! has_agent_in_session "$current_session" \&\& ! is_ssh_session "$current_session" \\\n    \&\& ! compgen -G "$PANE_DIR/''${current_session}_*.status" >/dev/null; then#' \
+          $out/share/tmux-plugins/tmux-agent-status/scripts/park-session.sh
         chmod +x $out/share/tmux-plugins/tmux-agent-status/tmux-agent-status.tmux \
           $out/share/tmux-plugins/tmux-agent-status/scripts/*.sh \
           $out/share/tmux-plugins/tmux-agent-status/hooks/*.sh
