@@ -1,7 +1,7 @@
 ---
 description: Educational agent for explaining DevOps concepts and skill development
 mode: subagent
-model: opencode-go/deepseek-v4-flash
+model: opencode-go/deepseek-v4.1-flash
 temperature: 0.4
 permission:
   edit: deny
