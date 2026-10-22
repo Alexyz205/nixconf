@@ -113,6 +113,9 @@ let
     let
       sshSplitPkg = sshSplit { inherit pkgs; };
       agentStatusPkg = agentStatus { inherit pkgs; };
+      smartRename = pkgs.writeShellScript "tmux-smart-rename" (
+        builtins.readFile ../../config/tmux/smart-rename.sh
+      );
     in
     {
       enable = true;
@@ -146,6 +149,8 @@ let
           extraConfig = ''
             set -g @agent-notification-sound none
             set -g @agent-sidebar-width 30
+            # Free prefix+p (tmux's previous-window) by moving park to shift-p.
+            set -g @agent-park-key "P"
           '';
         }
         {
@@ -189,6 +194,15 @@ let
         setw -g aggressive-resize on
         set -g base-index 1
         setw -g pane-base-index 1
+        # Smart window names: opencode session title first, then SSH, git repo,
+        # path and command. Hooks make updates immediate; a manual rename turns
+        # automatic-rename off, which pauses the script so the name sticks.
+        setw -g automatic-rename on
+        setw -g automatic-rename-format '#{?@smart-name,#{@smart-name},#{?pane_title,#{pane_title},#{pane_current_command}}}'
+        set-hook -g -w pane-title-changed "run-shell -b '${smartRename} #{window_id}'"
+        set-hook -g after-select-pane "run-shell -b '${smartRename} #{window_id}'"
+        set-hook -g after-new-window "run-shell -b '${smartRename} #{window_id}'"
+        set-hook -g after-split-window "run-shell -b '${smartRename} #{window_id}'"
         set -g mouse on
         setw -g mode-keys vi
         set -s set-clipboard on
@@ -199,6 +213,9 @@ let
         bind-key -T copy-mode-vi MouseDragEnd1Pane send-keys -X copy-selection-and-cancel
         bind q detach-client
         bind c new-window -c "#{pane_current_path}"
+        # Restore tmux's stock previous-window (the agent-status plugin parks on
+        # shift-p now; its run-shell above would otherwise claim lowercase p).
+        bind p previous-window
         bind -n C-Tab next-window
         bind -n C-S-Tab previous-window
         bind C-g display-popup -d "#{pane_current_path}" -w 80% -h 80% -E "lazygit"
