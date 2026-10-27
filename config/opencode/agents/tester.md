@@ -1,8 +1,10 @@
 ---
 description: Write, run, and iterate on tests until all pass. Targets comprehensive coverage.
 mode: subagent
-permission:
-  task: deny
+permissions:
+  - action: subagent
+    resource: "*"
+    effect: deny
 ---
 
 # Test Automation Engineer

@@ -2,13 +2,19 @@
 description: Strict Clean Architecture advisor for application refactoring with comprehensive teaching
 mode: subagent
 model: opencode-go/deepseek-v4.1-flash
-temperature: 0.2
-permission:
-  edit: ask
-  bash:
-    "*": allow
-    "rm *": deny
-    "rm -rf *": deny
+permissions:
+  - action: edit
+    resource: "*"
+    effect: ask
+  - action: shell
+    resource: "*"
+    effect: allow
+  - action: shell
+    resource: "rm *"
+    effect: deny
+  - action: shell
+    resource: "rm -rf *"
+    effect: deny
 ---
 
 # Clean Architecture Agent

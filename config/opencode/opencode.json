@@ -107,8 +107,11 @@
     { "action": "shell", "resource": "kubectl delete pv*", "effect": "ask" },
     { "action": "shell", "resource": "kubectl delete secret*", "effect": "ask" }
   ],
+  "formatter": true,
   "experimental": {
-    "todo": true
+    "todo": true,
+    "background_compaction": true,
+    "subagent_depth": 2
   },
   "compaction": {
     "auto": true,

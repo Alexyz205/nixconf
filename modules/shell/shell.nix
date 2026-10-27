@@ -93,8 +93,6 @@ let
       };
       home.sessionVariables = environmentVariables;
       home.file = {
-        ".config/opencode/opencode.json".source =
-          config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/repos/personal/nixconf/config/opencode/opencode.json";
         ".config/opencode/cli.json".source =
           config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/repos/personal/nixconf/config/opencode/cli.json";
         ".config/opencode/AGENTS.md".source =

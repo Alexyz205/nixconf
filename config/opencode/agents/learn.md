@@ -2,13 +2,19 @@
 description: Educational agent for explaining DevOps concepts and skill development
 mode: subagent
 model: opencode-go/deepseek-v4.1-flash
-temperature: 0.4
-permission:
-  edit: deny
-  webfetch: allow
-  bash:
-    "*": allow
-    "rm *": deny
+permissions:
+  - action: edit
+    resource: "*"
+    effect: deny
+  - action: webfetch
+    resource: "*"
+    effect: allow
+  - action: shell
+    resource: "*"
+    effect: allow
+  - action: shell
+    resource: "rm *"
+    effect: deny
 ---
 
 # Learning Agent

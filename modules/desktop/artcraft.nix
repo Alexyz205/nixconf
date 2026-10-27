@@ -23,26 +23,26 @@ let
 
   apps = {
     photocraft = {
-      version = "0.10.0";
-      hash = "sha256-xdRVeF2cLq9pW/jmMnxNbSOjnduVamEU8MW2Qyb5hOE=";
+      version = "0.16.0";
+      hash = "sha256-fBfzYz6/favydiji0mN9kYx8KlsWO4uQNHp4rN32Ngg=";
       label = "PhotoCraft image editor";
       description = "Image editor, a clean-room Photoshop reimplementation";
     };
     lightcraft = {
-      version = "0.9.1";
-      hash = "sha256-f2KX06FZqjkbE6rASTl3MDBcwEqNvxKrD/YfhvVR96k=";
+      version = "0.14.0";
+      hash = "sha256-uCM7k3PW6ZsRgMHDn9yxPUnEQfgAkncIMfqxlcTE/aI=";
       label = "LightCraft photo library and raw developer";
       description = "Photo library and raw developer, a clean-room Lightroom reimplementation";
     };
     pdfcraft = {
-      version = "0.9.0";
-      hash = "sha256-/199o2oQiTQOP9umlrKGzDF6yPBwXMjETBxJ2cpMVOA=";
+      version = "0.14.0";
+      hash = "sha256-qT9RHof2MDbKX1MAsaehijzSKFIF3qsVOUyqbug8bx8=";
       label = "PDFCraft PDF workbench";
       description = "PDF workbench, a clean-room Acrobat reimplementation";
     };
     filmcraft = {
-      version = "0.9.0";
-      hash = "sha256-6meVPMdUv9gnLg5fqUBRjhYGiulva3Ki3OVm7WmmFjI=";
+      version = "0.13.0";
+      hash = "sha256-QOnWhfs+0bCiHJwCIR8ahJngmkfFUSRM5+6A8lhNOps=";
       label = "FilmCraft video editor";
       description = "Video editor with color and sound, a clean-room Premiere Pro reimplementation";
       extraBuildInputs = pkgs: [ pkgs.alsa-lib ];
@@ -53,34 +53,34 @@ let
         ];
     };
     wordcraft = {
-      version = "0.8.0";
-      hash = "sha256-Ds4Hzz2RuSPf2A+QMQ4EmDveZvAnnGtg3c6JWW3eDd8=";
+      version = "0.11.0";
+      hash = "sha256-A0wke/basXKi7fsHZ96QZRJbhXgmxpFffvObn0OVHVo=";
       label = "WordCraft word processor";
       description = "Word processor, a clean-room Microsoft Word reimplementation";
     };
     gridcraft = {
-      version = "0.8.0";
-      hash = "sha256-SgKeINqGutRnBjOc5FFqIERcExwNgvahFHciCMXYMbM=";
+      version = "0.12.1";
+      hash = "sha256-HBdQ3W0mN2z4yK8itG3A7T2NXLsRXlVfD8fQz3qa6po=";
       label = "GridCraft spreadsheet";
       description = "Spreadsheet, a clean-room Microsoft Excel reimplementation";
     };
     cadcraft = {
-      version = "0.8.0";
-      hash = "sha256-3zwuZoQ58EEFZLH6nSGCe7Zj6z0BcDkCxB8CucUnYZM=";
+      version = "0.13.0";
+      hash = "sha256-04dVvrYYiXVr69k430kebuDeeMLzX9NRBaR5kJ/RypI=";
       label = "CADCraft CAD and drafting";
       description = "Computer-aided design and drafting, a clean-room AutoCAD reimplementation";
     };
     deckcraft = {
-      version = "0.8.0";
-      hash = "sha256-InuMnN0sBreGaAf5lf5dLQZ1UjphII+bwmzydg/dy48=";
+      version = "0.11.1";
+      hash = "sha256-e/V6EKT892c+y2abZODlRUdXgO8+Tua/YDrrAPVE5pw=";
       label = "DeckCraft presentations";
       description = "Presentations and slide shows, a clean-room Microsoft PowerPoint reimplementation";
       extraBuildInputs = pkgs: [ pkgs.alsa-lib ];
       extraRuntimeLibs = pkgs: [ pkgs.alsa-lib ];
     };
     soundcraft = {
-      version = "0.8.0";
-      hash = "sha256-V6K4d21RiAzuaRGFaKOWwJ+sppSdy/UPGYedcdWW9cw=";
+      version = "0.13.1";
+      hash = "sha256-Ce5siEWTT+70u/TFwOLw/8o/yREm/XpqQGGx+DkHRW0=";
       label = "SoundCraft audio workstation";
       description = "Digital audio workstation, a clean-room Avid Pro Tools reimplementation";
       extraBuildInputs = pkgs: [ pkgs.alsa-lib ];

@@ -61,7 +61,9 @@ Do not skip or reorder steps.
 
 Skills are exposed via the native `skill` tool. Proactively load the matching
 skill with the `skill` tool at the start of any task that fits its description -
-do not wait for the user to mention it.
+do not wait for the user to mention it. Load `toolbox` before choosing shell
+commands/apps so you use the intended nixconf tool or alias; load the domain
+skill (`nix`, `freecad`, `blender`, `artcraft`, ...) for task-specific rules.
 
 - `shell-script` - Bash standards (error handling, logging, cleanup)
 - `docker-build` - Multi-stage, security, optimization
@@ -73,12 +75,19 @@ do not wait for the user to mention it.
 - `nix` - Flake-parts modules, home-manager, reproducible builds
 - `terraform` - Remote state, modules, workspaces, security scanning
 - `ansible` - Idempotent playbooks, roles, Vault, Molecule
+- `toolbox` - Inventory of every nixconf CLI tool, alias, and app binary
+- `freecad` - FreeCAD modeling, 3D printing, Python addons, MCP
+- `blender` - Blender 3D printing, mesh validation, MCP
+- `artcraft` - PhotoCraft/LightCraft/PDFCraft/FilmCraft/WordCraft/GridCraft/
+  CadCraft/DeckCraft/SoundCraft usage and updates
 
 ## MCP Servers
 
 - `context7` - Up-to-date docs for nix/terraform/ansible/k8s. Use when you need
   current API/config details instead of stale training data.
 - `gh_grep` - GitHub code search. Use for real-world usage examples.
+- `blender` - Blender MCP bridge (workstation and `alexis@linux` only).
+- `freecad` - FreeCAD MCP bridge (workstation and `alexis@linux` only).
 
 ## Token Efficiency (IMPORTANT)
 

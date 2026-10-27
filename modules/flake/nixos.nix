@@ -108,6 +108,8 @@ in
           youtubeMusic
           cap
           gitlab
+          blender
+          freecad
           swayimg
           photocraft
           lightcraft

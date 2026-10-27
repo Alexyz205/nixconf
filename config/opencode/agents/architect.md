@@ -1,10 +1,16 @@
 ---
 description: High-level technical design, architecture decisions, ADRs, and trade-off analysis (no code)
 mode: subagent
-permission:
-  bash: deny
-  edit: deny
-  task: deny
+permissions:
+  - action: shell
+    resource: "*"
+    effect: deny
+  - action: edit
+    resource: "*"
+    effect: deny
+  - action: subagent
+    resource: "*"
+    effect: deny
 ---
 
 # Architect

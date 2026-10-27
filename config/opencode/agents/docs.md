@@ -2,12 +2,16 @@
 description: Create README, architecture docs, runbooks following DevOps best practices
 mode: subagent
 model: opencode-go/deepseek-v4.1-flash
-temperature: 0.3
-permission:
-  edit: ask
-  bash:
-    "*": allow
-    "rm *": deny
+permissions:
+  - action: edit
+    resource: "*"
+    effect: ask
+  - action: shell
+    resource: "*"
+    effect: allow
+  - action: shell
+    resource: "rm *"
+    effect: deny
 ---
 
 # Documentation Agent

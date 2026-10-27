@@ -2,17 +2,31 @@
 description: Full-stack DevOps agent for Terraform, CI/CD, Ansible, Docker, K8s with production-grade standards
 mode: subagent
 model: opencode-go/deepseek-v4.1-flash
-temperature: 0.2
-permission:
-  edit: ask
-  webfetch: allow
-  bash:
-    "*": allow
-    "rm *": deny
-    "rm -rf *": deny
-    "terraform destroy *": ask
-    "kubectl delete *": ask
-    "docker system prune *": ask
+permissions:
+  - action: edit
+    resource: "*"
+    effect: ask
+  - action: webfetch
+    resource: "*"
+    effect: allow
+  - action: shell
+    resource: "*"
+    effect: allow
+  - action: shell
+    resource: "rm *"
+    effect: deny
+  - action: shell
+    resource: "rm -rf *"
+    effect: deny
+  - action: shell
+    resource: "terraform destroy *"
+    effect: ask
+  - action: shell
+    resource: "kubectl delete *"
+    effect: ask
+  - action: shell
+    resource: "docker system prune *"
+    effect: ask
 ---
 
 # DevOps Agent

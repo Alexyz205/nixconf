@@ -48,7 +48,10 @@ let
                 "vesktop"
                 "nvidia-x11"
                 "nvidia-settings"
-              ];
+              ]
+              || builtins.any (license: license == lib.licenses.nvidiaCudaRedist) (
+                lib.lists.toList (pkg.meta.license or [ ])
+              );
             disko.devices.disk.main.device = diskDevice;
 
             services = {
@@ -226,7 +229,13 @@ let
               lazyvim.enable = true;
               tv.enable = true;
               ghostty.enable = true;
-              opencode.enable = true;
+              opencode = {
+                enable = true;
+                mcp = {
+                  blender.enable = true;
+                  freecad.enable = true;
+                };
+              };
               devenv.enable = true;
               niri = {
                 enable = true;
@@ -275,6 +284,11 @@ let
               wordcraft.enable = true;
               gridcraft.enable = true;
               cadcraft.enable = true;
+              blender = {
+                enable = true;
+                cudaSupport = true;
+              };
+              freecad.enable = true;
               deckcraft.enable = true;
               soundcraft.enable = true;
             };

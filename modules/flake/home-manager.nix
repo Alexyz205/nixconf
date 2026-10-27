@@ -113,6 +113,17 @@ let
       soundcraft
       { modules.soundcraft.enable = true; }
     ];
+    blender = [
+      blender
+      {
+        modules.blender.enable = true;
+        modules.blender.cudaSupport = true;
+      }
+    ];
+    freecad = [
+      freecad
+      { modules.freecad.enable = true; }
+    ];
   };
   # Full ArtCraft suite (Linux-only flake packages), part of the default
   # desktop set.
@@ -136,7 +147,10 @@ let
       builtins.elem (inputs.nixpkgs.lib.getName pkg) [
         "brave"
         "claude-desktop"
-      ];
+      ]
+      || builtins.any (license: license == inputs.nixpkgs.lib.licenses.nvidiaCudaRedist) (
+        inputs.nixpkgs.lib.lists.toList (pkg.meta.license or [ ])
+      );
   };
 
   # Tier 1 — the default desktop set every interactive Linux profile starts
@@ -158,7 +172,21 @@ let
     ];
 
   # Tier 2 — personal machines: the default set plus the personal-only apps.
-  personalExtra = defaultExtra ++ extras.claude ++ extras.thunderbird ++ extras.nextcloud;
+  personalExtra =
+    defaultExtra
+    ++ extras.claude
+    ++ extras.thunderbird
+    ++ extras.nextcloud
+    ++ extras.blender
+    ++ extras.freecad
+    ++ [
+      {
+        modules.opencode.mcp = {
+          blender.enable = true;
+          freecad.enable = true;
+        };
+      }
+    ];
 
   # Tier 2 — the two work stations (RNSL/RNSW) share one config so they can
   # never drift. Currently just the default set (no claude/thunderbird/nextcloud);

@@ -2,20 +2,37 @@
 description: Systematic DevOps debugging with proactive research and educational guidance
 mode: subagent
 model: opencode-go/deepseek-v4.1-flash
-temperature: 0.1
-permission:
-  edit: deny
-  doom_loop: deny
-  webfetch: allow
-  bash:
-    "*": allow
-    "rm *": deny
-    "rm -rf *": deny
-    "systemctl stop *": ask
-    "systemctl restart *": ask
-    "docker stop *": ask
-    "docker rm *": ask
-    "kubectl delete *": ask
+permissions:
+  - action: edit
+    resource: "*"
+    effect: deny
+  - action: webfetch
+    resource: "*"
+    effect: allow
+  - action: shell
+    resource: "*"
+    effect: allow
+  - action: shell
+    resource: "rm *"
+    effect: deny
+  - action: shell
+    resource: "rm -rf *"
+    effect: deny
+  - action: shell
+    resource: "systemctl stop *"
+    effect: ask
+  - action: shell
+    resource: "systemctl restart *"
+    effect: ask
+  - action: shell
+    resource: "docker stop *"
+    effect: ask
+  - action: shell
+    resource: "docker rm *"
+    effect: ask
+  - action: shell
+    resource: "kubectl delete *"
+    effect: ask
 ---
 
 # Debugging Agent
