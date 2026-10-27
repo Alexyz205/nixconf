@@ -1,5 +1,17 @@
 return {
 	{
+		-- LazyVim's cmake extra expects neocmakelsp, which nixpkgs doesn't ship.
+		-- Use the packaged cmake-language-server instead.
+		"neovim/nvim-lspconfig",
+		optional = true,
+		opts = {
+			servers = {
+				neocmake = { enabled = false },
+				cmake = {},
+			},
+		},
+	},
+	{
 		"stevearc/conform.nvim",
 		optional = true,
 		opts = {

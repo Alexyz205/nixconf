@@ -12,7 +12,7 @@
     # consumes it (e.g. sops-nix in modules/system/sops.nix, stylix in the
     # workstation) and collected into flake.nix by `nix run .#write-flake`.
     inputs = {
-      nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+      nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
 
       flake-file.url = lib.mkDefault "github:denful/flake-file";
 

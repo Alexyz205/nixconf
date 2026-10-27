@@ -57,9 +57,8 @@ in
     (final: prev: {
       # nixpkgs' breakpad 2024.02.16 stopped linking under the stdenv GCC 16
       # bump ("undefined reference to vtable for
-      # google_breakpad::FastSourceLineResolver::Module"), breaking
-      # noctalia-shell's noctalia-qs dependency. Build it with GCC 15 until
-      # nixpkgs ships a fix.
+      # google_breakpad::FastSourceLineResolver::Module"). Build it with GCC 15
+      # until nixpkgs ships a fix.
       breakpad = prev.breakpad.override { stdenv = final.gcc15Stdenv; };
     })
   ];

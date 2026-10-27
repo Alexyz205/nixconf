@@ -2,6 +2,7 @@ std = "lua51"
 
 globals = {
   "vim",
+  "LazyVim",
   "Snacks",
   "snacks",
   "Command",

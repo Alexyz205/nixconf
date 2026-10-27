@@ -55,7 +55,8 @@ return {
 		},
 	},
 	init = function()
-		-- Disable netrw plugin to avoid conflicts
+		-- Disable netrw to avoid conflicts
+		vim.g.loaded_netrw = 1
 		vim.g.loaded_netrwPlugin = 1
 	end,
 }

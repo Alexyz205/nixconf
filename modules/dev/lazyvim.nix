@@ -12,59 +12,70 @@ let
     enable = lib.mkEnableOption "LazyVim";
   };
 
-  homeCfg = {
-    programs.zsh.shellAliases = lazyvimAliases;
-    programs.lazyvim = {
-      enable = true;
-      ignoreBuildNotifications = true;
-      pluginSource = "nixpkgs";
-      # Core CLI deps (git, ripgrep, fd, lazygit, fzf, curl) are provided by the
-      # packages, tmux, git and lazygit modules; skip LazyVim's own copies.
-      installCoreDependencies = false;
-      extras = {
-        util.octo.enable = true;
-        editor.snacks-picker.enable = true;
-        lang = {
-          ansible.enable = true;
-          clangd.enable = true;
-          cmake.enable = true;
-          docker.enable = true;
-          git.enable = true;
-          helm.enable = true;
-          json.enable = true;
-          markdown = {
-            enable = true;
-            # LazyVim's default markdown formatter is `prettier`, but only
-            # `prettierd` is installed, so point conform at it.
-            config = ''
-              return {
-                {
-                  "stevearc/conform.nvim",
-                  optional = true,
-                  opts = {
-                    formatters_by_ft = {
-                      markdown = { "prettierd", "markdownlint-cli2" },
-                      ["markdown.mdx"] = { "prettierd", "markdownlint-cli2" },
+  homeCfg =
+    { pkgs }:
+    {
+      programs.zsh.shellAliases = lazyvimAliases;
+      programs.lazyvim = {
+        enable = true;
+        pluginSource = "nixpkgs";
+        # Core CLI deps (git, ripgrep, fd, lazygit, fzf, curl) are provided by the
+        # packages, tmux, git and lazygit modules; skip LazyVim's own copies.
+        installCoreDependencies = false;
+        extras = {
+          util.octo.enable = true;
+          editor.snacks-picker.enable = true;
+          lang = {
+            ansible.enable = true;
+            clangd.enable = true;
+            cmake.enable = true;
+            docker.enable = true;
+            git.enable = true;
+            helm.enable = true;
+            json.enable = true;
+            markdown = {
+              enable = true;
+              # LazyVim's default markdown formatter is `prettier`, but only
+              # `prettierd` is installed, so point conform at it.
+              config = ''
+                return {
+                  {
+                    "stevearc/conform.nvim",
+                    optional = true,
+                    opts = {
+                      formatters_by_ft = {
+                        markdown = { "prettierd", "markdownlint-cli2" },
+                        ["markdown.mdx"] = { "prettierd", "markdownlint-cli2" },
+                      },
                     },
                   },
-                },
-              }
-            '';
+                }
+              '';
+            };
+            nix.enable = true;
+            python.enable = true;
+            terraform.enable = true;
+            toml.enable = true;
+            yaml.enable = true;
           };
-          nix.enable = true;
-          python.enable = true;
-          terraform.enable = true;
-          toml.enable = true;
-          yaml.enable = true;
+          ui = {
+            indent-blankline.enable = true;
+            treesitter-context.enable = true;
+          };
         };
-        ui = {
-          indent-blankline.enable = true;
-          treesitter-context.enable = true;
-        };
+        configFiles = toString ../../config/lazyvim;
+
+        # Not in LazyVim's plugin manifest, so lazy.nvim would clone these at
+        # runtime. Point it at the pinned nixpkgs packages instead.
+        plugins.nix_pinned = ''
+          return {
+            { "nickjvandyke/opencode.nvim", dir = "${pkgs.vimPlugins.opencode-nvim}", dev = true, pin = true },
+            { "mikavilpas/yazi.nvim", dir = "${pkgs.vimPlugins.yazi-nvim}", dev = true, pin = true },
+            { "christoomey/vim-tmux-navigator", dir = "${pkgs.vimPlugins.vim-tmux-navigator}", dev = true, pin = true },
+          }
+        '';
       };
-      configFiles = toString ../../config/lazyvim;
     };
-  };
 in
 {
   flake-file.inputs.lazyvim = {
@@ -75,6 +86,7 @@ in
   nixconf.modules.nixos.lazyvim =
     {
       config,
+      pkgs,
       ...
     }:
     {
@@ -87,7 +99,7 @@ in
         home-manager.users.${config.modules.users.userName} = {
           imports = [ inputs.lazyvim.homeManagerModules.default ];
         }
-        // homeCfg;
+        // homeCfg { inherit pkgs; };
       };
     };
 
@@ -95,11 +107,14 @@ in
     {
       config,
       lazyvim,
+      pkgs,
       ...
     }:
     {
       imports = [ lazyvim.homeManagerModules.default ];
       options.modules.lazyvim = lazyvimOptions;
-      config = lib.mkIf config.modules.lazyvim.enable homeCfg;
+      config = lib.mkIf config.modules.lazyvim.enable (homeCfg {
+        inherit pkgs;
+      });
     };
 }

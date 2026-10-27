@@ -6,9 +6,9 @@
 # of collect_data()). Its process scan only matches claude/codex/devin, so
 # opencode would never register on its own.
 #
-# opencode runs the opencode-session-status event plugin, which writes one
-# JSON per process to ~/.local/state/opencode/agent-status/<pid>.json. Each
-# record carries the pane's TMUX_PANE. This bridge maps those records onto the
+# opencode runs the nixconf V2 session-status plugin, which writes one JSON per
+# process to ~/.local/state/opencode/agent-status/<pid>.json. Each record
+# carries the pane's TMUX_PANE. This bridge maps those records onto the
 # per-pane status files the collector already reads:
 #
 #   PANE_DIR/<session>_<%pane>.agent   -> "opencode"

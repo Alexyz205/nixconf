@@ -22,12 +22,46 @@ let
         # LSPs / formatters / linters on every host + home-manager profile so the
         # tooling is on $PATH regardless of the dev environment.
         lsp = [
+          # shell
+          bash-language-server
+          shfmt
+          shellcheck
+          # markdown
           marksman
           prettierd
           markdownlint-cli2
-          shfmt
-          shellcheck
-          bash-language-server
+          # nix
+          deadnix
+          nil
+          nixfmt
+          statix
+          # lua
+          lua-language-server
+          luaPackages.luacheck
+          stylua
+          # python
+          basedpyright
+          ruff
+          # json / yaml / toml
+          taplo
+          vscode-langservers-extracted
+          yaml-language-server
+          # terraform (the CLI is unfree; keep it in the repo's devenv)
+          terraform-ls
+          tflint
+          # c / c++
+          clang-tools
+          # cmake
+          cmake-language-server
+          gersemi
+          # docker
+          docker-compose-language-service
+          dockerfile-language-server
+          hadolint
+          # ansible
+          ansible-language-server
+          ansible-lint
+          # helm
           helm-ls
         ];
         security = [

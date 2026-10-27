@@ -21,7 +21,7 @@ end
 
 local function is_gitlab()
 	local host = remote_host():gsub("^.*@", ""):gsub(":.*$", "")
-	return gitlab_hosts[host] == true
+	return gitlab_hosts[host] == true and LazyVim.has("gitlab.nvim")
 end
 
 local function is_github()

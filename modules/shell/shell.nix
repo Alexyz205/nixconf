@@ -95,14 +95,16 @@ let
       home.file = {
         ".config/opencode/opencode.json".source =
           config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/repos/personal/nixconf/config/opencode/opencode.json";
-        ".config/opencode/tui.json".source =
-          config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/repos/personal/nixconf/config/opencode/tui.json";
+        ".config/opencode/cli.json".source =
+          config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/repos/personal/nixconf/config/opencode/cli.json";
         ".config/opencode/AGENTS.md".source =
           config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/repos/personal/nixconf/config/opencode/AGENTS.md";
         ".config/opencode/agents".source =
           config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/repos/personal/nixconf/config/opencode/agents";
         ".config/opencode/skills".source =
           config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/repos/personal/nixconf/config/opencode/skills";
+        ".config/opencode/plugins".source =
+          config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/repos/personal/nixconf/config/opencode/plugins";
         ".config/delta/catppuccin.gitconfig".text = ''
           # Generated from config/theme/catppuccin-mocha.nix — do not edit by hand.
           [delta "catppuccin-mocha"]

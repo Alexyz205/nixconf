@@ -1,6 +1,5 @@
 {
   inputs,
-  self,
   ...
 }:
 let
@@ -13,7 +12,6 @@ let
   mkNiri =
     {
       pkgs,
-      noctaliaShell,
       settings ? { },
       wallpaper ? null,
     }:
@@ -69,11 +67,11 @@ let
           "Mod+T" = hotkey "Open a Terminal" { spawn = pkgs.lib.getExe pkgs.ghostty; };
           "Mod+Return" = hotkey "Open a Terminal" { spawn = pkgs.lib.getExe pkgs.ghostty; };
           "Mod+D" = hotkey "Run an Application" {
-            spawn-sh = "${pkgs.lib.getExe noctaliaShell} ipc call launcher toggle";
+            spawn-sh = "${pkgs.lib.getExe pkgs.noctalia} msg panel-toggle launcher";
           };
           "Mod+S" = hotkey "Open Browser" { spawn-sh = pkgs.lib.getExe pkgs.brave; };
           "Mod+Ctrl+V" = hotkey "Clipboard history" {
-            spawn-sh = "${pkgs.lib.getExe noctaliaShell} ipc call launcher clipboard";
+            spawn-sh = "${pkgs.lib.getExe pkgs.noctalia} msg panel-toggle clipboard";
           };
 
           # Windows.
@@ -314,7 +312,7 @@ let
 
         xwayland-satellite.path = pkgs.lib.getExe pkgs.xwayland-satellite;
         spawn-at-startup = [
-          (pkgs.lib.getExe noctaliaShell)
+          (pkgs.lib.getExe pkgs.noctalia)
           [
             (pkgs.lib.getExe pkgs.swaybg)
             "-i"
@@ -336,13 +334,15 @@ let
     };
 in
 {
-  flake-file.inputs.wrapper-modules.url = "github:BirdeeHub/nix-wrapper-modules";
+  flake-file.inputs.wrapper-modules = {
+    url = "github:BirdeeHub/nix-wrapper-modules";
+    inputs.nixpkgs.follows = "nixpkgs";
+  };
 
   perSystem =
     {
       pkgs,
       system,
-      self',
       ...
     }:
     if system == "x86_64-linux" then
@@ -350,7 +350,6 @@ in
         # Default (host-agnostic) build, e.g. `nix build .#niri`.
         packages.niri = mkNiri {
           inherit pkgs;
-          noctaliaShell = self'.packages.noctalia-shell;
         };
       }
     else
@@ -388,7 +387,6 @@ in
         programs.niri.enable = true;
         programs.niri.package = mkNiri {
           inherit pkgs;
-          noctaliaShell = self.packages.${pkgs.stdenv.hostPlatform.system}.noctalia-shell;
           settings = config.modules.niri.settings;
           wallpaper = config.modules.niri.wallpaper;
         };

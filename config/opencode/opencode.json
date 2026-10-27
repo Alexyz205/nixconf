@@ -1,6 +1,7 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "autoupdate": false,
+  "update": "disable",
+  "share": "disabled",
   "lsp": {
     "nixd": { "disabled": true },
     "pyright": { "disabled": true },
@@ -41,10 +42,8 @@
       "extensions": [".toml"]
     }
   },
-  "share": "disabled",
   "model": "opencode-go/deepseek-v4.1-flash",
-  "small_model": "opencode-go/deepseek-v4.1-flash",
-  "agent": {
+  "agents": {
     "explore": {
       "model": "opencode-go/deepseek-v4.1-flash",
       "steps": 20
@@ -53,83 +52,67 @@
       "model": "opencode-go/deepseek-v4.1-flash",
       "steps": 30
     },
-    "task": {
-      "model": "opencode-go/deepseek-v4.1-flash",
-      "steps": 30
-    },
     "compaction": {
+      "model": "opencode-go/deepseek-v4.1-flash"
+    },
+    "title": {
       "model": "opencode-go/deepseek-v4.1-flash"
     }
   },
-  "permission": {
-    "read": "allow",
-    "edit": "allow",
-    "glob": "allow",
-    "grep": "allow",
-    "list": "allow",
-    "task": "allow",
-    "skill": "allow",
-    "lsp": "allow",
-    "question": "allow",
-    "webfetch": "allow",
-    "websearch": "allow",
-    "todowrite": "allow",
-    "external_directory": {
-      "*": "ask",
-      "~/Documents/**": "deny",
-      "~/repos/work/**": "deny",
-      "/tmp/**": "allow"
-    },
-    "doom_loop": "ask",
-    "bash": {
-      "*": "allow",
-      "git": "allow",
-      "git *": "allow",
-      "git add *": "deny",
-      "git commit *": "deny",
-      "git push *": "deny",
-      "gh": "deny",
-      "gh *": "deny",
-      "glab": "deny",
-      "glab *": "deny",
-      "curl * | sh": "deny",
-      "wget * | sh": "deny",
-      "sudo": "ask",
-      "shutdown": "deny",
-      "reboot": "deny",
-      "rm -rf /": "deny",
-      "chmod -R 777 *": "deny",
-      "rm *": "ask",
-      "rm -f *": "ask",
-      "rm -rf *": "ask",
-      "sudo rm -rf *": "deny",
-      "sops*": "ask",
-      "age*": "ask",
-      "gpg*": "ask",
-      "ssh-keygen*": "ask",
-      "openssl*": "ask",
-      "security*": "ask",
-      "cosign*": "ask",
-      "nix store sign*": "ask",
-      "docker system prune -a": "ask",
-      "terraform destroy *": "ask",
-      "kubectl get *": "allow",
-      "kubectl get secret*": "ask",
-      "kubectl describe *": "allow",
-      "kubectl describe secret*": "ask",
-      "kubectl logs *": "allow",
-      "kubectl apply *": "ask",
-      "kubectl delete *": "ask",
-      "kubectl delete pod*": "ask",
-      "kubectl delete pvc*": "ask",
-      "kubectl delete pv*": "ask",
-      "kubectl delete secret*": "ask"
-    }
+  "permissions": [
+    { "action": "external_directory", "resource": "*", "effect": "ask" },
+    { "action": "external_directory", "resource": "/tmp/**", "effect": "allow" },
+    { "action": "external_directory", "resource": "~/Documents/**", "effect": "deny" },
+    { "action": "external_directory", "resource": "~/repos/work/**", "effect": "deny" },
+    { "action": "shell", "resource": "*", "effect": "allow" },
+    { "action": "shell", "resource": "git", "effect": "allow" },
+    { "action": "shell", "resource": "git *", "effect": "allow" },
+    { "action": "shell", "resource": "git add *", "effect": "deny" },
+    { "action": "shell", "resource": "git commit *", "effect": "deny" },
+    { "action": "shell", "resource": "git push *", "effect": "deny" },
+    { "action": "shell", "resource": "gh", "effect": "deny" },
+    { "action": "shell", "resource": "gh *", "effect": "deny" },
+    { "action": "shell", "resource": "glab", "effect": "deny" },
+    { "action": "shell", "resource": "glab *", "effect": "deny" },
+    { "action": "shell", "resource": "curl * | sh", "effect": "deny" },
+    { "action": "shell", "resource": "wget * | sh", "effect": "deny" },
+    { "action": "shell", "resource": "sudo", "effect": "ask" },
+    { "action": "shell", "resource": "shutdown", "effect": "deny" },
+    { "action": "shell", "resource": "reboot", "effect": "deny" },
+    { "action": "shell", "resource": "rm -rf /", "effect": "deny" },
+    { "action": "shell", "resource": "chmod -R 777 *", "effect": "deny" },
+    { "action": "shell", "resource": "rm *", "effect": "ask" },
+    { "action": "shell", "resource": "rm -f *", "effect": "ask" },
+    { "action": "shell", "resource": "rm -rf *", "effect": "ask" },
+    { "action": "shell", "resource": "sudo rm -rf *", "effect": "deny" },
+    { "action": "shell", "resource": "sops*", "effect": "ask" },
+    { "action": "shell", "resource": "age*", "effect": "ask" },
+    { "action": "shell", "resource": "gpg*", "effect": "ask" },
+    { "action": "shell", "resource": "ssh-keygen*", "effect": "ask" },
+    { "action": "shell", "resource": "openssl*", "effect": "ask" },
+    { "action": "shell", "resource": "security*", "effect": "ask" },
+    { "action": "shell", "resource": "cosign*", "effect": "ask" },
+    { "action": "shell", "resource": "nix store sign*", "effect": "ask" },
+    { "action": "shell", "resource": "docker system prune -a", "effect": "ask" },
+    { "action": "shell", "resource": "terraform destroy *", "effect": "ask" },
+    { "action": "shell", "resource": "kubectl get *", "effect": "allow" },
+    { "action": "shell", "resource": "kubectl get secret*", "effect": "ask" },
+    { "action": "shell", "resource": "kubectl describe *", "effect": "allow" },
+    { "action": "shell", "resource": "kubectl describe secret*", "effect": "ask" },
+    { "action": "shell", "resource": "kubectl logs *", "effect": "allow" },
+    { "action": "shell", "resource": "kubectl apply *", "effect": "ask" },
+    { "action": "shell", "resource": "kubectl delete *", "effect": "ask" },
+    { "action": "shell", "resource": "kubectl delete pod*", "effect": "ask" },
+    { "action": "shell", "resource": "kubectl delete pvc*", "effect": "ask" },
+    { "action": "shell", "resource": "kubectl delete pv*", "effect": "ask" },
+    { "action": "shell", "resource": "kubectl delete secret*", "effect": "ask" }
+  ],
+  "experimental": {
+    "todo": true
   },
   "compaction": {
     "auto": true,
-    "prune": true,
-    "reserved": 8000
+    "buffer": 8000
   },
   "instructions": [
     "~/repos/personal/nixconf/README.md",
@@ -151,7 +134,7 @@
       "coverage/**"
     ]
   },
-  "command": {
+  "commands": {
     "review": {
       "description": "Code review the current changes",
       "template": "Review the staged and unstaged git changes. Focus on: security issues, error handling, best practices violations, and potential bugs. Provide actionable feedback."
@@ -186,15 +169,17 @@
     }
   },
   "mcp": {
-    "context7": {
-      "type": "remote",
-      "url": "https://mcp.context7.com/mcp",
-      "enabled": true
-    },
-    "gh_grep": {
-      "type": "remote",
-      "url": "https://mcp.grep.app",
-      "enabled": true
+    "servers": {
+      "context7": {
+        "type": "remote",
+        "url": "https://mcp.context7.com/mcp",
+        "disabled": false
+      },
+      "gh_grep": {
+        "type": "remote",
+        "url": "https://mcp.grep.app",
+        "disabled": false
+      }
     }
   }
 }

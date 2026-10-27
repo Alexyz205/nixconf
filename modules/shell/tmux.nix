@@ -6,7 +6,7 @@ let
   };
   # Plugin dependencies that must be on $PATH inside tmux: tmux-yank needs a
   # system-clipboard tool on Linux (macOS ships pbcopy). jq is used by the
-  # opencode bridge to read opencode-session-status state files. The fzf
+  # opencode bridge to read the V2 session-status state files. The fzf
   # switcher (prefix+S) needs fzf, and the collector serializes itself with
   # flock (util-linux on Linux; macOS falls back to Perl).
   tmuxDeps =
@@ -52,8 +52,8 @@ let
         license = pkgs.lib.licenses.gpl3;
       };
     });
-  # opencode is tracked via the opencode-session-status event plugin (its JSON
-  # is keyed by TMUX_PANE), which the appended bridge maps onto the per-pane
+  # opencode is tracked via the nixconf V2 session-status plugin (its JSON is
+  # keyed by TMUX_PANE), which the appended bridge maps onto the per-pane
   # status files this plugin's collector reads. claude/codex/devin are
   # presence-detected automatically; hook-based live states need their per-CLI
   # hooks configured, which nixconf does not manage.
@@ -142,7 +142,7 @@ let
         {
           # Live agent status (sidebar + status-line summary) from
           # samleeney/tmux-agent-status. Agent states come from hooks for
-          # claude/codex/devin and from the opencode-session-status bridge for
+          # claude/codex/devin and from the nixconf opencode bridge for
           # opencode. Default keys: prefix+S switcher, prefix+o sidebar,
           # prefix+N next done, prefix+W wait, prefix+p park.
           plugin = agentStatusPkg;

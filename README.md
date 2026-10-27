@@ -237,19 +237,21 @@ cp $NIXCONF/examples/devenv.nix $REPO/devenv.nix
 devenv shell        # now enter that repo's dev environment
 ```
 
-The mental model: LazyVim itself (the `lazyvim` feature) only provides
-neovim + config + aliases — **LSPs and formatters live in each repo's
-`devenv.nix`**, so they're available from `$PATH` inside the activated dev shell.
-The template shows how to wire `packages` (standalone LSPs/formatters/linters),
-`languages` (compiler/runtime + matching LSP batteries), `env`, `treefmt`
-(repo-wide formatters), `tasks` (project commands), `devcontainer`, and
-`containers` (CI). The full per-language LSP/formatter/linter table lives in the
-template — it's not duplicated here.
+The mental model: the `lazyvim` feature provides neovim + config + aliases, and
+the `packages.lsp` group installs the LSPs/formatters/linters that match the
+enabled LazyVim extras (nix, shell, markdown, lua, python, json/yaml/toml,
+terraform, c/cpp, cmake, docker, ansible, helm), so they work outside a devenv.
+Repo-specific toolchains and compilers still live in each repo's `devenv.nix`
+and take precedence on `$PATH` when the dev shell is active; the same goes for
+unfree tools such as the Terraform CLI. The template shows how to wire
+`packages` (extra standalone tools), `languages` (compiler/runtime + matching
+LSP batteries), `env`, `treefmt` (repo-wide formatters), `tasks` (project
+commands), `devcontainer`, and `containers` (CI). The full per-language
+LSP/formatter/linter table lives in the template — it's not duplicated here.
 
-The rule is **one tool per job, no duplicates**. Anything that isn't already
-global on NixOS (C++/Rust/Go toolchains, language-specific compiler versions)
-belongs in the repo's `devenv.nix`, not in nixconf. The LazyVim LSPs are _not_
-global either — each repo owns its own via devenv.
+The rule is **one tool per job, no duplicates**. The global `packages.lsp` group
+covers the editors' language support; language-specific compilers/runtimes and
+unfree CLIs belong in the repo's `devenv.nix`, not in nixconf.
 
 ## Secrets
 

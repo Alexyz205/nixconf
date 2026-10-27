@@ -7,7 +7,7 @@
     ];
 
     # Apply the flake's overlays (fetchgit CA wrapper, package fixes) to the
-    # perSystem pkgs used by custom packages (niri, noctalia-shell, ...) too,
+    # perSystem pkgs used by custom packages (niri, noctalia, ...) too,
     # not just the NixOS / home-manager pkgs. flake-parts' default perSystem
     # pkgs is mkOptionDefault'd, so a plain assignment wins.
     perSystem =

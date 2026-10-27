@@ -84,8 +84,13 @@ in
         services.udev.packages = [ pkgs.yubikey-personalization ];
 
         # --- LUKS unlock with a FIDO2 token via systemd stage-1 -----------------
-        disko.devices.disk.main.content.partitions.luks.content.enrollFido2 =
-          lib.mkIf config.modules.yubikey.luksUnlock true;
+        # Do not set disko's enrollFido2 here: it also defines the removed
+        # boot.initrd.systemd.enable option. The installer overrides
+        # enrollFido2 when it runs disko, so enrollment still happens at install
+        # time; runtime only needs the crypttab option below.
+        boot.initrd.luks.devices.crypted.crypttabExtraOpts = lib.mkIf config.modules.yubikey.luksUnlock [
+          "fido2-device=auto"
+        ];
         boot.initrd.systemd.fido2.enable = lib.mkIf config.modules.yubikey.luksUnlock true;
 
         # --- Touch instead of sudo/login password (pam_u2f) ----------------------

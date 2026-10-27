@@ -1,0 +1,24 @@
+{
+  "$schema": "https://opencode.ai/v2/cli.json",
+  "theme": {
+    "name": "catppuccin"
+  },
+  "diffs": {
+    "view": "auto"
+  },
+  "scroll": {
+    "acceleration": true
+  },
+  "cursor": {
+    "style": "block",
+    "blinking": true
+  },
+  "attention": {
+    "notifications": true,
+    "sound": true,
+    "volume": 0.4
+  },
+  "keybinds": {
+    "app.toggle.file_context": "<leader>f"
+  }
+}
