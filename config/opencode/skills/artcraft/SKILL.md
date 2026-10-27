@@ -15,17 +15,17 @@ tarballs on Linux x86_64. They are feature modules under
 `modules/desktop/artcraft.nix`; the flake outputs are also named
 `photocraft`, `lightcraft`, etc.
 
-| Binary | App | Replaces | Typical files |
-| --- | --- | --- | --- |
-| `photocraft` | PhotoCraft | Photoshop | PSD, PNG, JPEG, TIFF |
-| `lightcraft` | LightCraft | Lightroom | RAW, DNG, JPEG |
-| `pdfcraft` | PDFCraft | Acrobat | PDF |
-| `filmcraft` | FilmCraft | Premiere Pro | MP4, MOV, ProRes |
-| `wordcraft` | WordCraft | Microsoft Word | DOCX, ODT |
-| `gridcraft` | GridCraft | Microsoft Excel | XLSX, CSV |
-| `cadcraft` | CadCraft | AutoCAD | DWG, DXF |
-| `deckcraft` | DeckCraft | PowerPoint | PPTX |
-| `soundcraft` | SoundCraft | Pro Tools | WAV, AIFF, FLAC |
+| Binary       | App        | Replaces        | Typical files        |
+| ------------ | ---------- | --------------- | -------------------- |
+| `photocraft` | PhotoCraft | Photoshop       | PSD, PNG, JPEG, TIFF |
+| `lightcraft` | LightCraft | Lightroom       | RAW, DNG, JPEG       |
+| `pdfcraft`   | PDFCraft   | Acrobat         | PDF                  |
+| `filmcraft`  | FilmCraft  | Premiere Pro    | MP4, MOV, ProRes     |
+| `wordcraft`  | WordCraft  | Microsoft Word  | DOCX, ODT            |
+| `gridcraft`  | GridCraft  | Microsoft Excel | XLSX, CSV            |
+| `cadcraft`   | CadCraft   | AutoCAD         | DWG, DXF             |
+| `deckcraft`  | DeckCraft  | PowerPoint      | PPTX                 |
+| `soundcraft` | SoundCraft | Pro Tools       | WAV, AIFF, FLAC      |
 
 ## Usage
 

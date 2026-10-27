@@ -17,12 +17,18 @@ printing.
 ## Environment
 
 - FreeCAD 1.1.x runs through XWayland (`QT_QPA_PLATFORM=xcb`) on Niri.
-- The MCP bridge addon is `FreeCADMCP`; start its RPC server from the
-  **MCP Addon** workbench before asking the agent to use FreeCAD tools.
+- The MCP bridge addon is `FreeCADMCP` (workbench **MCP Addon**). The nixconf
+  module enables its auto-start, so the RPC server is up as soon as FreeCAD
+  opens (see "MCP tools" below).
 - The OpenCode MCP server is `freecad` and runs
   `uvx --from freecad-mcp freecad-mcp` (pinned in the Nix config).
 - Addons are installed declaratively through `pkgs.freecad.customize`; do not
   edit `~/.local/share/FreeCAD/Mod` by hand when a Nix addon exists.
+- The wrapper exports `FREECAD_USER_HOME`/`FREECAD_USER_DATA` to the standard
+  XDG paths. FreeCAD 1.1 resolves `$HOME` via `getpwuid()` and segfaults when
+  NSS can't resolve the user (SSSD/LDAP accounts missing from `/etc/passwd`,
+  e.g. the RNSL/RNSW work stations); the env override skips that lookup.
+  Never unset those two variables when launching FreeCAD on such hosts.
 
 ## Modeling rules
 
@@ -71,7 +77,24 @@ Expose workbenches/commands from `InitGui.py`; keep GUI imports out of
 `Init.py`. Test with the FreeCAD version in `pkgs.freecad` and pin the addon
 with `fetchFromGitHub` + `rev`/`hash` in the nixconf module.
 
+FreeCAD 1.1 treats every `--module-path` value as _one_ add-on and runs
+`<path>/InitGui.py`, so `pkgs.freecad.customize` must receive one path per
+add-on. Passing a `linkFarm` of add-ons loads none of them silently.
+
 ## MCP tools
+
+Starting the bridge (already done by the nixconf module):
+
+- `pkgs.freecad.customize` installs the `FreeCADMCP` add-on; the workbench is
+  listed as **MCP Addon** in the workbench selector.
+- `~/.local/share/FreeCAD/v1-1/freecad_mcp_settings.json` ships with
+  `auto_start_rpc: true`, so opening FreeCAD starts the XML-RPC server on
+  `127.0.0.1:9875` — the address the `freecad` MCP server dials.
+- Manual alternative / recovery: switch to the **MCP Addon** workbench and use
+  the **FreeCAD MCP** toolbar → Start RPC Server (also Stop, Toggle Auto Start,
+  Toggle Remote Connections, Allowed IPs, Auth Token). Results go to the Report
+  view.
+- Sanity check without OpenCode: `ss -ltn | grep 9875` while FreeCAD is open.
 
 When the `freecad` MCP server is connected, prefer its structured tools
 (document inspection, sketch diagnostics, shape analysis, STL/STEP export)

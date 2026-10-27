@@ -21,6 +21,7 @@ view.SetString("NavigationStyle", "Gui::CADNavigationStyle")
 
 main_window = FreeCAD.ParamGet("User parameter:BaseApp/Preferences/MainWindow")
 main_window.SetString("StyleSheet", "CatppuccinNights.qss")
+main_window.SetString("OverlayActiveStyleSheet", "CatppuccinNights_Overlay.qss")
 
 general = FreeCAD.ParamGet("User parameter:BaseApp/Preferences/General")
 general.SetString("AutoloadModule", "PartDesignWorkbench")

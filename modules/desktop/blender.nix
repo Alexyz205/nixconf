@@ -156,13 +156,30 @@ let
       lib,
       cudaSupport,
     }:
+    let
+      blender = mkBlender pkgs cudaSupport;
+      # XDG launchers only rescan a data dir when it changes, and the package's
+      # own entry sits behind ~/.nix-profile — a symlink that is swapped on every
+      # switch — so Activities search can miss it. Copy the entry into the stable
+      # XDG dir and pin Exec to the wrapped binary instead of relying on PATH.
+      desktopEntry = pkgs.runCommand "blender.desktop" { } ''
+        mkdir -p $out/share/applications
+        substitute ${blender}/share/applications/blender.desktop \
+          $out/share/applications/blender.desktop \
+          --replace-fail "Exec=blender " "Exec=${blender}/bin/blender "
+      '';
+    in
     {
-      home.packages = [ (mkBlender pkgs cudaSupport) ];
-      home.file.".config/blender/${blenderVersionDir pkgs}/scripts/presets/interface_theme/Catppuccin_Mocha.xml".source =
-        catppuccinTheme pkgs;
+      home.packages = [ blender ];
+      home.file = {
+        ".config/blender/${blenderVersionDir pkgs}/scripts/presets/interface_theme/Catppuccin_Mocha.xml".source =
+          catppuccinTheme pkgs;
+        ".local/share/applications/blender.desktop".source =
+          "${desktopEntry}/share/applications/blender.desktop";
+      };
       home.activation.blenderPrefs = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
         if [ ! -f "$HOME/.config/blender/${blenderVersionDir pkgs}/config/userpref.blend" ]; then
-          $DRY_RUN_CMD ${mkBlender pkgs cudaSupport}/bin/blender --background --factory-startup \
+          $DRY_RUN_CMD ${blender}/bin/blender --background --factory-startup \
             --python ${../../config/blender/seed.py} >/dev/null 2>&1 || true
         fi
       '';

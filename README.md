@@ -113,8 +113,9 @@ Standalone home-manager profiles (`flake.homeConfigurations`):
 The profile extras are layered (`modules/flake/home-manager.nix`):
 `defaultExtra` is the base every interactive Linux profile starts from (sops,
 yubikey, ghostty, containers plus gitlab, youtube-music, brave, cap, artcraft
-and vlc); `personalExtra` builds on it with claude, thunderbird and Nextcloud;
-`workExtra` is the default set the two `RNSL`/`RNSW` work stations share so they
+and vlc); `personalExtra` builds on it with claude, thunderbird, Nextcloud and
+the Blender/FreeCAD 3D stack; `workExtra` is the default set plus FreeCAD (with
+the OpenCode MCP bridge) that the two `RNSL`/`RNSW` work stations share so they
 can't drift. macOS gets a cross-platform subset (`macosExtra`) since
 brave/cap/artcraft/youtube-music are Linux-only. The work profiles run on the
 distro's own desktop (GNOME) — no niri/noctalia/stylix and no Nextcloud.

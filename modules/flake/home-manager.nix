@@ -189,9 +189,15 @@ let
     ];
 
   # Tier 2 — the two work stations (RNSL/RNSW) share one config so they can
-  # never drift. Currently just the default set (no claude/thunderbird/nextcloud);
-  # keep the name so work-only additions have an obvious home.
-  workExtra = defaultExtra;
+  # never drift. The default set plus the 3D CAD stack (no claude/thunderbird/
+  # nextcloud); keep the name so work-only additions have an obvious home.
+  workExtra =
+    defaultExtra
+    ++ extras.freecad
+    ++ extras.blender
+    ++ [
+      { modules.opencode.mcp.freecad.enable = true; }
+    ];
 
   # macOS can't run the Linux-only packages (brave/cap/artcraft/youtube-music,
   # and the `desktop` group's vlc which has no aarch64-darwin build), so it gets

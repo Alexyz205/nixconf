@@ -131,27 +131,25 @@ let
 
   mkFreecad =
     pkgs:
-    let
-      catppuccin = catppuccinSrc pkgs;
-      addonAttrs =
-        builtins.listToAttrs (
-          map (addon: {
-            inherit (addon) name;
-            value = addon.pkg pkgs;
-          }) addons
-        )
-        // {
-          CatppuccinTheme = catppuccin;
-        };
-      addonsDir = pkgs.linkFarm "freecad-addons" addonAttrs;
-    in
     pkgs.freecad.customize {
       name = "freecad";
-      modules = [ addonsDir ];
+      # FreeCAD 1.1 registers every --module-path entry as a single add-on and
+      # then runs `<entry>/InitGui.py`, so each add-on has to be passed as its
+      # own path — a linkFarm holding all of them is one path with no InitGui.py
+      # and silently loads nothing.
+      modules = map (addon: addon.pkg pkgs) addons;
       makeWrapperFlags = [
         "--set"
         "QT_QPA_PLATFORM"
         "xcb"
+        # FreeCAD 1.1 looks its home up with getpwuid() and throws (then
+        # segfaults on the uninitialised interpreter) when the host resolves
+        # users through a service the Nix glibc can't load — e.g. SSSD/LDAP
+        # accounts that aren't in /etc/passwd, as on the work stations.
+        # Pointing the custom dirs at the standard XDG locations skips the
+        # lookup and keeps the on-disk layout unchanged.
+        "--run"
+        "export FREECAD_USER_HOME=\"$HOME/.config/FreeCAD/${versionDir pkgs}\" FREECAD_USER_DATA=\"$HOME/.local/share/FreeCAD/${versionDir pkgs}\"; mkdir -p \"$FREECAD_USER_HOME\" \"$FREECAD_USER_DATA\""
       ];
     };
 
@@ -164,10 +162,35 @@ let
       freecad = mkFreecad pkgs;
       catppuccin = catppuccinSrc pkgs;
       dir = versionDir pkgs;
+      # XDG launchers only rescan a data dir when it changes, and the package's
+      # own entry sits behind ~/.nix-profile — a symlink that is swapped on every
+      # switch — so Activities search can miss it. Copy the entry into the stable
+      # XDG dir and pin Exec to the wrapped binary instead of relying on PATH.
+      desktopEntry = pkgs.runCommand "org.freecad.FreeCAD.desktop" { } ''
+        mkdir -p $out/share/applications
+        substitute ${freecad}/share/applications/org.freecad.FreeCAD.desktop \
+          $out/share/applications/org.freecad.FreeCAD.desktop \
+          --replace-fail "Exec=FreeCAD " "Exec=${freecad}/bin/freecad "
+      '';
+      # The FreeCADMCP add-on reads this file next to the user data dir and
+      # starts its RPC server on 127.0.0.1:9875 at startup when auto_start_rpc
+      # is set, so the OpenCode `freecad` server works without touching a
+      # toolbar button. Written once, then owned by the user: the add-on saves
+      # to it when toggling Auto Start / Remote connections.
+      mcpSettings = pkgs.writeText "freecad_mcp_settings.json" (
+        builtins.toJSON {
+          remote_enabled = false;
+          allowed_ips = "127.0.0.1";
+          auto_start_rpc = true;
+          auth_token = "";
+        }
+      );
     in
     {
       home.packages = [ freecad ];
       home.file = {
+        ".local/share/applications/org.freecad.FreeCAD.desktop".source =
+          "${desktopEntry}/share/applications/org.freecad.FreeCAD.desktop";
         ".local/share/FreeCAD/${dir}/Gui/Stylesheets/CatppuccinNights.qss".source =
           "${catppuccin}/CatppuccinNights/CatppuccinNights.qss";
         ".local/share/FreeCAD/${dir}/Gui/Stylesheets/images_dark-light".source =
@@ -185,6 +208,18 @@ let
           mkdir -p "$cfgdir"
           cp --no-preserve=mode,ownership "${catppuccin}/CatppuccinPreferences/CatppuccinPreferences.cfg" "$cfgdir/user.cfg"
           $DRY_RUN_CMD ${freecad}/bin/freecadcmd -c "exec(open('${../../config/freecad/seed.py}').read())" >/dev/null 2>&1 || true
+        fi
+        # FreeCAD only exposes preference packs through the GUI, so the theme is
+        # selected here instead. Re-applied whenever user.cfg no longer points at
+        # the Catppuccin style sheet / overlay (first switch, or a manual change).
+        if ! grep -qsF "Name=\"StyleSheet\">CatppuccinNights.qss" "$cfgdir/user.cfg" ||
+          ! grep -qsF "Name=\"OverlayActiveStyleSheet\">CatppuccinNights_Overlay.qss" "$cfgdir/user.cfg"; then
+          $DRY_RUN_CMD ${freecad}/bin/freecadcmd -c "exec(open('${../../config/freecad/theme.py}').read())" >/dev/null 2>&1 || true
+        fi
+        mcpfile="$HOME/.local/share/FreeCAD/${dir}/freecad_mcp_settings.json"
+        if [ ! -f "$mcpfile" ]; then
+          mkdir -p "$(dirname "$mcpfile")"
+          $DRY_RUN_CMD install -m 0644 ${mcpSettings} "$mcpfile"
         fi
       '';
       xdg.mimeApps.defaultApplications."application/x-extension-fcstd" = "org.freecad.FreeCAD.desktop";
