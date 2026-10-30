@@ -103,6 +103,7 @@ in
           discord
           steam
           heroic
+          prism
           controller
           thunderbird
           youtubeMusic

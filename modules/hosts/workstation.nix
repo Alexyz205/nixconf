@@ -260,6 +260,7 @@ let
               discord.enable = true;
               steam.enable = true;
               heroic.enable = true;
+              prism.enable = true;
               controller.enable = true;
               # Headless Moonlight host for the Xbox: each stream gets its own
               # isolated 16:9 compositor (host desktop unaffected). LAN-only on
@@ -331,6 +332,11 @@ let
               # Unconditional: enables the NVIDIA driver whenever an NVIDIA GPU
               # is present; harmless (module never binds) on non-NVIDIA hardware.
               nvidia = {
+                # RTX 5070 (Blackwell) on the new-feature branch (615.x) instead
+                # of production (595.x). Roll back by deleting this line and
+                # rebuilding + rebooting; the previous system generation stays in
+                # the boot menu either way.
+                package = config.boot.kernelPackages.nvidiaPackages.latest;
                 modesetting.enable = true;
                 open = true;
                 # Reinitialise the GPU on resume; without this the driver never
