@@ -119,7 +119,9 @@ the OpenCode MCP bridge) that the two `RNSL`/`RNSW` work stations share so they
 can't drift. macOS gets a cross-platform subset (`macosExtra`) since
 brave/cap/artcraft/youtube-music are Linux-only. The work profiles run on the
 distro's own desktop (GNOME) — no niri/noctalia/stylix and no Nextcloud.
-`swayimg` (yazi's image opener) is a default on every Linux profile.
+`imv` (yazi's and the file explorer's image opener) is a default on every Linux
+profile; its nixpkgs wrapper picks the Wayland or X11 backend at launch, so the
+same viewer works on niri and on the X11 GNOME work stations.
 
 Hosts are referenced by their flake attribute: `nixosConfigurations.workstation`,
 `darwinConfigurations.macbook`, `homeConfigurations."alexis@linux"`, etc.

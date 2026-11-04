@@ -90,6 +90,7 @@ let
     gcm = "git commit -m";
     gco = "git checkout";
     gd = "git diff";
+    gf = "git fetch --all --tags";
     gl = "git log";
     gp = "git pull";
     gP = "git push";

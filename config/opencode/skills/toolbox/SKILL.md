@@ -33,11 +33,11 @@ run destructive/remote-changing commands without asking.
 - `ripgrep` (`rg`), `fd`, `jq`, `yq`.
 - `dust` (`dst`, `dsz`), `duf`, `btop`.
 - `yazi` (`y`), `tv` (`f`, `Ctrl+T` smart autocomplete, `Ctrl+R` history).
-- `cliphist`, `wl-copy`/`wl-paste` (Wayland), `swayimg` (image opener).
+- `cliphist`, `wl-copy`/`wl-paste` (Wayland), `imv` (image opener, X11 + Wayland).
 
 ## Git / forge
 
-- `git` (aliases: `g`, `ga`, `gc`, `gcm`, `gco`, `gd`, `gl`, `gp`, `gP`, `gs`;
+- `git` (aliases: `g`, `ga`, `gc`, `gcm`, `gco`, `gd`, `gf`, `gl`, `gp`, `gP`, `gs`;
   `gh:`/`gl:` URL prefixes), `delta`, `lazygit` (`lg`).
 - `gh` (GitHub CLI), `glab` (GitLab CLI). Remote-changing operations are manual
   per `AGENTS.md`: do not push, comment, approve, or merge.

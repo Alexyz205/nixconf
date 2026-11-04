@@ -329,7 +329,7 @@ What was set up:
   - Repo:         $INSTALL_DIR
   - Home-manager: $HM_CONFIG (tools + default apps: gitlab, youtube-music,
                    brave, cap, artcraft (photocraft/lightcraft/pdfcraft/
-                   filmcraft), vlc, swayimg, sops, containers, devpod)
+                   filmcraft), vlc, imv, sops, containers, devpod)
   - Login shell:  zsh
 
 Next steps:

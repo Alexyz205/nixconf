@@ -21,7 +21,7 @@ let
     starship
     tmux
     yazi
-    swayimg
+    imv
     lazygit
     lazyvim
     btop
@@ -258,7 +258,7 @@ let
             starship.enable = true;
             tmux.enable = true;
             yazi.enable = true;
-            swayimg.enable = pkgs.stdenv.hostPlatform.isLinux;
+            imv.enable = pkgs.stdenv.hostPlatform.isLinux;
             lazygit.enable = true;
             lazyvim.enable = true;
             btop.enable = true;

@@ -399,9 +399,11 @@ let
     extraPackages = [
       pkgs.bat
     ]
-    # swayimg: the image/* opener (swayimg is Wayland-only, hence Linux-gated).
+    # imv: the image/* opener (swayimg was Wayland-only and fails on X11; imv's
+    # wrapper picks the X11 or Wayland backend, so both desktops work).
+    # Linux-gated because imv does not build on darwin.
     ++ lib.optionals pkgs.stdenv.hostPlatform.isLinux [
-      pkgs.swayimg
+      pkgs.imv
     ]
     # mount.yazi needs udisksctl/lsblk/eject (Linux) to mount disks.
     ++ lib.optionals pkgs.stdenv.hostPlatform.isLinux [
@@ -426,7 +428,7 @@ let
       mgr.linemode = "size";
 
       # Openers backed by the user's own tooling: edit with nvim (LazyVim),
-      # view text with bat, open images with swayimg. `open`/`reveal` fall back
+      # view text with bat, open images with imv. `open`/`reveal` fall back
       # to the defaults (xdg-open) for everything else.
       opener = {
         edit = [
@@ -445,12 +447,11 @@ let
             block = true;
           }
         ];
-        swayimg = lib.optionals pkgs.stdenv.hostPlatform.isLinux [
+        imv = lib.optionals pkgs.stdenv.hostPlatform.isLinux [
           {
-            run = "swayimg %s";
-            desc = "Open with swayimg";
+            run = "imv %s";
+            desc = "Open with imv";
             for = "unix";
-            block = true;
           }
         ];
       };
@@ -468,7 +469,7 @@ let
       ++ lib.optionals pkgs.stdenv.hostPlatform.isLinux [
         {
           mime = "image/*";
-          use = [ "swayimg" ];
+          use = [ "imv" ];
         }
       ];
 

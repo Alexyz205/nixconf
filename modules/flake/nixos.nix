@@ -111,7 +111,7 @@ in
           gitlab
           blender
           freecad
-          swayimg
+          imv
           photocraft
           lightcraft
           pdfcraft

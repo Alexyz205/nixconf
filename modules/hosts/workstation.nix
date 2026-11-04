@@ -277,7 +277,7 @@ let
               youtubeMusic.enable = true;
               cap.enable = true;
               gitlab.enable = true;
-              swayimg.enable = true;
+              imv.enable = true;
               photocraft.enable = true;
               lightcraft.enable = true;
               pdfcraft.enable = true;
