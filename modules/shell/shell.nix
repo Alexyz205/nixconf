@@ -46,7 +46,7 @@ let
   #
   # nh parses dots in an explicit config key as an attribute path, so profiles
   # whose username contains a dot use nh's auto-detection instead: with no
-  # `#key`, nh resolves `$USER@$HOSTNAME` (RNSL-APIGEON5, RNSW-APIGEON1).
+  # `#key`, nh resolves `$USER@$HOSTNAME` (RNSL-APIGEON5).
   hmAliases =
     profile:
     let

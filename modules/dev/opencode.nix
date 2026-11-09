@@ -46,7 +46,6 @@ let
         pkgs.opencode
       ]
       ++ lib.optional (mcp.blender.enable || mcp.freecad.enable) pkgs.uv;
-      home.sessionVariables.OPENCODE_DISABLE_LSP_DOWNLOAD = "true";
       home.file.".config/opencode/opencode.json".text = builtins.toJSON config;
     };
 

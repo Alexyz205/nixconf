@@ -180,9 +180,9 @@ let
       }
     ];
 
-  # Tier 2 — the two work stations (RNSL/RNSW) share one config so they can
-  # never drift. The default set plus the 3D CAD stack (no claude/thunderbird/
-  # nextcloud); keep the name so work-only additions have an obvious home.
+  # Tier 2 — the RNSL work station. The default set plus the 3D CAD stack (no
+  # claude/thunderbird/nextcloud); keep the name so work-only additions have an
+  # obvious home.
   workExtra =
     defaultExtra
     ++ extras.freecad
@@ -323,21 +323,12 @@ in
       hmProfile = "alexis@linux";
       extra = personalExtra;
     };
-    # The two work stations share one config (see workExtra). RNSL is the
-    # original machine, RNSW the newer Ubuntu/GNOME one; only the profile key
-    # differs.
+    # The RNSL work station (Ubuntu/GNOME) uses workExtra.
     "alexis.pigeon@RNSL-APIGEON5" = mkHome {
       system = "x86_64-linux";
       username = "alexis.pigeon";
       homeDirectory = "/home/alexis.pigeon";
       hmProfile = "alexis.pigeon@RNSL-APIGEON5";
-      extra = workExtra;
-    };
-    "alexis.pigeon@RNSW-APIGEON1" = mkHome {
-      system = "x86_64-linux";
-      username = "alexis.pigeon";
-      homeDirectory = "/home/alexis.pigeon";
-      hmProfile = "alexis.pigeon@RNSW-APIGEON1";
       extra = workExtra;
     };
     # Headless Ubuntu server: terminal-only, no GUI extras.

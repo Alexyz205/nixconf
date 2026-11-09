@@ -2,104 +2,8 @@
   "$schema": "https://opencode.ai/config.json",
   "update": "disable",
   "share": "disabled",
-  "lsp": {
-    "nixd": {
-      "disabled": true
-    },
-    "pyright": {
-      "disabled": true
-    },
-    "nil": {
-      "command": [
-        "nil"
-      ],
-      "extensions": [
-        ".nix"
-      ]
-    },
-    "basedpyright": {
-      "command": [
-        "basedpyright-langserver",
-        "--stdio"
-      ],
-      "extensions": [
-        ".py",
-        ".pyi"
-      ]
-    },
-    "ruff": {
-      "command": [
-        "ruff",
-        "server"
-      ],
-      "extensions": [
-        ".py",
-        ".pyi"
-      ]
-    },
-    "clangd": {
-      "command": [
-        "clangd"
-      ],
-      "extensions": [
-        ".c",
-        ".h",
-        ".cpp",
-        ".hpp",
-        ".cc",
-        ".cxx",
-        ".hxx",
-        ".ino"
-      ]
-    },
-    "lua-ls": {
-      "command": [
-        "lua-language-server"
-      ],
-      "extensions": [
-        ".lua"
-      ]
-    },
-    "terraform": {
-      "command": [
-        "terraform-ls",
-        "serve"
-      ],
-      "extensions": [
-        ".tf",
-        ".tfvars"
-      ]
-    },
-    "yaml-ls": {
-      "command": [
-        "yaml-language-server"
-      ],
-      "extensions": [
-        ".yaml",
-        ".yml"
-      ]
-    },
-    "marksman": {
-      "command": [
-        "marksman"
-      ],
-      "extensions": [
-        ".md",
-        ".mdx"
-      ]
-    },
-    "taplo": {
-      "command": [
-        "taplo",
-        "lsp",
-        "stdio"
-      ],
-      "extensions": [
-        ".toml"
-      ]
-    }
-  },
   "model": "opencode-go/deepseek-v4.1-flash",
+  "default_agent": "build",
   "agents": {
     "explore": {
       "model": "opencode-go/deepseek-v4.1-flash",
@@ -343,6 +247,23 @@
       "effect": "ask"
     }
   ],
+  "policies": [
+    {
+      "action": "tool.use",
+      "resource": "shell:git push *",
+      "effect": "deny"
+    },
+    {
+      "action": "tool.use",
+      "resource": "shell:gh *",
+      "effect": "deny"
+    },
+    {
+      "action": "tool.use",
+      "resource": "shell:glab *",
+      "effect": "deny"
+    }
+  ],
   "formatter": true,
   "experimental": {
     "todo": true,
@@ -351,13 +272,14 @@
   },
   "compaction": {
     "auto": true,
-    "buffer": 8000
+    "keep": {
+      "tokens": 15000
+    },
+    "buffer": "15%"
   },
   "instructions": [
     "~/repos/personal/nixconf/README.md",
-    "~/.config/opencode/AGENTS.md",
-    "README.md",
-    "CONTRIBUTING.md"
+    "~/.config/opencode/AGENTS.md"
   ],
   "watcher": {
     "ignore": [

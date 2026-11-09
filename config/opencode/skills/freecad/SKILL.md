@@ -27,7 +27,7 @@ printing.
 - The wrapper exports `FREECAD_USER_HOME`/`FREECAD_USER_DATA` to the standard
   XDG paths. FreeCAD 1.1 resolves `$HOME` via `getpwuid()` and segfaults when
   NSS can't resolve the user (SSSD/LDAP accounts missing from `/etc/passwd`,
-  e.g. the RNSL/RNSW work stations); the env override skips that lookup.
+  e.g. the RNSL work station); the env override skips that lookup.
   Never unset those two variables when launching FreeCAD on such hosts.
 
 ## Modeling rules

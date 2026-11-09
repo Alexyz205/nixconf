@@ -88,7 +88,7 @@ skill (`nix`, `freecad`, `blender`, `artcraft`, ...) for task-specific rules.
 - `gh_grep` - GitHub code search. Use for real-world usage examples.
 - `blender` - Blender MCP bridge (workstation and `alexis@linux` only).
 - `freecad` - FreeCAD MCP bridge (workstation, `alexis@linux`, and the
-  RNSL/RNSW work stations only).
+  RNSL work station only).
 
 ## Token Efficiency (IMPORTANT)
 

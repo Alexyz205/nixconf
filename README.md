@@ -84,9 +84,9 @@ starship, tmux, tools, aliases) from a standalone home-manager profile:
 It installs Nix via the official installer (downloaded to a temp file — never
 `curl | sh`), clones this repo, and activates the matching home-manager config
 (`<user>@container` for containers, `alexis@server` for servers,
-`alexis.pigeon@RNSW-APIGEON1` for desktops). The container user is picked at
-runtime from `id -un` (`root@container` or `vscode@container`). `desktop` also
-sets zsh as the login shell.
+`alexis.pigeon@RNSL-APIGEON5` for work desktops). The container user is picked
+at runtime from `id -un` (`root@container` or `vscode@container`). `desktop`
+also sets zsh as the login shell.
 
 ## Hosts
 
@@ -104,8 +104,7 @@ Standalone home-manager profiles (`flake.homeConfigurations`):
 | ----------------------------- | ------------- | -------------- | ------------------------------------------ |
 | `alexis@macos`                | alexis        | aarch64-darwin | macOS profile                              |
 | `alexis@linux`                | alexis        | x86_64-linux   | Linux profile                              |
-| `alexis.pigeon@RNSL-APIGEON5` | alexis.pigeon | x86_64-linux   | Work station (shared config)               |
-| `alexis.pigeon@RNSW-APIGEON1` | alexis.pigeon | x86_64-linux   | Work station, Ubuntu/GNOME (shared config) |
+| `alexis.pigeon@RNSL-APIGEON5` | alexis.pigeon | x86_64-linux   | Work station, Ubuntu/GNOME                 |
 | `alexis@server`               | alexis        | x86_64-linux   | Headless server (terminal-only)            |
 | `root@container`              | root          | x86_64-linux   | Container profile (root)                   |
 | `vscode@container`            | vscode        | x86_64-linux   | Devcontainer profile (non-root user)       |
@@ -115,13 +114,13 @@ The profile extras are layered (`modules/flake/home-manager.nix`):
 yubikey, ghostty, containers plus gitlab, youtube-music, brave, cap, artcraft
 and vlc); `personalExtra` builds on it with claude, thunderbird, Nextcloud and
 the Blender/FreeCAD 3D stack; `workExtra` is the default set plus FreeCAD (with
-the OpenCode MCP bridge) that the two `RNSL`/`RNSW` work stations share so they
-can't drift. macOS gets a cross-platform subset (`macosExtra`) since
-brave/cap/artcraft/youtube-music are Linux-only. The work profiles run on the
-distro's own desktop (GNOME) — no niri/noctalia/stylix and no Nextcloud.
-`imv` (yazi's and the file explorer's image opener) is a default on every Linux
-profile; its nixpkgs wrapper picks the Wayland or X11 backend at launch, so the
-same viewer works on niri and on the X11 GNOME work stations.
+the OpenCode MCP bridge) used by the `RNSL` work station. macOS gets a
+cross-platform subset (`macosExtra`) since brave/cap/artcraft/youtube-music are
+Linux-only. The work profile runs on the distro's own desktop (GNOME) — no
+niri/noctalia/stylix and no Nextcloud. `imv` (yazi's and the file explorer's
+image opener) is a default on every Linux profile; its nixpkgs wrapper picks
+the Wayland or X11 backend at launch, so the same viewer works on niri and on
+the X11 GNOME work station.
 
 NixOS hosts get Chromium (`modules.chromium`, the maintained successor to the
 Brave package nixpkgs removed in late 2026); the standalone generic-Linux
@@ -357,8 +356,8 @@ YubiKey-based age identity.
   PATs `GITLAB_DXYZ_TOKEN` / `GITLAB_ALEXYZ_TOKEN`) lives in
   the standalone `gitlab` feature module and is
   part of the default desktop set — enabled on the workstation and every
-  interactive Linux profile (`alexis@linux`, `alexis.pigeon@RNSL-APIGEON5`,
-  `alexis.pigeon@RNSW-APIGEON1`). gitlab.nvim and the dashboard identify the
+  interactive Linux profile (`alexis@linux`, `alexis.pigeon@RNSL-APIGEON5`).
+  gitlab.nvim and the dashboard identify the
   remote host (`git.dxyz.pro`, `gitlab.alexyz.org`, `github.com`)
   and switch token/API accordingly; no global `GITLAB_TOKEN` is set so glab can
   keep per-host credentials.

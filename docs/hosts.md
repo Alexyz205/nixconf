@@ -9,7 +9,7 @@
 | `nixosConfigurations.proxmox-vm`      | NixOS VM      | minimal (`nix`, `users`, `ssh`), qemu-guest + cloud-init                                                      |
 | `nixosConfigurations.installer-iso`   | USB ISO       | guided installer (`nixos-installer`)                                                                          |
 | `darwinConfigurations.macbook`        | nix-darwin    | Homebrew + Ghostty                                                                                            |
-| `homeConfigurations.*`                | standalone HM | `alexis@linux`, `alexis@macos`, both RNS work stations, `alexis@server`, `root@container`, `vscode@container` |
+| `homeConfigurations.*`                | standalone HM | `alexis@linux`, `alexis@macos`, `alexis.pigeon@RNSL-APIGEON5`, `alexis@server`, `root@container`, `vscode@container` |
 | `deploy.nodes.headless-worker`        | deploy-rs     | push a locally built closure to the server                                                                    |
 
 Hosts are composed from tiers defined in `modules/flake/nixos.nix`: the tier
@@ -33,7 +33,7 @@ hmb   # nh home build $NIXCONF#<profile>
 `drc` and `hmc` stay on `darwin-rebuild check` / `home-manager build --check`
 because `nh` has no `check` subcommand. The `alexis.pigeon@...` profiles use
 `nh home switch $NIXCONF` (no explicit key): nh resolves `$USER@$HOSTNAME`,
-which matches the RNSL/RNSW flake keys.
+which matches the RNSL flake key.
 
 Before switching, `nvd diff` (`nd`) shows exactly which packages and versions
 change between the current and the next generation.
