@@ -1,7 +1,6 @@
 _:
 let
   palette = import ../../config/theme/catppuccin-mocha.nix;
-  nixconf = "$HOME/repos/personal/nixconf";
   baseAliases = {
     nf = "cd $NIXCONF";
     repos = "cd $REPOS";
@@ -20,26 +19,45 @@ let
     ngo = "nix store optimise";
     nu = "nix flake update $NIXCONF";
     nl = "nix flake lock $NIXCONF";
+    nb = "nom build";
+    nd = "nvd diff";
+    nhc = "nh clean all --keep-since 7d";
+    dep = "deploy $NIXCONF#headless-worker";
+    depr = "deploy --remote-build $NIXCONF#headless-worker";
   };
   nixosAliases = {
-    nr = "sudo nixos-rebuild switch --flake $NIXCONF";
-    nrb = "nixos-rebuild build --flake $NIXCONF";
-    nrt = "sudo nixos-rebuild test --flake $NIXCONF";
+    # Rebuilds all go through nh. `nr`/`nrb`/`nrt`/`nro` mirror
+    # nixos-rebuild switch/build/test/boot, with nh's diff + nom output.
+    nr = "nh os switch $NIXCONF";
+    nrb = "nh os build $NIXCONF";
+    nrt = "nh os test $NIXCONF";
+    nro = "nh os boot $NIXCONF";
   };
   darwinAliases = {
-    dr = "sudo darwin-rebuild switch --flake $NIXCONF";
-    drb = "sudo darwin-rebuild build --flake $NIXCONF";
+    dr = "nh darwin switch $NIXCONF";
+    drb = "nh darwin build $NIXCONF";
+    # No nh equivalent for `darwin-rebuild check`.
     drc = "sudo darwin-rebuild check --flake $NIXCONF";
   };
   # The hm aliases must target the profile the shell actually runs in. Each
   # standalone profile sets modules.shell.hmProfile to its own flake key
   # (username@profile); only then are the aliases defined (a null hmProfile, as
   # on nix-darwin, means no hm alias).
-  hmAliases = profile: {
-    hm = "home-manager switch --flake $NIXCONF#${profile}";
-    hmb = "home-manager build --flake $NIXCONF#${profile}";
-    hmc = "home-manager build --flake $NIXCONF#${profile} --check";
-  };
+  #
+  # nh parses dots in an explicit config key as an attribute path, so profiles
+  # whose username contains a dot use nh's auto-detection instead: with no
+  # `#key`, nh resolves `$USER@$HOSTNAME` (RNSL-APIGEON5, RNSW-APIGEON1).
+  hmAliases =
+    profile:
+    let
+      explicit = builtins.match ".*\\..*" profile == null;
+    in
+    {
+      hm = if explicit then "nh home switch $NIXCONF#${profile}" else "nh home switch $NIXCONF";
+      hmb = if explicit then "nh home build $NIXCONF#${profile}" else "nh home build $NIXCONF";
+      # nh has no `check` subcommand.
+      hmc = "home-manager build --flake $NIXCONF#${profile} --check";
+    };
   sharedFunctions = builtins.readFile ../../config/shell/functions.sh;
   zshExtra = builtins.readFile ../../config/shell/zsh-extra.zsh;
 
@@ -54,6 +72,7 @@ let
     let
       # eza's theme.yml uses upper-case hex; the palette stores lower-case.
       c = lib.toUpper;
+      nixconf = config.modules.shell.nixconfPath or "${config.home.homeDirectory}/repos/personal/nixconf";
       environmentVariables = {
         SHELL = "${pkgs.zsh}/bin/zsh";
         VISUAL = "nvim";
@@ -94,15 +113,15 @@ let
       home.sessionVariables = environmentVariables;
       home.file = {
         ".config/opencode/cli.json".source =
-          config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/repos/personal/nixconf/config/opencode/cli.json";
+          config.lib.file.mkOutOfStoreSymlink "${nixconf}/config/opencode/cli.json";
         ".config/opencode/AGENTS.md".source =
-          config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/repos/personal/nixconf/config/opencode/AGENTS.md";
+          config.lib.file.mkOutOfStoreSymlink "${nixconf}/config/opencode/AGENTS.md";
         ".config/opencode/agents".source =
-          config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/repos/personal/nixconf/config/opencode/agents";
+          config.lib.file.mkOutOfStoreSymlink "${nixconf}/config/opencode/agents";
         ".config/opencode/skills".source =
-          config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/repos/personal/nixconf/config/opencode/skills";
+          config.lib.file.mkOutOfStoreSymlink "${nixconf}/config/opencode/skills";
         ".config/opencode/plugins".source =
-          config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/repos/personal/nixconf/config/opencode/plugins";
+          config.lib.file.mkOutOfStoreSymlink "${nixconf}/config/opencode/plugins";
         ".config/delta/catppuccin.gitconfig".text = ''
           # Generated from config/theme/catppuccin-mocha.nix — do not edit by hand.
           [delta "catppuccin-mocha"]
@@ -132,7 +151,7 @@ let
             syntax-theme = Catppuccin Mocha
         '';
         ".config/git/config-personal".source =
-          config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/repos/personal/nixconf/config/git/config-personal";
+          config.lib.file.mkOutOfStoreSymlink "${nixconf}/config/git/config-personal";
         ".config/eza/theme.yml".text = ''
           # Generated from config/theme/catppuccin-mocha.nix — do not edit by hand.
           colourful: true
@@ -310,6 +329,11 @@ in
           type = lib.types.nullOr lib.types.str;
           default = null;
           description = "Standalone home-manager profile key (username@profile) that the hm/hmb/hmc aliases switch/build against.";
+        };
+        nixconfPath = lib.mkOption {
+          type = lib.types.str;
+          default = "${config.home.homeDirectory}/repos/personal/nixconf";
+          description = "Absolute path to the nixconf checkout (exports $NIXCONF and backs the editable opencode/git symlinks). Override when install.sh cloned elsewhere.";
         };
       };
       config = lib.mkIf config.modules.shell.enable (

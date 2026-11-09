@@ -1,0 +1,41 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: DeterminateSystems/nix-installer-action@main
+
+      - uses: cachix/cachix-action@v17
+        if: vars.CACHIX_CACHE_NAME != ''
+        with:
+          name: ${{ vars.CACHIX_CACHE_NAME }}
+          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+
+      # Evaluates every NixOS/darwin/home-manager output and builds every
+      # checks.<system> entry (format gate + server boot VM test).
+      - name: nix flake check
+        run: nix flake check -L --keep-going
+
+      # Cross-evaluate the macOS host without building it.
+      - name: evaluate macbook
+        run: nix eval .#darwinConfigurations.macbook.config.system.build.toplevel.drvPath
+
+      # Read-only advisory: outdated or unsupported nixpkgs inputs.
+      - name: flake-checker
+        run: nix run github:DeterminateSystems/flake-checker -- --no-telemetry

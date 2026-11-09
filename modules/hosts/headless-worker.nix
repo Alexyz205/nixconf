@@ -70,41 +70,17 @@ let
 
             # SSH key from existing YubiKey pub (no hardware needed at runtime)
             modules = {
-              # Infrastructure (server tier)
-              nix.enable = true;
-              users.enable = true;
-              security.enable = true;
-              ssh.enable = true;
-              boot.enable = true;
-              disko.enable = true;
-              sops.enable = true;
-              podman.enable = true;
+              # The server tier enables the base + server feature set (see
+              # modules/flake/nixos.nix); only host-specific deltas live here.
               users.extraGroups = [
                 "wheel"
                 "podman"
               ];
-              # Packages
               packages = {
                 basic = true;
                 security = true;
                 devTools = true;
               };
-              containers.enable = true;
-              nextcloud.enable = true;
-              shell.enable = true;
-              git.enable = true;
-              bitwarden.enable = true;
-              starship.enable = true;
-              tmux.enable = true;
-              bat.enable = true;
-              eza.enable = true;
-              diskusage.enable = true;
-              lazygit.enable = true;
-              yazi.enable = true;
-              zoxide.enable = true;
-              lazyvim.enable = true;
-              tv.enable = true;
-              opencode.enable = true;
             };
             users.users.${config.modules.users.userName}.openssh.authorizedKeys.keys = [
               (lib.trim (builtins.readFile yubiPub))

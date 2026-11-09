@@ -19,6 +19,16 @@ let
           jq
           tree-sitter
         ];
+        # Nix ecosystem power tools: rebuilds/diffs, build output, closure
+        # inspection, run-anything and command-not-found.
+        nixTools = [
+          nh
+          nvd
+          nix-output-monitor
+          nix-tree
+          nixos-anywhere
+          deploy-rs
+        ];
         # LSPs / formatters / linters on every host + home-manager profile so the
         # tooling is on $PATH regardless of the dev environment.
         lsp = [
@@ -68,6 +78,7 @@ let
           age
           sops
           gnupg
+          restic
         ];
         devTools = [
           fabric-ai
@@ -79,6 +90,7 @@ let
       enabled = n: config.modules.packages.${n};
       order = [
         "basic"
+        "nixTools"
         "lsp"
         "security"
         "devTools"
@@ -96,6 +108,11 @@ let
           type = lib.types.bool;
           default = true;
           description = "Core CLI utilities.";
+        };
+        nixTools = lib.mkOption {
+          type = lib.types.bool;
+          default = true;
+          description = "Nix ecosystem tooling (nh, nvd, nom, nix-tree, nixos-anywhere, deploy-rs; comma/nix-index come from nix-index-database).";
         };
         lsp = lib.mkOption {
           type = lib.types.bool;

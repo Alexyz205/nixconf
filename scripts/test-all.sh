@@ -5,15 +5,53 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SELF="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$(basename "${BASH_SOURCE[0]}")"
 cd "$SCRIPT_DIR"
 
-NIXOS_HOSTS=(workstation headless-worker proxmox-vm installer-iso)
-DARWIN_HOSTS=(macbook)
-HOME_CONFIGS=("alexis@linux" "alexis@macos" "alexis.pigeon@RNSL-APIGEON5" "alexis@server" "root@container")
-DISKO_HOSTS=(workstation headless-worker)
+# Host/profile lists are derived from the flake rather than hand-maintained, so
+# a new host or home-manager profile is tested without editing this script.
 ALL_TESTS=(flake eval disko iso vm shellcheck)
+NIXOS_HOSTS=()
+DARWIN_HOSTS=()
+HOME_CONFIGS=()
+DISKO_HOSTS=()
 
 log() { printf '==> %s\n' "$*"; }
 ok() { printf '    ok: %s\n' "$*"; }
 fail() { printf '    FAIL: %s\n' "$*" >&2; }
+
+flake_names() {
+  nix eval --raw "path:$SCRIPT_DIR#$1" --apply 'x: builtins.concatStringsSep " " (builtins.attrNames x)'
+}
+
+init_hosts() {
+  local names disko
+  names=$(flake_names nixosConfigurations) || {
+    fail "could not evaluate nixosConfigurations"
+    return 1
+  }
+  read -r -a NIXOS_HOSTS <<<"$names"
+  names=$(flake_names darwinConfigurations) || {
+    fail "could not evaluate darwinConfigurations"
+    return 1
+  }
+  read -r -a DARWIN_HOSTS <<<"$names"
+  names=$(flake_names homeConfigurations) || {
+    fail "could not evaluate homeConfigurations"
+    return 1
+  }
+  read -r -a HOME_CONFIGS <<<"$names"
+  # shellcheck disable=SC2016 # ${n} is a Nix interpolation, not shell expansion
+  disko=$(nix eval --raw "path:$SCRIPT_DIR#nixosConfigurations" --apply '
+    cfgs: builtins.concatStringsSep " " (builtins.filter
+      (n: ((cfgs.${n}.config.modules or { }).disko.enable or false))
+      (builtins.attrNames cfgs))') || {
+    fail "could not derive the disko host list"
+    return 1
+  }
+  read -r -a DISKO_HOSTS <<<"$disko"
+  log "nixos: ${NIXOS_HOSTS[*]}"
+  log "darwin: ${DARWIN_HOSTS[*]}"
+  log "home: ${HOME_CONFIGS[*]}"
+  log "disko: ${DISKO_HOSTS[*]}"
+}
 
 usage() {
   cat <<EOF
@@ -133,6 +171,8 @@ main() {
     log "Missing test tools, re-entering via devenv shell..."
     exec devenv shell -- bash "$SELF" "$@"
   fi
+
+  init_hosts
 
   local failed=()
   local name

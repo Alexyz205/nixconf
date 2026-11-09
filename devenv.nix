@@ -87,12 +87,13 @@
   };
 
   # Git hooks managed by devenv (prek shims auto-installed into .git/hooks/ on
-  # `devenv shell` entry). Three layers:
+  # `devenv shell` entry). Layers:
   #   1. fast per-file staged linting on commit (shellcheck, nixfmt, ...)
-  #   2. the fast full-suite gate on commit (flake, eval, shellcheck)
+  #   2. the fast full-suite gate on push (flake, eval, shellcheck)
   #   3. the slow image-build gate on push (disko, iso, vm)
-  # Layers 2-3 are custom `always_run` hooks that mirror scripts/test-all.sh;
-  # they re-enter via `devenv shell` when tools are missing.
+  # Layer 1 stays on commit so committing is fast; layers 2-3 run on push
+  # (a full flake check alone is ~60s warm). They re-enter via `devenv shell`
+  # when tools are missing.
   #
   # Explicit `priority` (prek-only; devenv defaults `git-hooks.package` to
   # pkgs.prek) pins the run order: ascending priority, equal priority runs in
@@ -102,6 +103,7 @@
   #   0  format  - mutating formatters, disjoint file sets -> parallel
   #   10 lint    - read-only linters -> parallel, after formatting
   #   20 test    - fast full-suite gate, alone, after format + lint
+  #   30 slow    - image builds, alone, after the fast gate
   git-hooks = {
     enable = true;
     hooks = {
@@ -149,7 +151,7 @@
         language = "system";
         pass_filenames = false;
         always_run = true;
-        stages = [ "pre-commit" ];
+        stages = [ "pre-push" ];
         priority = 20;
       };
 
@@ -161,7 +163,7 @@
         pass_filenames = false;
         always_run = true;
         stages = [ "pre-push" ];
-        priority = 0;
+        priority = 30;
       };
     };
   };

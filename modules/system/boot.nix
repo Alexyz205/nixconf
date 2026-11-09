@@ -12,6 +12,8 @@ _: {
           loader = {
             systemd-boot.enable = true;
             efi.canTouchEfiVariables = true;
+            # Keep the 1 GiB ESP from filling with old generations.
+            systemd-boot.configurationLimit = 10;
           };
 
           # NetworkManager's internal DHCPv4 client (n-dhcp4) needs an AF_PACKET

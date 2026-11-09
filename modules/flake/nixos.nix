@@ -4,7 +4,95 @@
   ...
 }:
 let
+  lib = inputs.nixpkgs.lib;
   features = config.nixconf.modules.nixos;
+
+  # Terminal-only tooling: the default for every NixOS host with home-manager.
+  baseNames = [
+    "nix"
+    "users"
+    "security"
+    "ssh"
+    "shell"
+    "git"
+    "bitwarden"
+    "packages"
+    "starship"
+    "tmux"
+    "bat"
+    "eza"
+    "diskusage"
+    "zoxide"
+    "lazygit"
+    "lazyvim"
+    "yazi"
+    "tv"
+    "opencode"
+  ];
+  # Full headless server: base + storage, secrets and the container runtime.
+  serverNames = baseNames ++ [
+    "boot"
+    "disko"
+    "sops"
+    "nextcloud"
+    "podman"
+    "containers"
+    "backup"
+    "monitoring"
+    "secureBoot"
+  ];
+  # Interactive desktop host on top of the server stack.
+  desktopNames = serverNames ++ [
+    "network"
+    "yubikey"
+    "devenv"
+    "btop"
+    "ghostty"
+    "niri"
+    "noctalia"
+    "hiddenApps"
+    "lock"
+    "chromium"
+    "claude"
+    "discord"
+    "steam"
+    "heroic"
+    "prism"
+    "controller"
+    "thunderbird"
+    "youtubeMusic"
+    "cap"
+    "gitlab"
+    "blender"
+    "freecad"
+    "imv"
+    "photocraft"
+    "lightcraft"
+    "pdfcraft"
+    "filmcraft"
+    "wordcraft"
+    "gridcraft"
+    "cadcraft"
+    "deckcraft"
+    "soundcraft"
+  ];
+
+  # Features that are imported by a tier but stay off until a host opts in
+  # (they change boot security or need an external backup destination).
+  optInNames = [
+    "backup"
+    "secureBoot"
+  ];
+
+  # A tier is a single NixOS module that both imports the feature modules and
+  # switches them on with `mkDefault`. Hosts then declare only their deltas and
+  # can still disable any feature with a plain `modules.<name>.enable = false`.
+  enableTier = names: {
+    imports = map (name: features.${name}) names;
+    config.modules = lib.genAttrs (builtins.filter (name: !builtins.elem name optInNames) names) (_: {
+      enable = lib.mkDefault true;
+    });
+  };
 
   # Shared NixOS host boilerplate: system defaults + home-manager wiring that
   # every disko-managed host repeats. Keeps hosts to their deltas only.
@@ -52,76 +140,9 @@ in
 {
   config.nixconf = {
     nixosFeatures = {
-      # Terminal-only tooling: the default for every NixOS host with home-manager.
-      base = with features; [
-        nix
-        users
-        security
-        ssh
-        shell
-        git
-        bitwarden
-        packages
-        starship
-        tmux
-        bat
-        eza
-        diskusage
-        zoxide
-        lazygit
-        lazyvim
-        yazi
-        tv
-        opencode
-      ];
-      # Full headless server: base + storage, secrets and the container runtime.
-      server =
-        config.nixconf.nixosFeatures.base
-        ++ (with features; [
-          boot
-          disko
-          sops
-          nextcloud
-          podman
-          containers
-        ]);
-      # Interactive desktop host on top of the server stack.
-      desktop =
-        config.nixconf.nixosFeatures.server
-        ++ (with features; [
-          network
-          yubikey
-          devenv
-          btop
-          ghostty
-          niri
-          noctalia
-          hiddenApps
-          lock
-          brave
-          claude
-          discord
-          steam
-          heroic
-          prism
-          controller
-          thunderbird
-          youtubeMusic
-          cap
-          gitlab
-          blender
-          freecad
-          imv
-          photocraft
-          lightcraft
-          pdfcraft
-          filmcraft
-          wordcraft
-          gridcraft
-          cadcraft
-          deckcraft
-          soundcraft
-        ]);
+      base = [ (enableTier baseNames) ];
+      server = [ (enableTier serverNames) ];
+      desktop = [ (enableTier desktopNames) ];
     };
     inherit mkHostCommon;
   };

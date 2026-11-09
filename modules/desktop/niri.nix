@@ -69,7 +69,7 @@ let
           "Mod+D" = hotkey "Run an Application" {
             spawn-sh = "${pkgs.lib.getExe pkgs.noctalia} msg panel-toggle launcher";
           };
-          "Mod+S" = hotkey "Open Browser" { spawn-sh = pkgs.lib.getExe pkgs.brave; };
+          "Mod+S" = hotkey "Open Browser" { spawn-sh = pkgs.lib.getExe pkgs.chromium; };
           "Mod+Ctrl+V" = hotkey "Clipboard history" {
             spawn-sh = "${pkgs.lib.getExe pkgs.noctalia} msg panel-toggle clipboard";
           };
@@ -271,7 +271,7 @@ let
         ];
         window-rules = [
           {
-            matches = [ { app-id = "^(brave|brave-browser|Brave-browser)$"; } ];
+            matches = [ { app-id = "^(chromium|chromium-browser|Chromium)$"; } ];
             open-on-workspace = "main";
           }
           {

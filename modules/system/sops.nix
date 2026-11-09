@@ -103,7 +103,9 @@ in
         };
         ageKeyFile = lib.mkOption {
           type = lib.types.str;
-          default = "${config.home.homeDirectory}/repos/personal/nixconf/config/sops/yubi-age-identity";
+          default = "${
+            config.modules.shell.nixconfPath or "${config.home.homeDirectory}/repos/personal/nixconf"
+          }/config/sops/yubi-age-identity";
           description = ''
             Age identity file used to decrypt sops secrets. Defaults to the
             YubiKey identity; point at a software age key on hosts without

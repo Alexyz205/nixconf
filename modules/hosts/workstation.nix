@@ -5,6 +5,7 @@
 }:
 let
   system = "x86_64-linux";
+  flakeConfig = config;
   features = config.nixconf.nixosFeatures.desktop;
   mkHostCommon = config.nixconf.mkHostCommon;
   palette = import ../../config/theme/catppuccin-mocha.nix;
@@ -34,24 +35,10 @@ let
           {
             config,
             pkgs,
-            lib,
             ...
           }:
           {
-            nixpkgs.config.allowUnfreePredicate =
-              pkg:
-              builtins.elem (lib.getName pkg) [
-                "brave"
-                "steam"
-                "steam-unwrapped"
-                "claude-desktop"
-                "vesktop"
-                "nvidia-x11"
-                "nvidia-settings"
-              ]
-              || builtins.any (license: license == lib.licenses.nvidiaCudaRedist) (
-                lib.lists.toList (pkg.meta.license or [ ])
-              );
+            nixpkgs.config.allowUnfreePredicate = flakeConfig.nixconf.allowUnfreePredicate;
             disko.devices.disk.main.device = diskDevice;
 
             services = {
@@ -165,16 +152,8 @@ let
             ];
 
             modules = {
-              # Infrastructure (base + server tiers)
-              nix.enable = true;
-              users.enable = true;
-              security.enable = true;
-              ssh.enable = true;
-              boot.enable = true;
-              disko.enable = true;
-              sops.enable = true;
-              podman.enable = true;
-              network.enable = true;
+              # Host-specific deltas only: the desktop tier enables the base,
+              # server and desktop feature set (see modules/flake/nixos.nix).
               # BBR + fq + larger buffers, and disable EEE on the Intel I226-V
               # (igc) NIC, which otherwise flaps the 2.5GbE link.
               networkTuning = {
@@ -193,52 +172,29 @@ let
                 devTools = true;
                 desktop = true;
               };
-              containers.enable = true;
-              nextcloud.enable = true;
               sops = {
                 # No USB port on this machine: decrypt with the software age
                 # key instead of the YubiKey identity.
                 useYubikey = false;
                 ageKeyFile = "/home/alexis/.config/sops/age/keys.txt";
               };
-              shell.enable = true;
-              git.enable = true;
               bitwarden = {
-                enable = true;
                 desktop = true;
                 autostart = false;
               };
               yubikey = {
-                enable = true;
                 luksUnlock = true;
                 # No USB port for the YubiKey here: pam_u2f would prompt for a
                 # FIDO authenticator on every sudo with nothing to insert.
                 sudoAuth = false;
               };
-              starship.enable = true;
-              tmux.enable = true;
-              bat.enable = true;
-              eza.enable = true;
-              diskusage.enable = true;
-              btop.enable = true;
               # RTX 5070: enable btop's CUDA GPU-usage support.
               btop.cudaSupport = true;
-              lazygit.enable = true;
-              yazi.enable = true;
-              zoxide.enable = true;
-              lazyvim.enable = true;
-              tv.enable = true;
-              ghostty.enable = true;
-              opencode = {
-                enable = true;
-                mcp = {
-                  blender.enable = true;
-                  freecad.enable = true;
-                };
+              opencode.mcp = {
+                blender.enable = true;
+                freecad.enable = true;
               };
-              devenv.enable = true;
               niri = {
-                enable = true;
                 # Match the greeter (below) and lock screen (stylix -> hyprlock).
                 wallpaper = config.stylix.image;
                 settings = {
@@ -252,16 +208,6 @@ let
                   debug."force-disable-connectors-on-resume" = _: { };
                 };
               };
-              noctalia.enable = true;
-              lock.enable = true;
-              hiddenApps.enable = true;
-              brave.enable = true;
-              claude.enable = true;
-              discord.enable = true;
-              steam.enable = true;
-              heroic.enable = true;
-              prism.enable = true;
-              controller.enable = true;
               # Headless Moonlight host for the Xbox: each stream gets its own
               # isolated 16:9 compositor (host desktop unaffected). LAN-only on
               # the wired NIC because GameStream is not fully encrypted.
@@ -270,28 +216,10 @@ let
                 firewallInterfaces = [ "enp4s0" ];
               };
               thunderbird = {
-                enable = true;
                 email = "alexis@alexyz.org";
                 realName = "Alexis Pigeon";
               };
-              youtubeMusic.enable = true;
-              cap.enable = true;
-              gitlab.enable = true;
-              imv.enable = true;
-              photocraft.enable = true;
-              lightcraft.enable = true;
-              pdfcraft.enable = true;
-              filmcraft.enable = true;
-              wordcraft.enable = true;
-              gridcraft.enable = true;
-              cadcraft.enable = true;
-              blender = {
-                enable = true;
-                cudaSupport = true;
-              };
-              freecad.enable = true;
-              deckcraft.enable = true;
-              soundcraft.enable = true;
+              blender.cudaSupport = true;
             };
 
             home-manager.users.${config.modules.users.userName} = {

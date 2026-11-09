@@ -1,4 +1,4 @@
-{ lib, ... }:
+{ lib, inputs, ... }:
 let
   # nixpkgs' fetchgit (nix-prefetch-git) assigns GIT_SSL_CAINFO without
   # `export`, so the builder's git never sees it and falls back to nixpkgs'
@@ -43,6 +43,11 @@ let
   };
 in
 {
+  flake-file.inputs.nix-index-database = {
+    url = "github:nix-community/nix-index-database";
+    inputs.nixpkgs.follows = "nixpkgs";
+  };
+
   # Overlays applied to every host/profile's pkgs. Shared through the flake
   # `modules` namespace (freeform raw attrset) and threaded into home-manager
   # and each nixosSystem's nixpkgs.overlays.
@@ -70,6 +75,7 @@ in
       ...
     }:
     {
+      imports = [ inputs.nix-index-database.nixosModules.default ];
       options.modules.nix.enable = lib.mkEnableOption "Nix daemon settings";
       config = lib.mkIf config.modules.nix.enable {
         nix.settings =
@@ -79,6 +85,16 @@ in
             allowed-users = [ "@wheel" ];
             trusted-users = [ "@wheel" ];
           };
+        # Keep the store bounded on every host; individual hosts can override
+        # the window (headless-worker keeps 30d explicitly).
+        nix.gc = {
+          automatic = lib.mkDefault true;
+          dates = lib.mkDefault "weekly";
+          options = lib.mkDefault "--delete-older-than 30d";
+        };
+        # Weekly nixpkgs index DB + wrapped comma/nix-locate (see
+        # modules/dev/packages.nix; do not also install plain nix-index/comma).
+        programs.nix-index-database.comma.enable = true;
       };
     };
 
@@ -90,10 +106,13 @@ in
       ...
     }:
     {
+      imports = [ inputs.nix-index-database.homeModules.default ];
       options.modules.nix.enable = lib.mkEnableOption "Nix settings";
       config = lib.mkIf config.modules.nix.enable {
         nix.package = pkgs.nixVersions.latest;
         nix.settings = userSettings;
+        programs.nix-index.enable = true;
+        programs.nix-index-database.comma.enable = lib.mkIf pkgs.stdenv.hostPlatform.isLinux true;
       };
     };
 }

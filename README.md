@@ -38,7 +38,7 @@ modules/
 ├── hosts/              # One file per machine / image
 ├── system/             # boot, disko, network, nextcloud, nix, podman, sops, security, ssh, users, yubikey
 ├── shell/              # shell, starship, tmux, zoxide, eza, diskusage, bat, btop, yazi, ghostty
-├── desktop/            # niri, brave, claude, discord, steam, youtube-music, ...
+├── desktop/            # niri, chromium, claude, discord, steam, youtube-music, ...
 └── dev/                # devenv, git, gitlab, lazygit, lazyvim, opencode, containers, ...
 config/                 # Dotfiles & static assets referenced from feature modules
 scripts/                # install.sh, test-all.sh, build-iso.sh
@@ -123,30 +123,42 @@ distro's own desktop (GNOME) — no niri/noctalia/stylix and no Nextcloud.
 profile; its nixpkgs wrapper picks the Wayland or X11 backend at launch, so the
 same viewer works on niri and on the X11 GNOME work stations.
 
+NixOS hosts get Chromium (`modules.chromium`, the maintained successor to the
+Brave package nixpkgs removed in late 2026); the standalone generic-Linux
+profiles keep using the distro's Brave `.deb` (`modules.brave`, package = null)
+because a nix-built Chromium cannot sandbox on those hosts.
+
 Hosts are referenced by their flake attribute: `nixosConfigurations.workstation`,
 `darwinConfigurations.macbook`, `homeConfigurations."alexis@linux"`, etc.
 
 ## Commands
 
 Rebuild aliases are zsh aliases defined by the `shell` module and gated per
-platform: NixOS hosts get the `nixos-rebuild` set, nix-darwin the
-`darwin-rebuild` set, and standalone home-manager profiles the `home-manager`
-set. The `nix` flake aliases exist on every platform. All aliases use the
-`$NIXCONF` env var.
+platform: NixOS hosts get the `nh os` set, nix-darwin the `nh darwin` set, and
+standalone home-manager profiles the `nh home` set. The `nix` flake aliases
+exist on every platform. All aliases use the `$NIXCONF` env var.
 
 The most common ones:
 
 ```bash
 nc   # nix flake check $NIXCONF          (every platform)
-nr   # sudo nixos-rebuild switch --flake $NIXCONF   (NixOS)
-dr   # sudo darwin-rebuild switch --flake $NIXCONF  (nix-darwin)
-hm   # home-manager switch --flake $NIXCONF         (standalone home-manager)
+nr   # nh os switch $NIXCONF             (NixOS, diff + nom)
+nrb  # nh os build $NIXCONF
+nrt  # nh os test $NIXCONF
+nro  # nh os boot $NIXCONF
+dr   # nh darwin switch $NIXCONF         (nix-darwin)
+hm   # nh home switch $NIXCONF#<profile> (standalone home-manager)
 ```
 
-Each family has build/test variants (`nrb`/`nrt`, `drb`/`drc`, `hmb`/`hmc`) plus
-flake helpers (`nu` update, `nl` lock, `ngc` gc, `ngo` optimise). The complete
-set lives in `modules/shell/shell.nix` — the README doesn't duplicate it. Inputs
-are collected into `flake.nix` by `nix run .#write-flake` (see
+The variants (`nrb`/`nrt`/`nro`, `drb`, `hmb`) also use `nh`; only `drc` and
+`hmc` stay on `darwin-rebuild check`/`home-manager build --check` because `nh`
+has no check subcommand. Profiles whose username contains a dot (the
+`alexis.pigeon@...` work stations) use nh's auto-detection
+(`nh home switch $NIXCONF`), which resolves `$USER@$HOSTNAME`. Nix tooling is
+`nb` (`nom build`), `nd` (`nvd diff`) and `nhc`
+(`nh clean all --keep-since 7d`); server deploys are `dep`/`depr`. The complete
+set lives in `modules/shell/shell.nix` — the README doesn't duplicate it.
+Inputs are collected into `flake.nix` by `nix run .#write-flake` (see
 [Inputs (flake-file)](#inputs-flake-file)).
 
 Beyond the rebuild aliases, every tool module ships its own aliases alongside
@@ -168,10 +180,20 @@ full per-module alias list is defined in each module under `modules/`.
 | ------------ | ------------------------------------------------ |
 | `flake`      | `nix flake check` (all configs, options, checks) |
 | `eval`       | Dry-run builds every NixOS + home-manager config |
-| `disko`      | Disko dry-run for workstation & headless-worker  |
+| `disko`      | Disko dry-run for every host with disko enabled  |
 | `iso`        | Builds the `installer-iso` ISO image             |
 | `vm`         | Builds the Proxmox VM image (`.#proxmox-vm`)     |
 | `shellcheck` | Lints `scripts/*.sh`                             |
+
+The host and profile lists are derived from the flake (`nixosConfigurations`,
+`darwinConfigurations`, `homeConfigurations`, and hosts with
+`modules.disko.enable`), so a newly added host is tested without editing the
+script.
+
+The flake also exposes `checks.<system>`: `format` (nixfmt/shfmt/shellcheck/
+statix/deadnix over the tree) and `server-boot` (QEMU test that boots the server
+feature set and asserts sshd/fail2ban/nix). `nix flake check` builds both.
+See [docs/ci.md](docs/ci.md).
 
 If `disko` or `shellcheck` aren't on `$PATH`, the script re-enters itself via
 `devenv shell` so the tools are always available.
@@ -184,8 +206,9 @@ expensive work:
 
 1. **`pre-commit`** — fast per-file staged linting (shellcheck on `.sh`/`.bash`,
    shfmt matching treefmt's `-i 2 -s`, nixfmt, statix, deadnix, luacheck,
-   stylua) **plus** the fast full suite (`flake`, `eval`, `shellcheck`).
-2. **`pre-push`** — the slow image builds (`disko`, `iso`, `vm`).
+   stylua).
+2. **`pre-push`** — the fast full suite (`flake`, `eval`, `shellcheck`) and the
+   slow image builds (`disko`, `iso`, `vm`).
 
 Linting config lives in `devenv.nix` (`git-hooks.hooks`); `statix.toml` at the
 repo root disables the `repeated_keys` lint, which fires on the intentional
@@ -195,6 +218,46 @@ Both suite hooks run `scripts/test-all.sh` and re-enter via `devenv shell` when
 tools are missing. No setup needed — entering the dev shell installs them.
 
 Bypass on a one-off push with `SKIP_NIXCONF_TESTS=1 git push ...`.
+
+## Tooling
+
+Every profile installs the Nix ecosystem tools (`packages.nixTools`): `nh`
+(rebuild CLI with package diffs and `nom` output), `nvd` (generation diff),
+`nix-output-monitor`, `nix-tree` (closure inspection), `nixos-anywhere`, and
+`deploy-rs`. `nix-index-database` (from the `nix` feature) provides the weekly
+nixpkgs index behind `command-not-found`, plus the wrapped `nix-locate` and
+`comma` (`, tool` to run anything without installing it).
+
+## Backups and monitoring
+
+The `server` tier (and therefore `desktop`) enables `modules.monitoring`:
+node_exporter on `127.0.0.1:9100` (set `modules.monitoring.expose = true`
+to scrape it over the LAN), smartd, weekly btrfs scrub, and a bounded journal.
+
+`modules.backup` (restic) is wired but **off by default** until a repository
+exists. See [docs/backup.md](docs/backup.md) for the sops secret, repository
+examples, and a restore test.
+
+## Deploy and rollback
+
+`headless-worker` is deployed with deploy-rs: `dep` builds locally and pushes
+the closure, `depr` builds on the server. Both roll back automatically if
+activation fails. Rebuilds, rollbacks, adding a host, and secret handling are
+covered in [docs/hosts.md](docs/hosts.md).
+
+## Secure Boot
+
+`modules.secure-boot` wraps [lanzaboote](https://github.com/nix-community/lanzaboote).
+It is opt-in because key enrollment can make a machine unbootable; the full
+enrollment, verification, and recovery procedure is in
+[docs/secure-boot.md](docs/secure-boot.md).
+
+## CI and binary cache
+
+GitHub Actions runs `nix flake check` (including the `format` and `server-boot`
+checks), cross-evaluates the macOS host, reports stale nixpkgs inputs, and opens
+a weekly `flake.lock` update PR. Cachix caches CI builds; setup is in
+[docs/ci.md](docs/ci.md).
 
 ## Dev environment (devenv)
 
@@ -267,8 +330,9 @@ YubiKey-based age identity.
     get exported into the shell at login. Edit with `sece` (alias for
     `sops $NIXCONF/secrets/env.yaml`).
   - `secrets.yaml` — plain secrets that are **not** loaded into the shell
-    environment (`NEXTCLOUD_PASSWORD`, ...). Edit with `sec` (alias for
-    `sops $NIXCONF/secrets/secrets.yaml`).
+    environment (`NEXTCLOUD_PASSWORD`, `RESTIC_PASSWORD`, ...). Edit with `sec`
+    (alias for `sops $NIXCONF/secrets/secrets.yaml`). Server backups are
+    documented in [docs/backup.md](docs/backup.md).
 - The module `modules/system/sops.nix` wires sops into NixOS: default sops file
   (`env.yaml`), age key file (`/etc/yubi-age-identity`), age-plugin-yubikey,
   and exposes a home-manager `sops` feature that decrypts `GITHUB_TOKEN` to

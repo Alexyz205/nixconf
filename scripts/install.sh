@@ -174,12 +174,21 @@ ensure_nix() {
 }
 
 ensure_flakes() {
-  # Every home-manager profile ships the `nix` module, which manages
-  # ~/.config/nix/nix.conf (experimental-features, substituters, ssl-cert-file,
-  # ...). Pre-writing it here would make activation refuse to clobber it, so
-  # leave it to home-manager; `nix run` below passes --extra-experimental-
-  # features explicitly for this session.
-  :
+  # Home-manager writes ~/.config/nix/nix.conf, but root/sudo invocations
+  # (nixos-rebuild, nixos-install, `nh clean`'s final `nix store gc`) read the
+  # system config. Enable flakes there too, once.
+  if [[ ! -e /etc/nix/nix.conf ]]; then
+    return 0
+  fi
+  if grep -q '^experimental-features' /etc/nix/nix.conf; then
+    return 0
+  fi
+  log "Enabling nix-command/flakes in /etc/nix/nix.conf (needed by sudo/nh clean)..."
+  if [[ "$(id -u)" == 0 ]]; then
+    printf 'experimental-features = nix-command flakes\n' >>/etc/nix/nix.conf
+  else
+    printf 'experimental-features = nix-command flakes\n' | sudo tee -a /etc/nix/nix.conf >/dev/null
+  fi
 }
 
 clone_repo() {

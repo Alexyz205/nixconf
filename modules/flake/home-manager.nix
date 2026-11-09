@@ -117,7 +117,7 @@ let
       blender
       {
         modules.blender.enable = true;
-        modules.blender.cudaSupport = true;
+        modules.blender.cudaSupport = false;
       }
     ];
     freecad = [
@@ -138,19 +138,11 @@ let
     ++ extras.deckcraft
     ++ extras.soundcraft;
 
-  # The default set pulls in unfree brave (and personal adds claude), so allow
-  # both here in one predicate rather than letting two modules fight over the
-  # single `allowUnfreePredicate` option.
+  # One shared predicate for every profile and host (see nixconf.unfreePackages
+  # in modules/flake/options.nix), so a new unfree package is allowed in one
+  # place instead of drifting between per-host lists.
   allowDefaultUnfree = {
-    nixpkgs.config.allowUnfreePredicate =
-      pkg:
-      builtins.elem (inputs.nixpkgs.lib.getName pkg) [
-        "brave"
-        "claude-desktop"
-      ]
-      || builtins.any (license: license == inputs.nixpkgs.lib.licenses.nvidiaCudaRedist) (
-        inputs.nixpkgs.lib.lists.toList (pkg.meta.license or [ ])
-      );
+    nixpkgs.config.allowUnfreePredicate = config.nixconf.allowUnfreePredicate;
   };
 
   # Tier 1 — the default desktop set every interactive Linux profile starts

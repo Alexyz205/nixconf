@@ -45,7 +45,8 @@ Either way you need a mounted `/persistent` marked `neededForBoot = true`.
 4. Move current state into `/persistent` (e.g.
    `rsync -aHAX /var/log/ /persistent/var/log/`, etc.) before the first
    ephemeral boot, or impermanence creates empty dirs instead.
-5. `sudo nixos-rebuild switch --flake $NIXCONF` (or `nur`).
+5. `nr` (`nh os switch $NIXCONF`) or `nro` if you only want the next boot to
+   use it.
 
 ## Must-persist (else things break after reboot)
 

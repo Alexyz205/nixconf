@@ -3,43 +3,100 @@
   "update": "disable",
   "share": "disabled",
   "lsp": {
-    "nixd": { "disabled": true },
-    "pyright": { "disabled": true },
+    "nixd": {
+      "disabled": true
+    },
+    "pyright": {
+      "disabled": true
+    },
     "nil": {
-      "command": ["nil"],
-      "extensions": [".nix"]
+      "command": [
+        "nil"
+      ],
+      "extensions": [
+        ".nix"
+      ]
     },
     "basedpyright": {
-      "command": ["basedpyright-langserver", "--stdio"],
-      "extensions": [".py", ".pyi"]
+      "command": [
+        "basedpyright-langserver",
+        "--stdio"
+      ],
+      "extensions": [
+        ".py",
+        ".pyi"
+      ]
     },
     "ruff": {
-      "command": ["ruff", "server"],
-      "extensions": [".py", ".pyi"]
+      "command": [
+        "ruff",
+        "server"
+      ],
+      "extensions": [
+        ".py",
+        ".pyi"
+      ]
     },
     "clangd": {
-      "command": ["clangd"],
-      "extensions": [".c", ".h", ".cpp", ".hpp", ".cc", ".cxx", ".hxx", ".ino"]
+      "command": [
+        "clangd"
+      ],
+      "extensions": [
+        ".c",
+        ".h",
+        ".cpp",
+        ".hpp",
+        ".cc",
+        ".cxx",
+        ".hxx",
+        ".ino"
+      ]
     },
     "lua-ls": {
-      "command": ["lua-language-server"],
-      "extensions": [".lua"]
+      "command": [
+        "lua-language-server"
+      ],
+      "extensions": [
+        ".lua"
+      ]
     },
     "terraform": {
-      "command": ["terraform-ls", "serve"],
-      "extensions": [".tf", ".tfvars"]
+      "command": [
+        "terraform-ls",
+        "serve"
+      ],
+      "extensions": [
+        ".tf",
+        ".tfvars"
+      ]
     },
     "yaml-ls": {
-      "command": ["yaml-language-server"],
-      "extensions": [".yaml", ".yml"]
+      "command": [
+        "yaml-language-server"
+      ],
+      "extensions": [
+        ".yaml",
+        ".yml"
+      ]
     },
     "marksman": {
-      "command": ["marksman"],
-      "extensions": [".md", ".mdx"]
+      "command": [
+        "marksman"
+      ],
+      "extensions": [
+        ".md",
+        ".mdx"
+      ]
     },
     "taplo": {
-      "command": ["taplo", "lsp", "stdio"],
-      "extensions": [".toml"]
+      "command": [
+        "taplo",
+        "lsp",
+        "stdio"
+      ],
+      "extensions": [
+        ".toml"
+      ]
     }
   },
   "model": "opencode-go/deepseek-v4.1-flash",
@@ -60,52 +117,231 @@
     }
   },
   "permissions": [
-    { "action": "external_directory", "resource": "*", "effect": "ask" },
-    { "action": "external_directory", "resource": "/tmp/**", "effect": "allow" },
-    { "action": "external_directory", "resource": "~/Documents/**", "effect": "deny" },
-    { "action": "external_directory", "resource": "~/repos/work/**", "effect": "deny" },
-    { "action": "shell", "resource": "*", "effect": "allow" },
-    { "action": "shell", "resource": "git", "effect": "allow" },
-    { "action": "shell", "resource": "git *", "effect": "allow" },
-    { "action": "shell", "resource": "git add *", "effect": "deny" },
-    { "action": "shell", "resource": "git commit *", "effect": "deny" },
-    { "action": "shell", "resource": "git push *", "effect": "deny" },
-    { "action": "shell", "resource": "gh", "effect": "deny" },
-    { "action": "shell", "resource": "gh *", "effect": "deny" },
-    { "action": "shell", "resource": "glab", "effect": "deny" },
-    { "action": "shell", "resource": "glab *", "effect": "deny" },
-    { "action": "shell", "resource": "curl * | sh", "effect": "deny" },
-    { "action": "shell", "resource": "wget * | sh", "effect": "deny" },
-    { "action": "shell", "resource": "sudo", "effect": "ask" },
-    { "action": "shell", "resource": "shutdown", "effect": "deny" },
-    { "action": "shell", "resource": "reboot", "effect": "deny" },
-    { "action": "shell", "resource": "rm -rf /", "effect": "deny" },
-    { "action": "shell", "resource": "chmod -R 777 *", "effect": "deny" },
-    { "action": "shell", "resource": "rm *", "effect": "ask" },
-    { "action": "shell", "resource": "rm -f *", "effect": "ask" },
-    { "action": "shell", "resource": "rm -rf *", "effect": "ask" },
-    { "action": "shell", "resource": "sudo rm -rf *", "effect": "deny" },
-    { "action": "shell", "resource": "sops*", "effect": "ask" },
-    { "action": "shell", "resource": "age*", "effect": "ask" },
-    { "action": "shell", "resource": "gpg*", "effect": "ask" },
-    { "action": "shell", "resource": "ssh-keygen*", "effect": "ask" },
-    { "action": "shell", "resource": "openssl*", "effect": "ask" },
-    { "action": "shell", "resource": "security*", "effect": "ask" },
-    { "action": "shell", "resource": "cosign*", "effect": "ask" },
-    { "action": "shell", "resource": "nix store sign*", "effect": "ask" },
-    { "action": "shell", "resource": "docker system prune -a", "effect": "ask" },
-    { "action": "shell", "resource": "terraform destroy *", "effect": "ask" },
-    { "action": "shell", "resource": "kubectl get *", "effect": "allow" },
-    { "action": "shell", "resource": "kubectl get secret*", "effect": "ask" },
-    { "action": "shell", "resource": "kubectl describe *", "effect": "allow" },
-    { "action": "shell", "resource": "kubectl describe secret*", "effect": "ask" },
-    { "action": "shell", "resource": "kubectl logs *", "effect": "allow" },
-    { "action": "shell", "resource": "kubectl apply *", "effect": "ask" },
-    { "action": "shell", "resource": "kubectl delete *", "effect": "ask" },
-    { "action": "shell", "resource": "kubectl delete pod*", "effect": "ask" },
-    { "action": "shell", "resource": "kubectl delete pvc*", "effect": "ask" },
-    { "action": "shell", "resource": "kubectl delete pv*", "effect": "ask" },
-    { "action": "shell", "resource": "kubectl delete secret*", "effect": "ask" }
+    {
+      "action": "external_directory",
+      "resource": "*",
+      "effect": "ask"
+    },
+    {
+      "action": "external_directory",
+      "resource": "/tmp/**",
+      "effect": "allow"
+    },
+    {
+      "action": "external_directory",
+      "resource": "~/Documents/**",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "*",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "git",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "git *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "git add *",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "git commit *",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "git push *",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "gh",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "gh *",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "glab",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "glab *",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "curl * | sh",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "wget * | sh",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "sudo",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "shutdown",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "reboot",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "rm -rf /",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "chmod -R 777 *",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "rm *",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "rm -f *",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "rm -rf *",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "sudo rm -rf *",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "sops*",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "age*",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "gpg*",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "ssh-keygen*",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "openssl*",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "security*",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "cosign*",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "nix store sign*",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "docker system prune -a",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "terraform destroy *",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "kubectl get *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "kubectl get secret*",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "kubectl describe *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "kubectl describe secret*",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "kubectl logs *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "kubectl apply *",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "kubectl delete *",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "kubectl delete pod*",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "kubectl delete pvc*",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "kubectl delete pv*",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "kubectl delete secret*",
+      "effect": "ask"
+    }
   ],
   "formatter": true,
   "experimental": {
