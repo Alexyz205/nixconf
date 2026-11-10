@@ -1,0 +1,6 @@
+# Shared by LazyVim (ruff LSP/formatter) and the pre-commit ruff hooks.
+line-length = 100
+target-version = "py312"
+
+[lint]
+select = ["E4", "E7", "E9", "F"]

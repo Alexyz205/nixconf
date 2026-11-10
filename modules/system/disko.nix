@@ -2,7 +2,8 @@ _:
 let
   # Shared btrfs layout: the subvolume set every disko-managed host uses.
   # `luks = true` wraps it in a LUKS container (workstation); bare otherwise
-  # (headless-worker). Exposed as config.nixconf.mkBtrfsLayout for hosts to reuse.
+  # (headless-worker). `/root` is the installer/recovery root; hosts with
+  # impermanence mount tmpfs on `/` and keep `/persistent` as the state volume.
   btrfsLayout =
     {
       swapSize ? "8G",
@@ -23,6 +24,13 @@ let
           };
           "/home" = {
             mountpoint = "/home";
+            mountOptions = [
+              "compress=zstd"
+              "noatime"
+            ];
+          };
+          "/persistent" = {
+            mountpoint = "/persistent";
             mountOptions = [
               "compress=zstd"
               "noatime"

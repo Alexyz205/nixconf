@@ -12,6 +12,7 @@ let
     p = "python";
     e = "exit";
     c = "clear";
+    wol = "wakeonlan";
   };
   nixAliases = {
     nc = "nix flake check $NIXCONF";

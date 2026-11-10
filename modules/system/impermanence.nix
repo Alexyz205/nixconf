@@ -16,6 +16,15 @@ let
       options.modules.impermanence = {
         enable = lib.mkEnableOption "impermanence (ephemeral root, /persistent state)";
 
+        tmpfsRoot = lib.mkOption {
+          type = lib.types.bool;
+          default = true;
+          description = ''
+            Mount / as tmpfs. /home, /nix and /persistent stay on btrfs.
+            Set false if the host rotates the btrfs /root subvolume instead.
+          '';
+        };
+
         persistPath = lib.mkOption {
           type = lib.types.str;
           default = "/persistent";
@@ -67,6 +76,29 @@ let
       # root or a rotated btrfs subvolume) plus a persistent volume. See
       # docs/impermanence.md before enabling.
       config = lib.mkIf config.modules.impermanence.enable {
+        # tmpfs root: only writes to / consume RAM; /home, /nix and
+        # /persistent are separate btrfs mounts and survive reboots.
+        fileSystems."/" = lib.mkIf config.modules.impermanence.tmpfsRoot (
+          lib.mkForce {
+            fsType = "tmpfs";
+            device = "none";
+            neededForBoot = true;
+            options = [
+              "size=50%"
+              "mode=0755"
+            ];
+          }
+        );
+        fileSystems."/nix".neededForBoot = lib.mkIf config.modules.impermanence.tmpfsRoot (
+          lib.mkDefault true
+        );
+        fileSystems."/home".neededForBoot = lib.mkIf config.modules.impermanence.tmpfsRoot (
+          lib.mkDefault true
+        );
+        fileSystems."/persistent".neededForBoot = lib.mkIf config.modules.impermanence.tmpfsRoot (
+          lib.mkDefault true
+        );
+
         environment.persistence.${config.modules.impermanence.persistPath} = {
           hideMounts = true;
           directories = config.modules.impermanence.directories;

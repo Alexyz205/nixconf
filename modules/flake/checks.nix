@@ -43,6 +43,32 @@ in
 
               mkdir -p "$out"
             '';
+
+        # Workflows, YAML and secret scanning.
+        lint =
+          pkgs.runCommand "nixconf-lint-check"
+            {
+              nativeBuildInputs = with pkgs; [
+                actionlint
+                shellcheck
+                yamllint
+                gitleaks
+              ];
+              src = self;
+            }
+            ''
+              cp -r "$src" work
+              cd work
+              chmod -R u+w .
+
+              actionlint
+              yamllint -c .yamllint.yml .github/workflows
+
+              # The FIDO2 resident-key allowlist is in .gitleaks.toml.
+              gitleaks dir . --no-banner --redact --config .gitleaks.toml
+
+              mkdir -p "$out"
+            '';
       }
       // lib.optionalAttrs (system == "x86_64-linux") {
         # Boot the server feature set in QEMU and assert the services that make

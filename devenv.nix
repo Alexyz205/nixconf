@@ -24,6 +24,13 @@
     disko
     shellcheck # bash linter (also a test-suite prerequisite)
 
+    # CI / YAML / secrets checks (mirrored by checks.lint and the git hooks)
+    actionlint
+    gitleaks
+    yamllint
+    trivy
+    tokei
+
     # nix: formatter nixfmt (LSP nil + linter statix via languages.nix)
     nixfmt
 
@@ -144,6 +151,108 @@
         priority = 0;
       };
 
+      actionlint = {
+        enable = true;
+        name = "actionlint";
+        entry = "${pkgs.actionlint}/bin/actionlint";
+        language = "system";
+        files = "^\\.github/workflows/.*\\.ya?ml$";
+        pass_filenames = false;
+        priority = 10;
+      };
+      yamllint = {
+        enable = true;
+        name = "yamllint";
+        entry = "${pkgs.yamllint}/bin/yamllint -c .yamllint.yml";
+        language = "system";
+        files = "\\.ya?ml$";
+        priority = 10;
+      };
+      gitleaks = {
+        enable = true;
+        name = "gitleaks";
+        # Wrapper ignores any filenames prek may append; gitleaks git takes
+        # a single optional repo argument.
+        entry = "${pkgs.writeShellScript "gitleaks-hook" ''
+          exec ${pkgs.gitleaks}/bin/gitleaks git --pre-commit --redact --no-banner .
+        ''}";
+        language = "system";
+        pass_filenames = false;
+        always_run = true;
+        stages = [ "pre-commit" ];
+        priority = 10;
+      };
+      markdownlint = {
+        enable = true;
+        name = "markdownlint-cli2";
+        entry = "${pkgs.markdownlint-cli2}/bin/markdownlint-cli2";
+        language = "system";
+        files = "\\.md$";
+        priority = 10;
+      };
+      ruff = {
+        enable = true;
+        name = "ruff check";
+        entry = "${pkgs.ruff}/bin/ruff check";
+        language = "system";
+        files = "\\.py$";
+        priority = 10;
+      };
+      "ruff-format" = {
+        enable = true;
+        name = "ruff format";
+        entry = "${pkgs.ruff}/bin/ruff format";
+        language = "system";
+        files = "\\.py$";
+        priority = 0;
+      };
+      prettierd = {
+        enable = true;
+        name = "prettierd (markdown)";
+        entry = "${pkgs.writeShellScript "prettierd-hook" ''
+          set -euo pipefail
+          for file in "$@"; do
+            ${pkgs.prettierd}/bin/prettierd "$file" < "$file" > "$file.prettierd.tmp"
+            mv "$file.prettierd.tmp" "$file"
+          done
+        ''}";
+        language = "system";
+        files = "\\.(md|mdx)$";
+        priority = 0;
+      };
+      hadolint = {
+        enable = true;
+        name = "hadolint";
+        entry = "${pkgs.hadolint}/bin/hadolint";
+        language = "system";
+        files = "(^|/)(Dockerfile|Containerfile)(\\..*)?$";
+        priority = 10;
+      };
+      tflint = {
+        enable = true;
+        name = "tflint";
+        entry = "${pkgs.tflint}/bin/tflint";
+        language = "system";
+        files = "\\.tf$";
+        priority = 10;
+      };
+      "ansible-lint" = {
+        enable = true;
+        name = "ansible-lint";
+        entry = "${pkgs.ansible-lint}/bin/ansible-lint";
+        language = "system";
+        files = "^(playbooks|roles)/.*\\.ya?ml$";
+        priority = 10;
+      };
+      gersemi = {
+        enable = true;
+        name = "gersemi";
+        entry = "${pkgs.gersemi}/bin/gersemi --check";
+        language = "system";
+        files = "(^|/)(CMakeLists\\.txt|.*\\.cmake)$";
+        priority = 10;
+      };
+
       nixconf-fast = {
         enable = true;
         name = "nixconf fast suite (flake, eval, shellcheck)";
@@ -164,6 +273,20 @@
         always_run = true;
         stages = [ "pre-push" ];
         priority = 30;
+      };
+
+      nixconf-security = {
+        enable = true;
+        name = "nixconf security scan (trivy)";
+        # FIDO2 resident-key handle is hardware-bound; see .gitleaks.toml.
+        entry = "${pkgs.writeShellScript "trivy-hook" ''
+          exec ${pkgs.trivy}/bin/trivy fs --scanners misconfig,secret --severity HIGH,CRITICAL --skip-files config/ssh/id_ed25519_sk_rk_alexis-perso --skip-db-update --exit-code 1 .
+        ''}";
+        language = "system";
+        pass_filenames = false;
+        always_run = true;
+        stages = [ "pre-push" ];
+        priority = 10;
       };
     };
   };
@@ -186,6 +309,23 @@
     "repo:fmt" = {
       description = "Format the repo (nixfmt, shfmt, prettierd via treefmt)";
       exec = "treefmt";
+    };
+    "repo:lint" = {
+      description = "Lint GitHub workflows and YAML";
+      exec = "actionlint && yamllint -c .yamllint.yml .github/workflows";
+    };
+    "repo:secrets" = {
+      description = "Scan the working tree for secrets (gitleaks)";
+      exec = "gitleaks dir . --no-banner --redact --config .gitleaks.toml";
+    };
+    "repo:security" = {
+      description = "Trivy misconfiguration/secret scan (advisory)";
+      # The FIDO2 resident-key handle is hardware-bound; see .gitleaks.toml.
+      exec = "trivy fs --scanners misconfig,secret --severity HIGH,CRITICAL --skip-files config/ssh/id_ed25519_sk_rk_alexis-perso .";
+    };
+    "repo:stats" = {
+      description = "Code statistics with tokei";
+      exec = "tokei --sort code";
     };
   };
 

@@ -40,6 +40,8 @@ let
     "backup"
     "monitoring"
     "secureBoot"
+    "wakeOnLan"
+    "impermanence"
   ];
   # Interactive desktop host on top of the server stack.
   desktopNames = serverNames ++ [
@@ -82,6 +84,7 @@ let
   optInNames = [
     "backup"
     "secureBoot"
+    "impermanence"
   ];
 
   # A tier is a single NixOS module that both imports the feature modules and

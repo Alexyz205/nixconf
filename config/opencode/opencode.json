@@ -4,6 +4,10 @@
   "share": "disabled",
   "model": "opencode-go/deepseek-v4.1-flash",
   "default_agent": "build",
+  "snapshots": true,
+  "websearch": {
+    "provider": "random"
+  },
   "agents": {
     "explore": {
       "model": "opencode-go/deepseek-v4.1-flash",
@@ -103,12 +107,12 @@
     },
     {
       "action": "shell",
-      "resource": "shutdown",
+      "resource": "shutdown *",
       "effect": "deny"
     },
     {
       "action": "shell",
-      "resource": "reboot",
+      "resource": "reboot *",
       "effect": "deny"
     },
     {
@@ -245,6 +249,66 @@
       "action": "shell",
       "resource": "kubectl delete secret*",
       "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "git reset --hard *",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "git clean -f*",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "dd *",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "mkfs*",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "wipefs*",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "fdisk*",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "parted*",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "sgdisk*",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "systemctl poweroff *",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "systemctl reboot *",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "rm -rf ~",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "podman system prune -a",
+      "effect": "ask"
     }
   ],
   "policies": [
@@ -262,6 +326,26 @@
       "action": "tool.use",
       "resource": "shell:glab *",
       "effect": "deny"
+    },
+    {
+      "action": "tool.use",
+      "resource": "read:*/.ssh/*",
+      "effect": "deny"
+    },
+    {
+      "action": "tool.use",
+      "resource": "read:*/.config/sops/age/*",
+      "effect": "deny"
+    },
+    {
+      "action": "tool.use",
+      "resource": "read:*secrets/*",
+      "effect": "deny"
+    },
+    {
+      "action": "tool.use",
+      "resource": "edit:*secrets/*",
+      "effect": "deny"
     }
   ],
   "formatter": true,
@@ -278,7 +362,6 @@
     "buffer": "15%"
   },
   "instructions": [
-    "~/repos/personal/nixconf/README.md",
     "~/.config/opencode/AGENTS.md"
   ],
   "watcher": {

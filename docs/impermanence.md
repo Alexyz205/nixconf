@@ -1,59 +1,104 @@
 # Impermanence (ephemeral root)
 
-`modules.impermanence.enable = true` wires `environment.persistence."<persistPath>"`.
-It does **not** make `/` ephemeral by itself — that comes from the host's
-filesystem layout (disko) plus a persistent volume.
+`modules.impermanence.enable = true` wires
+`environment.persistence."/persistent"` and, by default, mounts `/` as tmpfs.
+It does **not** make the disk layout ephemeral by itself; the host's disko
+config must provide a separate `/persistent` subvolume.
 
-The feature module is `modules/system/impermanence.nix`; it adds:
+Both NixOS hosts use it:
 
-| option                          | default                            | meaning                                           |
-| ------------------------------- | ---------------------------------- | ------------------------------------------------- |
-| `modules.impermanence.enable`   | `false`                            | wire `environment.persistence`                    |
-| `persistPath`                   | `"/persistent"`                    | mount point of the surviving volume               |
-| `directories` / `files`         | small safe set                     | system paths bind-mounted/linked into persistence |
-| `userDirectories` / `userFiles` | `.ssh`, `.gnupg`, keyrings, direnv | per-user paths                                    |
+| Host              | Root  | Persistent mounts              | LUKS |
+| ----------------- | ----- | ------------------------------ | ---- |
+| `workstation`     | tmpfs | `/home`, `/nix`, `/persistent` | yes  |
+| `headless-worker` | tmpfs | `/home`, `/nix`, `/persistent` | no   |
 
-A host opts in and extends the lists.
+`/home` remains its own btrfs subvolume, so user data and the workstation's
+software sops key (`~/.config/sops/age/keys.txt`) survive. That is why the host
+configs set `userDirectories = [ ]`; persisting `.ssh` etc. is only needed when
+`/home` is ephemeral too.
 
-## Layout for this repo (btrfs + LUKS via disko)
+## Layout
 
-`modules/system/disko.nix` (`mkBtrfsLayout`) creates `/root`, `/home`, `/nix`,
-`/swap` subvolumes. Two ways to make `/` ephemeral:
+`modules/system/disko.nix` keeps `/root` as the installer/recovery root and
+adds:
 
-1. **Rotate the btrfs `/root` subvolume on every boot** (fits this layout, no
-   repartition, keeps old roots for recovery). Add a `/persistent` subvolume and
-   a `boot.initrd.postResumeCommands` that renames `/root` and recreates it
-   empty. `/home` and `/nix` stay on disk, so only the OS root is wiped.
-2. **tmpfs `/`** (simplest; `/` becomes RAM). Drawbacks: OOM/disk-full on large
-   writes. `/home` and `/nix` remain real mounts.
+```text
+/            tmpfs (size=50% of RAM)     root, wiped every boot
+/boot        ESP
+/nix         btrfs subvolume             Nix store + generations (persistent)
+/home        btrfs subvolume             user data (persistent)
+/persistent  btrfs subvolume             system state (persistent)
+/.swapvol    btrfs swapfile
+/root        btrfs subvolume             unused after install; recovery only
+```
 
-Either way you need a mounted `/persistent` marked `neededForBoot = true`.
+The `impermanence` module sets `neededForBoot` on `/nix`, `/home` and
+`/persistent`, and forces `/` to tmpfs. `/root` is still created by disko so
+the installer can mount and install into it; it is not mounted at `/` at
+runtime.
 
-## Enable steps
+## What is persisted
 
-1. Add a `/persistent` subvolume + root rotation (option 1) to the host's disko
-   config, and set `fileSystems."/persistent".neededForBoot = true`.
-2. Add the module to the host's import list and enable it. The option only
-   exists once the module is imported (dendritic), so in the host's
-   `nixosSystem { modules = [ ... ]; }` list add
-   `config.nixconf.modules.nixos.impermanence`, then on the host set
-   `modules.impermanence.enable = true;` and extend
-   `directories` / `files` / `userDirectories` for that host.
-3. Apply the filesystem change — re-image with disko
-   (`--mode destroy,format,mount`) or create the `/persistent` subvolume +
-   mounts by hand, then reboot.
-4. Move current state into `/persistent` (e.g.
-   `rsync -aHAX /var/log/ /persistent/var/log/`, etc.) before the first
-   ephemeral boot, or impermanence creates empty dirs instead.
-5. `nr` (`nh os switch $NIXCONF`) or `nro` if you only want the next boot to
-   use it.
+System state (extend per host):
 
-## Must-persist (else things break after reboot)
+```text
+/etc/machine-id
+/etc/ssh
+/etc/NetworkManager/system-connections   (workstation)
+/var/log
+/var/lib/nixos
+/var/lib/systemd/coredump
+/var/lib/NetworkManager                  (workstation)
+/var/lib/bluetooth                       (workstation)
+/var/lib/containers                      (podman)
+/var/lib/sbctl                           (Secure Boot keys, when enabled)
+```
 
-- System: `/etc/machine-id`, `/var/lib/nixos` (uid/gid map), `/var/log`,
-  `/etc/ssh` (host keys), NetworkManager connections, `/var/lib/bluetooth`.
-- User: `~/.ssh`, `~/.gnupg`, `~/.local/share/keyrings`,
-  `~/.local/share/direnv`, and **`~/.config/sops`** — the workstation's
-  software age key (`~/.config/sops/age/keys.txt`) lives there and sops-nix
-  decryption fails without it.
-- The Nix store (`/nix`) is its own subvolume and persists; never persist `/`.
+User data is on `/home`, including `~/.ssh`, `~/.gnupg`, keyrings, direnv and
+`~/.config/sops`.
+
+## First install / migration
+
+This is a disk change. The supported path is a **reinstall** (or creating the
+subvolumes by hand on an existing disk before enabling the module):
+
+1. Build the ISO and re-image with disko (the installer uses the host's disko
+   config and now creates `/persistent`).
+2. Boot the installed system; verify:
+
+   ```bash
+   findmnt /                 # tmpfs
+   findmnt /persistent       # btrfs subvolume
+   findmnt /home
+   findmnt /nix
+   ```
+
+3. Confirm the persisted paths exist under `/persistent` after the first boot
+   (`/persistent/etc/ssh`, `/persistent/var/lib/nixos`, ...).
+4. Move any state you need from the old root into `/persistent` while booted
+   from the ISO or before the first ephemeral boot. The old `/root` subvolume
+   is still on disk but unused; mount it manually if you need old files.
+
+Do **not** switch an existing machine that lacks `/persistent` to this config:
+activation expects the mount and the tmpfs root, and the disk will not have the
+subvolume.
+
+## Options
+
+| Option                          | Default                            | Meaning                                               |
+| ------------------------------- | ---------------------------------- | ----------------------------------------------------- |
+| `modules.impermanence.enable`   | `false`                            | wire `environment.persistence` and tmpfs `/`          |
+| `tmpfsRoot`                     | `true`                             | mount `/` as tmpfs; set false for btrfs-root rotation |
+| `persistPath`                   | `"/persistent"`                    | surviving volume mount point                          |
+| `directories` / `files`         | small safe set                     | system paths bind-mounted/linked into persistence     |
+| `userDirectories` / `userFiles` | `.ssh`, `.gnupg`, keyrings, direnv | per-user paths; empty here because `/home` persists   |
+
+## Recovery
+
+- Generations live in `/nix`, so `nh`/`nixos-rebuild --rollback` and the boot
+  menu still work.
+- `/root` is not mounted; from the ISO run
+  `mount -o subvol=root /dev/… /mnt` (or the LUKS device) to inspect old root
+  data.
+- `/persistent` is the only state that survives; back it up like any other
+  data (restic; see `docs/backup.md`).

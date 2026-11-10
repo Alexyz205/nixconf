@@ -2,15 +2,15 @@
 
 ## Inventory
 
-| Flake output                          | Type          | Tier / notes                                                                                                  |
-| ------------------------------------- | ------------- | ------------------------------------------------------------------------------------------------------------- |
-| `nixosConfigurations.workstation`     | NixOS desktop | `desktop` tier, disko + LUKS, NVIDIA, niri                                                                    |
-| `nixosConfigurations.headless-worker` | NixOS server  | `server` tier, disko + btrfs, systemd-networkd                                                                |
-| `nixosConfigurations.proxmox-vm`      | NixOS VM      | minimal (`nix`, `users`, `ssh`), qemu-guest + cloud-init                                                      |
-| `nixosConfigurations.installer-iso`   | USB ISO       | guided installer (`nixos-installer`)                                                                          |
-| `darwinConfigurations.macbook`        | nix-darwin    | Homebrew + Ghostty                                                                                            |
+| Flake output                          | Type          | Tier / notes                                                                                                         |
+| ------------------------------------- | ------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `nixosConfigurations.workstation`     | NixOS desktop | `desktop` tier, disko + LUKS, NVIDIA, niri                                                                           |
+| `nixosConfigurations.headless-worker` | NixOS server  | `server` tier, disko + btrfs, systemd-networkd                                                                       |
+| `nixosConfigurations.proxmox-vm`      | NixOS VM      | minimal (`nix`, `users`, `ssh`), qemu-guest + cloud-init                                                             |
+| `nixosConfigurations.installer-iso`   | USB ISO       | guided installer (`nixos-installer`)                                                                                 |
+| `darwinConfigurations.macbook`        | nix-darwin    | Homebrew + Ghostty                                                                                                   |
 | `homeConfigurations.*`                | standalone HM | `alexis@linux`, `alexis@macos`, `alexis.pigeon@RNSL-APIGEON5`, `alexis@server`, `root@container`, `vscode@container` |
-| `deploy.nodes.headless-worker`        | deploy-rs     | push a locally built closure to the server                                                                    |
+| `deploy.nodes.headless-worker`        | deploy-rs     | push a locally built closure to the server                                                                           |
 
 Hosts are composed from tiers defined in `modules/flake/nixos.nix`: the tier
 module imports each feature **and** enables it with `mkDefault`, so a host file

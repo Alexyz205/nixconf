@@ -81,6 +81,19 @@ let
                 security = true;
                 devTools = true;
               };
+              impermanence = {
+                enable = true;
+                directories = [
+                  "/var/log"
+                  "/var/lib/nixos"
+                  "/var/lib/systemd/coredump"
+                  "/etc/ssh"
+                  "/var/lib/containers"
+                  "/var/lib/sbctl"
+                ];
+                # /home is its own persistent subvolume.
+                userDirectories = [ ];
+              };
             };
             users.users.${config.modules.users.userName}.openssh.authorizedKeys.keys = [
               (lib.trim (builtins.readFile yubiPub))

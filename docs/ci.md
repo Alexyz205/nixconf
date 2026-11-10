@@ -8,6 +8,9 @@
    home-manager output, then builds all `checks.<system>` entries:
    - `format` — `nixfmt --check`, `shfmt -d`, `shellcheck`, `statix`, `deadnix`
      over the whole tree (same tools as the git hooks).
+   - `lint` — `actionlint` on the workflows, `yamllint -c .yamllint.yml` and a
+     `gitleaks dir` scan (the FIDO2 resident-key handle is allowlisted in
+     `.gitleaks.toml`).
    - `server-boot` — boots the server feature set in a QEMU VM and asserts
      `sshd` is running, `fail2ban` is enabled, and `nix` works.
 2. Cross-evaluates `darwinConfigurations.macbook` (no macOS runner needed;
@@ -56,8 +59,15 @@ build and needs the token available to the builder).
 ./scripts/test-all.sh flake eval      # fast subset
 nix flake check                       # eval + checks
 nix build .#checks.x86_64-linux.format -L
+nix build .#checks.x86_64-linux.lint -L
 nix build .#checks.x86_64-linux.server-boot -L
 nix run github:DeterminateSystems/flake-checker
+
+# repo tasks (also installed as pre-commit hooks)
+devenv tasks run repo:lint
+devenv tasks run repo:secrets
+devenv tasks run repo:security
+devenv tasks run repo:stats
 ```
 
 The host/profile lists used by `scripts/test-all.sh` are derived from the flake

@@ -1,0 +1,10 @@
+# markdownlint-cli2 configuration (shared by LazyVim and pre-commit).
+ignores:
+  - ".devenv/**"
+  - ".git/**"
+  - "node_modules/**"
+  - "result*"
+config:
+  MD013: false
+  MD033: false
+  MD060: false

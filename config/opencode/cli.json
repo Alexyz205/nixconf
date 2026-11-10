@@ -7,6 +7,18 @@
   "diffs": {
     "view": "auto"
   },
+  "mouse": true,
+  "animations": true,
+  "session": {
+    "tps": true,
+    "permissions": "prompt"
+  },
+  "tabs": {
+    "mode": "auto"
+  },
+  "terminal": {
+    "title": true
+  },
   "scroll": {
     "acceleration": true
   },

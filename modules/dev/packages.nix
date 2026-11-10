@@ -18,6 +18,9 @@ let
           yq
           jq
           tree-sitter
+          wakeonlan
+          tokei
+          sd
         ];
         # Nix ecosystem power tools: rebuilds/diffs, build output, closure
         # inspection, run-anything and command-not-found.
@@ -28,6 +31,19 @@ let
           nix-tree
           nixos-anywhere
           deploy-rs
+        ];
+        # CI / supply-chain checks: workflows, secrets, IaC/images, YAML.
+        ciSecurity = [
+          actionlint
+          gitleaks
+          trivy
+          yamllint
+        ];
+        # Packaging helpers: init a derivation, prefetch a URL, review a PR.
+        nixPackaging = [
+          nix-init
+          nurl
+          nixpkgs-review
         ];
         # LSPs / formatters / linters on every host + home-manager profile so the
         # tooling is on $PATH regardless of the dev environment.
@@ -91,6 +107,8 @@ let
       order = [
         "basic"
         "nixTools"
+        "ciSecurity"
+        "nixPackaging"
         "lsp"
         "security"
         "devTools"
@@ -113,6 +131,16 @@ let
           type = lib.types.bool;
           default = true;
           description = "Nix ecosystem tooling (nh, nvd, nom, nix-tree, nixos-anywhere, deploy-rs; comma/nix-index come from nix-index-database).";
+        };
+        ciSecurity = lib.mkOption {
+          type = lib.types.bool;
+          default = true;
+          description = "CI and supply-chain checks (actionlint, gitleaks, trivy, yamllint).";
+        };
+        nixPackaging = lib.mkOption {
+          type = lib.types.bool;
+          default = true;
+          description = "Nix packaging helpers (nix-init, nurl, nixpkgs-review).";
         };
         lsp = lib.mkOption {
           type = lib.types.bool;

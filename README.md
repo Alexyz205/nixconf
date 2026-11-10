@@ -100,14 +100,14 @@ also sets zsh as the login shell.
 
 Standalone home-manager profiles (`flake.homeConfigurations`):
 
-| Config                        | Username      | Platform       | Notes                                      |
-| ----------------------------- | ------------- | -------------- | ------------------------------------------ |
-| `alexis@macos`                | alexis        | aarch64-darwin | macOS profile                              |
-| `alexis@linux`                | alexis        | x86_64-linux   | Linux profile                              |
-| `alexis.pigeon@RNSL-APIGEON5` | alexis.pigeon | x86_64-linux   | Work station, Ubuntu/GNOME                 |
-| `alexis@server`               | alexis        | x86_64-linux   | Headless server (terminal-only)            |
-| `root@container`              | root          | x86_64-linux   | Container profile (root)                   |
-| `vscode@container`            | vscode        | x86_64-linux   | Devcontainer profile (non-root user)       |
+| Config                        | Username      | Platform       | Notes                                |
+| ----------------------------- | ------------- | -------------- | ------------------------------------ |
+| `alexis@macos`                | alexis        | aarch64-darwin | macOS profile                        |
+| `alexis@linux`                | alexis        | x86_64-linux   | Linux profile                        |
+| `alexis.pigeon@RNSL-APIGEON5` | alexis.pigeon | x86_64-linux   | Work station, Ubuntu/GNOME           |
+| `alexis@server`               | alexis        | x86_64-linux   | Headless server (terminal-only)      |
+| `root@container`              | root          | x86_64-linux   | Container profile (root)             |
+| `vscode@container`            | vscode        | x86_64-linux   | Devcontainer profile (non-root user) |
 
 The profile extras are layered (`modules/flake/home-manager.nix`):
 `defaultExtra` is the base every interactive Linux profile starts from (sops,
@@ -190,9 +190,19 @@ The host and profile lists are derived from the flake (`nixosConfigurations`,
 script.
 
 The flake also exposes `checks.<system>`: `format` (nixfmt/shfmt/shellcheck/
-statix/deadnix over the tree) and `server-boot` (QEMU test that boots the server
-feature set and asserts sshd/fail2ban/nix). `nix flake check` builds both.
+statix/deadnix over the tree), `lint` (actionlint/yamllint/gitleaks) and
+`server-boot` (QEMU test that boots the server feature set and asserts
+sshd/fail2ban/nix). `nix flake check` builds them.
 See [docs/ci.md](docs/ci.md).
+
+Repo-quality tasks (also available as pre-commit hooks):
+
+```bash
+devenv tasks run repo:lint      # actionlint + yamllint
+devenv tasks run repo:secrets   # gitleaks
+devenv tasks run repo:security  # trivy misconfig/secret scan
+devenv tasks run repo:stats     # tokei
+```
 
 If `disko` or `shellcheck` aren't on `$PATH`, the script re-enters itself via
 `devenv shell` so the tools are always available.
@@ -203,11 +213,14 @@ Git hooks are owned and auto-installed by devenv (via its `git-hooks` module,
 `prek` shims installed into `.git/hooks/` on shell entry). Two layers gate the
 expensive work:
 
-1. **`pre-commit`** — fast per-file staged linting (shellcheck on `.sh`/`.bash`,
-   shfmt matching treefmt's `-i 2 -s`, nixfmt, statix, deadnix, luacheck,
-   stylua).
-2. **`pre-push`** — the fast full suite (`flake`, `eval`, `shellcheck`) and the
-   slow image builds (`disko`, `iso`, `vm`).
+1. **`pre-commit`** — fast per-file staged linting and formatting:
+   `shellcheck` + `shfmt`, `nixfmt` + `statix` + `deadnix`, `stylua` +
+   `luacheck`, `markdownlint-cli2`, `ruff check` + `ruff format`, `actionlint`,
+   `yamllint`, `gitleaks`, plus `hadolint`, `tflint`, `ansible-lint` and
+   `gersemi` when matching files exist.
+2. **`pre-push`** — `trivy` (misconfig + secrets), the fast full suite
+   (`flake`, `eval`, `shellcheck`) and the slow image builds
+   (`disko`, `iso`, `vm`).
 
 Linting config lives in `devenv.nix` (`git-hooks.hooks`); `statix.toml` at the
 repo root disables the `repeated_keys` lint, which fires on the intentional
@@ -227,6 +240,12 @@ Every profile installs the Nix ecosystem tools (`packages.nixTools`): `nh`
 nixpkgs index behind `command-not-found`, plus the wrapped `nix-locate` and
 `comma` (`, tool` to run anything without installing it).
 
+The dev environment also ships `actionlint`/`gitleaks`/`trivy`/`yamllint`
+(CI + supply chain) and `nix-init`/`nurl`/`nixpkgs-review` (packaging);
+`tokei`/`sd` are in the `basic` group. Each group is a toggle:
+`modules.packages.ciSecurity = false`, etc. Full inventory and purpose:
+[docs/tools.md](docs/tools.md).
+
 ## Backups and monitoring
 
 The `server` tier (and therefore `desktop`) enables `modules.monitoring`:
@@ -236,6 +255,11 @@ to scrape it over the LAN), smartd, weekly btrfs scrub, and a bounded journal.
 `modules.backup` (restic) is wired but **off by default** until a repository
 exists. See [docs/backup.md](docs/backup.md) for the sops secret, repository
 examples, and a restore test.
+
+Wake-on-LAN is enabled on the server and desktop tiers; use `wol <MAC>` from
+another LAN host. LUKS changes what "wake" means (the server has no LUKS, the
+workstation stops at its passphrase): see
+[docs/wake-on-lan.md](docs/wake-on-lan.md).
 
 ## Deploy and rollback
 

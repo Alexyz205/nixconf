@@ -29,9 +29,7 @@ for module in (
 # Catppuccin Mocha interface theme (installed as a user preset).
 try:
     theme = os.path.join(
-        bpy.utils.user_resource(
-            "SCRIPTS", path="presets/interface_theme", create=True
-        ),
+        bpy.utils.user_resource("SCRIPTS", path="presets/interface_theme", create=True),
         "Catppuccin_Mocha.xml",
     )
     if os.path.exists(theme):

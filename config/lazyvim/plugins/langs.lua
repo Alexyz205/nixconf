@@ -1,3 +1,10 @@
+vim.filetype.add({
+	pattern = {
+		[".*/%.github/workflows/.*%.yml"] = "yaml.ghaction",
+		[".*/%.github/workflows/.*%.yaml"] = "yaml.ghaction",
+	},
+})
+
 return {
 	{
 		-- LazyVim's cmake extra expects neocmakelsp, which nixpkgs doesn't ship.
@@ -17,6 +24,13 @@ return {
 		opts = {
 			formatters_by_ft = {
 				cmake = { "gersemi" },
+				sh = { "shfmt" },
+				bash = { "shfmt" },
+				nix = { "nixfmt" },
+				lua = { "stylua" },
+				python = { "ruff_format" },
+				markdown = { "prettierd", "markdownlint-cli2" },
+				["markdown.mdx"] = { "prettierd", "markdownlint-cli2" },
 			},
 		},
 	},
@@ -49,7 +63,16 @@ return {
 				},
 			},
 			linters_by_ft = {
+				sh = { "shellcheck" },
+				bash = { "shellcheck" },
+				nix = { "statix", "deadnix" },
+				yaml = { "yamllint" },
+				["yaml.ghaction"] = { "actionlint", "yamllint" },
+				["yaml.ansible"] = { "ansible_lint", "yamllint" },
 				lua = { "luacheck" },
+				markdown = { "markdownlint-cli2" },
+				python = { "ruff" },
+				dockerfile = { "hadolint" },
 				terraform = { "tflint", "terraform_validate" },
 				tf = { "tflint", "terraform_validate" },
 				cmake = { "gersemi" },

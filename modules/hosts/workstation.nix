@@ -160,6 +160,25 @@ let
                 enable = true;
                 interface = "enp4s0";
               };
+              # S3 (deep) makes NIC wake-on-LAN reliable; the lock module
+              # suspends after 15 min idle and WoL resumes it.
+              wakeOnLan.sleepState = "deep";
+              impermanence = {
+                enable = true;
+                directories = [
+                  "/var/log"
+                  "/var/lib/nixos"
+                  "/var/lib/systemd/coredump"
+                  "/etc/ssh"
+                  "/etc/NetworkManager/system-connections"
+                  "/var/lib/NetworkManager"
+                  "/var/lib/bluetooth"
+                  "/var/lib/containers"
+                  "/var/lib/sbctl"
+                ];
+                # /home is its own persistent subvolume.
+                userDirectories = [ ];
+              };
               users.extraGroups = [
                 "wheel"
                 "networkmanager"

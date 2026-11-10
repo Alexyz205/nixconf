@@ -1,0 +1,14 @@
+# Gitleaks allowlist for nixconf.
+#
+# The FIDO2 resident SSH key file contains the credential handle that OpenSSH
+# stores for a hardware-backed ed25519-sk key; the private key never leaves the
+# YubiKey. It is required at ~/.ssh/<name> to use the resident credential.
+# The second match is the same filename as a string in yubikey.nix.
+[allowlist]
+description = "FIDO2 resident-key handles are hardware-bound, not extractable secrets."
+paths = [
+  '''config/ssh/id_ed25519_sk_rk_alexis-perso$''',
+]
+regexes = [
+  '''yubiKey = "id_ed25519_sk_rk_alexis-perso"''',
+]
