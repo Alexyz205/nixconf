@@ -9,6 +9,7 @@ let
   features = config.nixconf.nixosFeatures.desktop;
   mkHostCommon = config.nixconf.mkHostCommon;
   palette = import ../../config/theme/catppuccin-mocha.nix;
+  lan = import ../../config/network/lan.nix;
 
   mkWorkstation =
     {
@@ -158,7 +159,7 @@ let
               # (igc) NIC, which otherwise flaps the 2.5GbE link.
               networkTuning = {
                 enable = true;
-                interface = "enp4s0";
+                interface = lan.workstation.interface;
               };
               # S3 (deep) makes NIC wake-on-LAN reliable; the lock module
               # suspends after 15 min idle and WoL resumes it.
@@ -168,13 +169,27 @@ let
                 directories = [
                   "/var/log"
                   "/var/lib/nixos"
-                  "/var/lib/systemd/coredump"
+                  # Whole systemd state, not just coredump: the tick stamps for
+                  # the Persistent=true timers (nix-gc, btrfs-scrub, podman
+                  # prune, logrotate) plus random-seed and rfkill live here.
+                  # Without them those timers fire again on every boot.
+                  "/var/lib/systemd"
                   "/etc/ssh"
                   "/etc/NetworkManager/system-connections"
                   "/var/lib/NetworkManager"
                   "/var/lib/bluetooth"
                   "/var/lib/containers"
                   "/var/lib/sbctl"
+                ];
+                # The account password lives only in /etc/shadow (no
+                # hashedPassword in this config, mutableUsers = true), and
+                # /etc/shadow cannot be persisted through `files`: the users
+                # activation script creates it before the persistence script
+                # runs, which then refuses to replace a non-empty file. So the
+                # hash is kept as a file on the persistent volume instead and
+                # fed to users.users.*.hashedPasswordFile.
+                files = [
+                  "/etc/machine-id"
                 ];
                 # /home is its own persistent subvolume.
                 userDirectories = [ ];
@@ -185,6 +200,11 @@ let
                 "podman"
                 "video"
               ];
+              # /etc/shadow is rebuilt every boot, so the password hash comes
+              # from the persistent volume (seeded by
+              # scripts/migrate-impermanence.sh). Change the password by
+              # updating this file, not with `passwd`.
+              users.hashedPasswordFile = "/persistent/etc/alexis.hash";
               packages = {
                 basic = true;
                 security = true;
@@ -238,7 +258,9 @@ let
                 email = "alexis@alexyz.org";
                 realName = "Alexis Pigeon";
               };
-              blender.cudaSupport = true;
+              # Blender is the official upstream build: Cycles CUDA/OptiX
+              # kernels ship precompiled, so there is no CUDA build here and
+              # nothing to tune.
             };
 
             home-manager.users.${config.modules.users.userName} = {

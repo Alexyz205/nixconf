@@ -1,21 +1,12 @@
 _:
 let
   palette = import ../../config/theme/catppuccin-mocha.nix;
-  # Ghostty launches tmux directly, bypassing the login shell, so the tmux
-  # server would inherit Ghostty's bare GUI PATH (no nix profile). Startup
-  # plugin scripts (catppuccin, tmux-agent-status) shell out to `tmux` and
-  # `bash` via PATH, so they silently fail and the config looks half-applied.
-  # Launch tmux through a login shell (sources ~/.zshenv -> hm-session-vars.sh)
-  # so the server gets the full environment.
-  tmuxAttach =
-    pkgs:
-    pkgs.writeShellScript "ghostty-tmux" ''
-      exec ${pkgs.zsh}/bin/zsh -l -c "exec ${pkgs.tmux}/bin/tmux new-session -A -s dev"
-    '';
-  ghosttyCfg = { pkgs }: {
+  # macOS runs no local tmux (TMUX_AUTO_START=0): Ghostty's own tabs and
+  # splits are the local multiplexer and tmux lives on the remote host, so
+  # panes are never nested one inside the other.
+  ghosttyCfg = _: {
     enable = true;
     settings = {
-      command = "${pkgs.tmux}/bin/tmux new-session -A -s dev";
       theme = "catppuccin-mocha";
       "font-family" = "JetBrains Mono";
       "mouse-hide-while-typing" = true;
@@ -104,7 +95,6 @@ in
       config = lib.mkIf config.modules.ghostty.enable {
         home.file = lib.mkIf pkgs.stdenv.hostPlatform.isDarwin {
           ".config/ghostty/config".text = ''
-            command = ${tmuxAttach pkgs}
             font-family = JetBrains Mono
             font-size = 14
             mouse-hide-while-typing = true

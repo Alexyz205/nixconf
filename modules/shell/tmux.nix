@@ -108,6 +108,9 @@ let
         license = pkgs.lib.licenses.mit;
       };
     });
+  # Alternate config for sessions nested inside another tmux (`tmux -L nested`):
+  # distinct prefix and no status bar. Kept as a real file so it stays lintable.
+  nestedConf = builtins.readFile ../../config/tmux/nested.conf;
   tmuxCfg =
     { pkgs }:
     let
@@ -267,6 +270,7 @@ in
       config = lib.mkIf config.modules.tmux.enable {
         home-manager.users.${config.modules.users.userName} = {
           programs.tmux = tmuxCfg { inherit pkgs; };
+          xdg.configFile."tmux/nested.conf".text = nestedConf;
           programs.zsh.shellAliases = tmuxAliases;
           home.packages = tmuxDeps { inherit lib pkgs; };
         };
@@ -284,6 +288,7 @@ in
       options.modules.tmux.enable = lib.mkEnableOption "Tmux";
       config = lib.mkIf config.modules.tmux.enable {
         programs.tmux = tmuxCfg { inherit pkgs; };
+        xdg.configFile."tmux/nested.conf".text = nestedConf;
         programs.zsh.shellAliases = tmuxAliases;
         home.packages = tmuxDeps { inherit lib pkgs; };
         # The plugin's scripts need bash 4+ (associative arrays); macOS ships

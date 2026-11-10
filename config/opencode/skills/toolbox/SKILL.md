@@ -28,6 +28,10 @@ run destructive/remote-changing commands without asking.
 ## Terminal / files
 
 - `zsh`, `starship`, `tmux` (`t`), `zoxide` (`z`, `zi`), `fzf`.
+- Remote: `sshh <host> [session]` attaches/creates a persistent tmux session
+  (auto-uses the `nested` socket + `C-a` prefix when `$TMUX` is set); `ws` is
+  `sshh workstation` on macOS. One tmux per chain: macOS never auto-starts a
+  local tmux, Ghostty tabs/splits are the local multiplexer.
 - `eza` (`ls`, `ll`, `la`, `lt`, `lta`, `ldir`, `lm`, `lz`, `ldu`, `ldus`).
 - `bat`, `less`, `tree-sitter`, `fastfetch`.
 - `ripgrep` (`rg`), `fd`, `jq`, `yq`.

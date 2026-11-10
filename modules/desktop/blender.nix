@@ -1,6 +1,5 @@
 { lib, ... }:
 let
-  blenderVersionDir = pkgs: lib.versions.majorMinor pkgs.blender.version;
 
   mkExtension =
     {
@@ -119,14 +118,14 @@ let
       };
     };
 
+  # Upstream portable build with prebuilt CUDA/OptiX kernels (see
+  # config/blender/blender-binary.nix for the why and the trade-offs).
+  blenderBinary = import ../../config/blender/blender-binary.nix;
+
   mkBlender =
-    pkgs: cudaSupport:
+    pkgs:
     let
-      base =
-        if cudaSupport && pkgs.stdenv.hostPlatform.isLinux then
-          pkgs.blender.override { inherit cudaSupport; }
-        else
-          pkgs.blender;
+      base = blenderBinary pkgs;
       extensionsRepo = pkgs.buildEnv {
         name = "blender-extensions";
         paths = map (extension: extension pkgs) extensions;
@@ -145,7 +144,8 @@ let
       postBuild = ''
         wrapProgram "$out/bin/blender" \
           --set BLENDER_SYSTEM_EXTENSIONS "${extensionsRepo}" \
-          --set BLENDER_SYSTEM_SCRIPTS "${scriptsRepo}"
+          --set BLENDER_SYSTEM_SCRIPTS "${scriptsRepo}" \
+          --suffix LD_LIBRARY_PATH : /run/opengl-driver/lib
       '';
       inherit (base) meta;
     };
@@ -154,10 +154,10 @@ let
     {
       pkgs,
       lib,
-      cudaSupport,
     }:
     let
-      blender = mkBlender pkgs cudaSupport;
+      blender = mkBlender pkgs;
+      versionDir = lib.versions.majorMinor (blenderBinary pkgs).version;
       # XDG launchers only rescan a data dir when it changes, and the package's
       # own entry sits behind ~/.nix-profile — a symlink that is swapped on every
       # switch — so Activities search can miss it. Copy the entry into the stable
@@ -172,13 +172,13 @@ let
     {
       home.packages = [ blender ];
       home.file = {
-        ".config/blender/${blenderVersionDir pkgs}/scripts/presets/interface_theme/Catppuccin_Mocha.xml".source =
+        ".config/blender/${versionDir}/scripts/presets/interface_theme/Catppuccin_Mocha.xml".source =
           catppuccinTheme pkgs;
         ".local/share/applications/blender.desktop".source =
           "${desktopEntry}/share/applications/blender.desktop";
       };
       home.activation.blenderPrefs = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-        if [ ! -f "$HOME/.config/blender/${blenderVersionDir pkgs}/config/userpref.blend" ]; then
+        if [ ! -f "$HOME/.config/blender/${versionDir}/config/userpref.blend" ]; then
           $DRY_RUN_CMD ${blender}/bin/blender --background --factory-startup \
             --python ${../../config/blender/seed.py} >/dev/null 2>&1 || true
         fi
@@ -196,16 +196,12 @@ in
     }:
     {
       options.modules.blender = {
-        enable = lib.mkEnableOption "Blender 5 with CUDA/OptiX and 3D-print addons";
-        cudaSupport = lib.mkEnableOption "Blender Cycles CUDA/OptiX support";
+        enable = lib.mkEnableOption "Blender (official build, prebuilt Cycles CUDA/OptiX) and 3D-print addons";
       };
       config = lib.mkIf (config.modules.blender.enable && pkgs.stdenv.hostPlatform.isLinux) {
         home-manager.users.${config.modules.users.userName} =
           { pkgs, lib, ... }:
-          homeCfg {
-            inherit pkgs lib;
-            inherit (config.modules.blender) cudaSupport;
-          };
+          homeCfg { inherit pkgs lib; };
       };
     };
 
@@ -218,12 +214,10 @@ in
     }:
     {
       options.modules.blender = {
-        enable = lib.mkEnableOption "Blender 5 with CUDA/OptiX and 3D-print addons";
-        cudaSupport = lib.mkEnableOption "Blender Cycles CUDA/OptiX support";
+        enable = lib.mkEnableOption "Blender (official build, prebuilt Cycles CUDA/OptiX) and 3D-print addons";
       };
       config = lib.mkIf (config.modules.blender.enable && pkgs.stdenv.hostPlatform.isLinux) (homeCfg {
         inherit pkgs lib;
-        inherit (config.modules.blender) cudaSupport;
       });
     };
 }

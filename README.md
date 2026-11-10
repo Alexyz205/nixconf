@@ -165,6 +165,38 @@ its `enable` flag and packages (e.g. `eza` provides `ls`/`ll`/`la`, `git`
 provides `g`/`gs`/`gc`/…, `lazygit` provides `lg`, `tmux` provides `t`). The
 full per-module alias list is defined in each module under `modules/`.
 
+## Remote workflow
+
+The rule is **one tmux per chain**. The macOS profile sets
+`TMUX_AUTO_START=0` and Ghostty starts a plain login shell instead of tmux, so
+on the MacBook Ghostty tabs/splits are the local multiplexer and the only tmux
+runs on the remote host. That removes nested prefix collisions, stacked status
+bars and copy/paste ambiguity entirely.
+
+```bash
+ws              # ssh -tt workstation 'tmux new-session -A -s dev'
+ws work         # same, but a session named "work"
+```
+
+`ws` is the `sshh` helper (`config/shell/functions.sh`) bound to the
+workstation. `prefix d` detaches back to the local shell and `ws` reattaches;
+the remote session (and anything running in it) survives both the detach and a
+MacBook reboot. SSH connection multiplexing (`ControlMaster`/`ControlPersist
+10m` in the `ssh` module) makes the reattach instant and needs the YubiKey
+touch only on the first connection.
+
+Nesting is still possible on purpose — jumping from the workstation's tmux to
+another host with `prefix h` (ssh-switcher) defaults to a **plain ssh window**
+there, because the outer tmux already provides persistence and scrollback. If
+you explicitly pick "Attach tmux (nested)", the inner server starts on its own
+`nested` socket with `config/tmux/nested.conf`: prefix `C-a` (outer keeps
+`C-b`) and no status bar. Same thing from a shell: `sshh <host>` uses the
+nested socket automatically when `$TMUX` is already set.
+
+Ghostty's tmux control mode is not an option yet: 1.4 parses it but still does
+not wire it into the GUI, so `tmux -CC` native tabs stay unavailable (iTerm2
+and WezTerm nightly have it if that ever becomes a priority).
+
 ## Test suite
 
 `scripts/test-all.sh` validates the whole repo:

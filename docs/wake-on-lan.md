@@ -113,7 +113,11 @@ If only `systemd-fido2` and a recovery keyslot exist, add a passphrase slot
 Record the wired MACs here (or in your password manager) so any LAN host can
 wake the machines:
 
-| Host            | Interface | MAC |
-| --------------- | --------- | --- |
-| workstation     | `enp4s0`  |     |
-| headless-worker | `en*`     |     |
+| Host            | Interface | MAC                 |
+| --------------- | --------- | ------------------- |
+| workstation     | `enp4s0`  | `d8:bb:c1:51:4f:f0` |
+| headless-worker | `en*`     |                     |
+
+These values also live in `config/network/lan.nix`, which feeds the
+`Host workstation` SSH block (`192.168.1.100`) and the `wsw` alias
+(`wsw` = `wakeonlan <workstation MAC>`) on every profile.

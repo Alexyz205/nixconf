@@ -1,6 +1,7 @@
 _:
 let
   palette = import ../../config/theme/catppuccin-mocha.nix;
+  lan = import ../../config/network/lan.nix;
   baseAliases = {
     nf = "cd $NIXCONF";
     repos = "cd $REPOS";
@@ -13,6 +14,12 @@ let
     e = "exit";
     c = "clear";
     wol = "wakeonlan";
+  };
+  # Wake-on-LAN target: the magic packet is an L2 broadcast, so this only works
+  # from a machine on the same LAN (the MacBook on the home network, or an
+  # always-on host that is woken/ssh'd first).
+  lanAliases = {
+    wsw = "wakeonlan ${lan.workstation.mac}";
   };
   nixAliases = {
     nc = "nix flake check $NIXCONF";
@@ -39,6 +46,11 @@ let
     drb = "nh darwin build $NIXCONF";
     # No nh equivalent for `darwin-rebuild check`.
     drc = "sudo darwin-rebuild check --flake $NIXCONF";
+  };
+  # macOS never runs a local tmux (TMUX_AUTO_START=0): `ws [session]` attaches
+  # to the persistent tmux session on the workstation via the sshh helper.
+  darwinRemoteAliases = {
+    ws = "sshh workstation";
   };
   # The hm aliases must target the profile the shell actually runs in. Each
   # standalone profile sets modules.shell.hmProfile to its own flake key
@@ -83,7 +95,10 @@ let
         GHREPOS = "$HOME/repos/github.com/alexyz205";
         NIXCONF = nixconf;
         EZA_CONFIG_DIR = "$XDG_CONFIG_HOME/eza";
-        TMUX_AUTO_START = "1";
+        # One tmux per chain: macOS terminals are the local multiplexer
+        # (Ghostty tabs/splits) and tmux only runs on the remote host, so the
+        # MacBook never nests a local session under the workstation one.
+        TMUX_AUTO_START = if pkgs.stdenv.hostPlatform.isDarwin then "0" else "1";
         BAT_THEME = "Catppuccin Mocha";
         PAGER = "bat";
         GIT_PAGER = "bat";
@@ -311,7 +326,7 @@ in
         users.users.${config.modules.users.userName}.shell = pkgs.zsh;
         environment.systemPackages = with pkgs; [ git ];
         home-manager.users.${config.modules.users.userName} = mkShellCfg (
-          baseAliases // nixAliases // nixosAliases
+          baseAliases // lanAliases // nixAliases // nixosAliases
         );
       };
     };
@@ -341,11 +356,12 @@ in
         let
           aliases =
             baseAliases
+            // lanAliases
             // nixAliases
             // lib.optionalAttrs (config.modules.shell.hmProfile != null) (
               hmAliases config.modules.shell.hmProfile
             )
-            // lib.optionalAttrs pkgs.stdenv.hostPlatform.isDarwin darwinAliases;
+            // lib.optionalAttrs pkgs.stdenv.hostPlatform.isDarwin (darwinAliases // darwinRemoteAliases);
         in
         lib.mkMerge [
           (mkShellCfg aliases args)

@@ -57,10 +57,39 @@ System state (extend per host):
 User data is on `/home`, including `~/.ssh`, `~/.gnupg`, keyrings, direnv and
 `~/.config/sops`.
 
+The account password is the one piece of state that cannot be listed under
+`environment.persistence.files`: `/etc/shadow` is written by the `users`
+activation script **before** the persistence script runs, and impermanence
+refuses to replace a non-empty file ("A file already exists at /etc/shadow!").
+Hosts with ephemeral root therefore keep the crypt(3) hash as a file on the
+persistent volume and point `modules.users.hashedPasswordFile` at it:
+
+```nix
+modules.users.hashedPasswordFile = "/persistent/etc/alexis.hash";
+```
+
+`scripts/migrate-impermanence.sh` extracts that hash from the running
+`/etc/shadow`. Change the password by replacing the hash file (for example
+`openssl passwd -6 > /persistent/etc/alexis.hash`), not with `passwd`; a sops
+secret plus `hashedPasswordFile` is the fully declarative alternative.
+
 ## First install / migration
 
 This is a disk change. The supported path is a **reinstall** (or creating the
-subvolumes by hand on an existing disk before enabling the module):
+subvolumes by hand on an existing disk before enabling the module).
+
+For an existing install, `scripts/migrate-impermanence.sh` does the manual part
+of step 1 below: it creates the `/persistent` subvolume from the btrfs top
+level, mounts it, seeds the current machine state (SSH host keys, `machine-id`,
+`/etc/shadow`, NetworkManager, bluetooth, containers, systemd state, logs) and
+verifies the copies. It never formats anything, and the old `/root` subvolume
+stays bootable as the previous generation.
+
+```bash
+sudo ./scripts/migrate-impermanence.sh --dry-run   # show the plan
+sudo ./scripts/migrate-impermanence.sh             # do it
+nrb && nro && sudo reboot
+```
 
 1. Build the ISO and re-image with disko (the installer uses the host's disko
    config and now creates `/persistent`).

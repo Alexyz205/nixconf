@@ -115,10 +115,7 @@ let
     ];
     blender = [
       blender
-      {
-        modules.blender.enable = true;
-        modules.blender.cudaSupport = false;
-      }
+      { modules.blender.enable = true; }
     ];
     freecad = [
       freecad

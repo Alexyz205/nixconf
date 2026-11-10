@@ -41,17 +41,23 @@ function tmux_auto_start() {
   tmux new-session -A -s dev
 }
 
-# Attach to (or create) the persistent remote tmux session on a host, from any
-# SSH-capable machine. `tmux new -A` reuses the session, so after you detach the
-# remote tmux server keeps it alive and a fresh SSH from anywhere reattaches.
-# This is the portable one-liner behind the tmux ssh-switcher's persistent mode.
+# Attach to (or create) the persistent tmux session on a host. `tmux new -A`
+# reuses the session, so after you detach the remote tmux server keeps it alive
+# and a fresh SSH from anywhere reattaches.
+#
+# One tmux per chain: when this runs outside tmux the remote server is the only
+# multiplexer (Ghostty tabs/splits handle local layout). When it runs *inside*
+# tmux (e.g. jumping from the workstation to another host), the outer session
+# already provides persistence and scrollback, so the remote one starts on its
+# own `nested` socket with the alternate prefix/status config from
+# ~/.config/tmux/nested.conf instead of fighting the outer layer.
 function sshh() {
   if [ "$#" -eq 0 ]; then
     echo "usage: sshh <host> [remote-tmux-session]" >&2
     return 1
   fi
   local host="$1"
-  local session="${TMUX_SSH_SESSION:-main}"
+  local session="${TMUX_SSH_SESSION:-dev}"
   if [ "$#" -ge 2 ]; then
     session="$2"
   fi
@@ -59,7 +65,13 @@ function sshh() {
     echo "invalid tmux session name: $session" >&2
     return 1
   fi
-  ssh -tt "$host" "tmux new -A -s $session"
+  local remote_tmux="tmux new-session -A -s $session"
+  if [ -n "${TMUX:-}" ]; then
+    remote_tmux="tmux -L nested -f ~/.config/tmux/nested.conf new-session -A -s $session"
+  fi
+  # Single-quoted so the remote shell expands $SHELL; tmux is optional.
+  # `--` stops ssh from parsing a host that looks like an option.
+  ssh -tt -- "$host" "command -v tmux >/dev/null 2>&1 && $remote_tmux || exec \$SHELL"
 }
 
 # ===============================================

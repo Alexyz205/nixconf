@@ -131,7 +131,14 @@ fi
 [ -n "$ssh_host" ] || exit 0
 log "ssh_host=$ssh_host"
 
-actions=("Attach tmux (persistent)" "Plain shell")
+# One tmux per chain: inside tmux the outer session already gives persistence
+# and scrollback, so a plain ssh window is the default and a remote tmux is the
+# opt-in. Outside tmux it is the other way round.
+if [ -n "${TMUX:-}" ]; then
+  actions=("Plain shell (outer tmux keeps it alive)" "Attach tmux (nested)")
+else
+  actions=("Attach tmux (persistent)" "Plain shell")
+fi
 action="$(pick "${actions[@]}")"
 rc=$?
 log "action='$action' rc=$rc"
@@ -142,10 +149,18 @@ case "$action" in
   # The remote command is single-quoted so the local shell hands `$SHELL` to
   # the host untouched; tmux on the remote gets used if present, otherwise we
   # land in a plain remote shell (no scary "tmux: command not found").
-  run_cmd="ssh -tt ${target@Q} 'command -v tmux >/dev/null 2>&1 && tmux new -A -s main || exec \$SHELL'"
+  run_cmd="ssh -tt -- ${target@Q} 'command -v tmux >/dev/null 2>&1 && tmux new -A -s dev || exec \$SHELL'"
+  ;;
+"Attach tmux (nested)")
+  # Already inside tmux: keep the outer prefix/status and give the inner layer
+  # its own socket, alternate prefix and no status bar.
+  run_cmd="ssh -tt -- ${target@Q} 'command -v tmux >/dev/null 2>&1 && tmux -L nested -f ~/.config/tmux/nested.conf new -A -s dev || exec \$SHELL'"
   ;;
 "Plain shell")
-  run_cmd="ssh -tt ${target@Q}"
+  run_cmd="ssh -tt -- ${target@Q}"
+  ;;
+"Plain shell (outer tmux keeps it alive)")
+  run_cmd="ssh -tt -- ${target@Q}"
   ;;
 *)
   log "bad action: $action"
