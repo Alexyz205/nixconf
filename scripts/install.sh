@@ -337,7 +337,7 @@ What was set up:
   - Nix:          multi-user (daemon mode) — GNOME keeps managing the display
   - Repo:         $INSTALL_DIR
   - Home-manager: $HM_CONFIG (tools + default apps: gitlab, youtube-music,
-                   brave, cap, artcraft (photocraft/lightcraft/pdfcraft/
+                   chromium, cap, artcraft (photocraft/lightcraft/pdfcraft/
                    filmcraft), vlc, imv, sops, containers, devpod)
   - Login shell:  zsh
 

@@ -52,7 +52,6 @@ in
     unfreePackages = lib.mkOption {
       type = lib.types.listOf lib.types.str;
       default = [
-        "brave"
         "claude-desktop"
         "steam"
         "steam-unwrapped"

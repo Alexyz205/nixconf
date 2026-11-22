@@ -57,9 +57,9 @@ let
       nextcloud
       { modules.nextcloud.enable = true; }
     ];
-    brave = [
-      brave
-      { modules.brave.enable = true; }
+    chromium = [
+      chromium
+      { modules.chromium.enable = true; }
     ];
     claude = [
       claude
@@ -144,7 +144,7 @@ let
 
   # Tier 1 — the default desktop set every interactive Linux profile starts
   # from: dotfiles support (sops/yubikey/ghostty/containers), the common apps
-  # (gitlab, youtube-music, brave, cap, artcraft, vlc) and their unfree hook.
+  # (gitlab, youtube-music, chromium, cap, artcraft, vlc) and their unfree hook.
   defaultExtra =
     extras.sops
     ++ extras.yubikey
@@ -152,7 +152,7 @@ let
     ++ extras.containers
     ++ extras.gitlab
     ++ extras.youtubeMusic
-    ++ extras.brave
+    ++ extras.chromium
     ++ extras.cap
     ++ artcraft
     ++ [
@@ -188,7 +188,7 @@ let
       { modules.opencode.mcp.freecad.enable = true; }
     ];
 
-  # macOS can't run the Linux-only packages (brave/cap/artcraft/youtube-music,
+  # macOS can't run the Linux-only packages (cap/artcraft/youtube-music,
   # and the `desktop` group's vlc which has no aarch64-darwin build), so it gets
   # a cross-platform subset of the default set.
   macosExtra =

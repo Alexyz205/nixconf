@@ -111,21 +111,22 @@ Standalone home-manager profiles (`flake.homeConfigurations`):
 
 The profile extras are layered (`modules/flake/home-manager.nix`):
 `defaultExtra` is the base every interactive Linux profile starts from (sops,
-yubikey, ghostty, containers plus gitlab, youtube-music, brave, cap, artcraft
+yubikey, ghostty, containers plus gitlab, youtube-music, chromium, cap, artcraft
 and vlc); `personalExtra` builds on it with claude, thunderbird, Nextcloud and
 the Blender/FreeCAD 3D stack; `workExtra` is the default set plus FreeCAD (with
 the OpenCode MCP bridge) used by the `RNSL` work station. macOS gets a
-cross-platform subset (`macosExtra`) since brave/cap/artcraft/youtube-music are
+cross-platform subset (`macosExtra`) since cap/artcraft/youtube-music are
 Linux-only. The work profile runs on the distro's own desktop (GNOME) — no
 niri/noctalia/stylix and no Nextcloud. `imv` (yazi's and the file explorer's
 image opener) is a default on every Linux profile; its nixpkgs wrapper picks
 the Wayland or X11 backend at launch, so the same viewer works on niri and on
 the X11 GNOME work station.
 
-NixOS hosts get Chromium (`modules.chromium`, the maintained successor to the
-Brave package nixpkgs removed in late 2026); the standalone generic-Linux
-profiles keep using the distro's Brave `.deb` (`modules.brave`, package = null)
-because a nix-built Chromium cannot sandbox on those hosts.
+NixOS hosts and standalone Linux profiles both get Chromium
+(`modules.chromium`). NixOS installs `pkgs.chromium`; on generic-Linux hosts
+the module sets `package = null` and relies on the distro's Chromium because a
+nix-built Chromium cannot sandbox there. Chromium replaced Brave after the
+Brave package was removed from nixpkgs in late 2026.
 
 Hosts are referenced by their flake attribute: `nixosConfigurations.workstation`,
 `darwinConfigurations.macbook`, `homeConfigurations."alexis@linux"`, etc.
