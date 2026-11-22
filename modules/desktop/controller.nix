@@ -7,12 +7,46 @@
       ...
     }:
     {
-      options.modules.controller.enable = lib.mkEnableOption "Xbox controller (xpadneo)";
+      options.modules.controller.enable = lib.mkEnableOption "Game controllers (Xbox via xpadneo, PlayStation via hid-playstation)";
       config = lib.mkIf config.modules.controller.enable {
         # Xbox Wireless controllers over Bluetooth have no in-kernel driver, so
         # without xpadneo they connect at the Bluetooth level but never show up
         # as a joystick. xpadneo provides the HID driver.
         hardware.xpadneo.enable = true;
+
+        # security.lockKernelModules (modules/system/security.nix) sets
+        # kernel.modules_disabled=1 right after boot, so udev can never autoload
+        # a driver for a controller plugged in later: the HID device appears on
+        # the bus but stays unbound and no /dev/input node is created. Load the
+        # controller drivers up front; hotplug then only binds.
+        boot.kernelModules = [
+          # DualSense, DualSense Edge and DualShock 4, over USB and Bluetooth.
+          "hid_playstation"
+          # Bluetooth HIDP transport, so BlueZ keeps the classic HID path for
+          # Bluetooth controllers instead of falling back to HID-over-GATT.
+          "hidp"
+        ];
+
+        # dualsensectl: lightbar, player LEDs, adaptive triggers, mic, speaker
+        # and volume control. evtest/usbutils: verify axes, buttons and USB
+        # enumeration. Kernel 6.18 also reports the headset jack and the
+        # gyroscope/accelerometer as input devices.
+        environment.systemPackages = with pkgs; [
+          dualsensectl
+          evtest
+          usbutils
+        ];
+
+        # hidraw access for DualSense/Edge so dualsensectl and games reading raw
+        # HID reports (native adaptive triggers, lightbar) work without root.
+        # steam-devices ships equivalent rules while Steam is enabled; keeping
+        # them here decouples controller support from the Steam module.
+        services.udev.extraRules = ''
+          KERNEL=="hidraw*", ATTRS{idVendor}=="054c", ATTRS{idProduct}=="0ce6", MODE="0660", TAG+="uaccess"
+          KERNEL=="hidraw*", KERNELS=="*054C:0CE6*", MODE="0660", TAG+="uaccess"
+          KERNEL=="hidraw*", ATTRS{idVendor}=="054c", ATTRS{idProduct}=="0df2", MODE="0660", TAG+="uaccess"
+          KERNEL=="hidraw*", KERNELS=="*054C:0DF2*", MODE="0660", TAG+="uaccess"
+        '';
 
         # The nixpkgs `hardware.xpadneo` module installs the kernel module but
         # NOT xpadneo's udev rules (upstream ships them in
