@@ -12,6 +12,10 @@ _: {
           type = lib.types.str;
           default = "alexis";
         };
+        uid = lib.mkOption {
+          type = lib.types.int;
+          default = 1000;
+        };
         extraGroups = lib.mkOption {
           type = lib.types.listOf lib.types.str;
           default = [
@@ -38,6 +42,7 @@ _: {
       config = lib.mkIf config.modules.users.enable {
         users.users.${config.modules.users.userName} = {
           isNormalUser = true;
+          inherit (config.modules.users) uid;
           extraGroups = config.modules.users.extraGroups;
           openssh.authorizedKeys.keys = config.modules.users.authorizedKeys;
           inherit (config.modules.users) hashedPasswordFile;

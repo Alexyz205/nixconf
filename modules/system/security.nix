@@ -12,6 +12,7 @@ _: {
         boot.kernelModules = [
           "uas"
           "usb_storage"
+          "exfat"
         ];
         systemd.coredump.enable = false;
         boot.kernel.sysctl = {

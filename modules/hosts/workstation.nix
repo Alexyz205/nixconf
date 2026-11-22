@@ -107,6 +107,7 @@ let
                 };
               };
               upower.enable = true;
+              udisks2.enable = true;
               pipewire = {
                 enable = true;
                 alsa.enable = true;
@@ -152,6 +153,22 @@ let
               polkit_gnome
             ];
 
+            # Ventoy stick: mounted on first access instead of at boot, so the
+            # workstation starts even when the USB is unplugged.
+            fileSystems."/mnt/ventoy" = {
+              device = "/dev/disk/by-label/Ventoy";
+              fsType = "exfat";
+              noCheck = true;
+              options = [
+                "nofail"
+                "x-systemd.automount"
+                "x-systemd.device-timeout=5"
+                "noatime"
+                "uid=${toString config.users.users.${config.modules.users.userName}.uid}"
+                "umask=0077"
+              ];
+            };
+
             modules = {
               # Host-specific deltas only: the desktop tier enables the base,
               # server and desktop feature set (see modules/flake/nixos.nix).
@@ -164,6 +181,9 @@ let
               # S3 (deep) makes NIC wake-on-LAN reliable; the lock module
               # suspends after 15 min idle and WoL resumes it.
               wakeOnLan.sleepState = "deep";
+              # Manual enrollment: keys are created with sbctl before the first
+              # lanzaboote switch (see docs/secure-boot.md).
+              secureBoot.enable = true;
               impermanence = {
                 enable = true;
                 directories = [
