@@ -27,7 +27,13 @@ new-session)
   log "new-session"
   read -rp 'Session name: ' n || exit 0
   [ -n "$n" ] || exit 0
-  exec tmux new-session -A -s "$n"
+  # Create detached (never attach a nested client inside the popup), then move
+  # the current client to it, exactly like repo-switcher/session-switcher.
+  log "new-session name=$n cwd=$(pwd)"
+  tmux new-session -Ad -s "$n" -c "$(pwd)" 2>>"$LOG"
+  log "new-session rc=$?"
+  tmux switch-client -t "$n" 2>>"$LOG"
+  log "switch-client rc=$?"
   ;;
 repo-switch)
   log "repo-switch"
