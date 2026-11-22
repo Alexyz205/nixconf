@@ -26,6 +26,7 @@
         };
         autoGenerateKeys = lib.mkEnableOption "generate Secure Boot keys on first boot";
         autoEnrollKeys = lib.mkEnableOption "enroll the generated keys into the firmware on the next boot";
+        autoReboot = lib.mkEnableOption "reboot automatically once the keys are ready for enrollment";
       };
 
       config = lib.mkIf config.modules.secureBoot.enable {
@@ -36,6 +37,7 @@
           pkiBundle = config.modules.secureBoot.pkiBundle;
           autoGenerateKeys.enable = config.modules.secureBoot.autoGenerateKeys;
           autoEnrollKeys.enable = config.modules.secureBoot.autoEnrollKeys;
+          autoEnrollKeys.autoReboot = config.modules.secureBoot.autoReboot;
         };
         environment.systemPackages = [ pkgs.sbctl ];
       };

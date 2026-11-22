@@ -181,9 +181,15 @@ let
               # S3 (deep) makes NIC wake-on-LAN reliable; the lock module
               # suspends after 15 min idle and WoL resumes it.
               wakeOnLan.sleepState = "deep";
-              # Manual enrollment: keys are created with sbctl before the first
-              # lanzaboote switch (see docs/secure-boot.md).
-              secureBoot.enable = true;
+              # Already enrolled manually; the auto-* flags keep the keys
+              # recoverable and let systemd-boot re-enroll them from the ESP
+              # after a firmware update wipes NVRAM (it only does so in Setup
+              # Mode, so nothing happens on a normal boot).
+              secureBoot = {
+                enable = true;
+                autoGenerateKeys = true;
+                autoEnrollKeys = true;
+              };
               impermanence = {
                 enable = true;
                 directories = [

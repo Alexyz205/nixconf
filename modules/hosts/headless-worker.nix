@@ -94,6 +94,15 @@ let
                 # /home is its own persistent subvolume.
                 userDirectories = [ ];
               };
+              # Fully unattended: the first boot installs unsigned artifacts,
+              # generates keys, re-signs, reboots; systemd-boot enrolls them on
+              # the next boot if the firmware is in Setup Mode.
+              secureBoot = {
+                enable = true;
+                autoGenerateKeys = true;
+                autoEnrollKeys = true;
+                autoReboot = true;
+              };
             };
             users.users.${config.modules.users.userName}.openssh.authorizedKeys.keys = [
               (lib.trim (builtins.readFile yubiPub))

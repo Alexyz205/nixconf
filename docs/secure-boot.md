@@ -6,8 +6,21 @@ systemd-boot with lanzaboote's signed loader and installs one signed Unified
 Kernel Image (UKI) per generation under `/boot/EFI/Linux`, keeping the kernel
 and initrd in `/boot/EFI/nixos`.
 
-It is **off by default** (`optInNames` in `modules/flake/nixos.nix`). Currently
-enabled on `workstation` only, with manual key enrollment.
+It is **off by default** (`optInNames` in `modules/flake/nixos.nix`) and enabled
+on both hosts:
+
+| Host              | Keys                  | `autoGenerateKeys` | `autoEnrollKeys` | `autoReboot` |
+| ----------------- | --------------------- | ------------------ | ---------------- | ------------ |
+| `workstation`     | created manually      | yes (no-op)        | yes              | no           |
+| `headless-worker` | generated on 1st boot | yes                | yes              | yes          |
+
+`autoEnrollKeys` only makes systemd-boot _able_ to enroll: it writes the
+`.auth` files to `/boot/loader/keys/auto/` and sets `secure-boot-enroll=force`.
+systemd-boot performs the enrollment only when the firmware is in **Setup
+Mode** (`secure_boot_discover_keys` returns early otherwise), so on the already
+enrolled workstation nothing happens on a normal boot. It does give automatic
+recovery after a BIOS update wipes NVRAM: the board comes up in Setup Mode and
+the keys are re-enrolled from the ESP on the next boot.
 
 Enabling it without keys makes `nixos-rebuild` fail rather than install
 unsigned artifacts (`installUnsigned` defaults to `autoGenerateKeys.enable`).
@@ -129,24 +142,38 @@ sudo sbctl verify
 After every later `nh os switch`, lanzaboote signs the new generation with the
 same key; no extra step.
 
-## Automated provisioning (headless hosts)
+## Automated provisioning
 
-For a host without console access, let lanzaboote provision itself:
+For hosts without console access, let lanzaboote provision itself. This is how
+`headless-worker` is configured (`modules/hosts/headless-worker.nix`):
 
 ```nix
 modules.secureBoot = {
   enable = true;
-  autoGenerateKeys = true;
-  autoEnrollKeys = true;
+  autoGenerateKeys = true;   # sbctl create-keys on first boot
+  autoEnrollKeys = true;     # write PK/KEK/db.auth to the ESP
+  autoReboot = true;         # reboot into the enrollment step by itself
 };
-boot.lanzaboote.autoEnrollKeys.autoReboot = true;  # optional
 ```
 
-This is trust-on-first-use: the first boot installs unsigned artifacts, a
-systemd service generates the keys and re-signs everything, and systemd-boot
-enrolls the keys on the following boot. Note that
-`boot.lanzaboote.autoEnrollKeys.autoReboot` is set directly because the module
-does not expose it.
+Sequence:
+
+1. First switch installs **unsigned** artifacts (allowed while
+   `autoGenerateKeys` is on, so the machine still boots).
+2. `generate-sb-keys.service` runs `sbctl create-keys` in `/var/lib/sbctl`.
+3. `prepare-sb-auto-enroll.service` exports `PK/KEK/db.auth` to
+   `/boot/loader/keys/auto/`, re-signs every artifact, then reboots
+   (`autoReboot`).
+4. On the next boot, **provided the firmware is in Setup Mode**, systemd-boot
+   enrolls the keys and reboots again into enforced mode.
+
+The firmware step cannot be automated: if the board still has vendor keys
+(User Mode), systemd-boot skips enrollment and Secure Boot stays off until the
+databases are cleared in the BIOS. The workstation keeps `autoReboot = false`
+because it was enrolled manually and a normal boot never triggers enrollment.
+
+`autoEnrollKeys` also defaults `includeMicrosoftKeys = true`; the module does
+not expose it because turning it off requires `allowBrickingMyMachine`.
 
 ## Maintenance
 
