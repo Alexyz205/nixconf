@@ -21,6 +21,15 @@
 with `nix flake update` (via `DeterminateSystems/update-flake-lock`). Review the
 diff and let CI run before merging.
 
+The job needs a fine-grained PAT stored as the `GH_TOKEN_FOR_UPDATES` repository
+secret (Contents and Pull requests: read and write). Using a PAT instead of the
+default `GITHUB_TOKEN` is required so the bot can open the PR even when
+"Allow GitHub Actions to create and approve pull requests" is disabled, and so
+the resulting `pull_request` event actually triggers `ci.yml` — GitHub
+suppresses workflow runs caused by `GITHUB_TOKEN`. If the secret is missing the
+workflow fails fast with an explicit error. To retry manually, run the workflow
+from the Actions tab.
+
 `.github/workflows/release.yml` publishes bootable artifacts, see
 [Releases](#releases).
 

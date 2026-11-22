@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: write
+  issues: write
   pull-requests: write
 
 jobs:
@@ -15,9 +16,24 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: DeterminateSystems/determinate-nix-action@v3
+
+      # A PAT is required twice over:
+      #   1. GITHUB_TOKEN cannot open PRs unless the repository allows it in
+      #      Settings -> Actions -> General -> Workflow permissions.
+      #   2. PRs opened with GITHUB_TOKEN do not trigger ci.yml; with a PAT the
+      #      push looks like a normal user event and CI runs automatically.
+      - name: Check update token
+        env:
+          UPDATE_TOKEN: ${{ secrets.GH_TOKEN_FOR_UPDATES }}
+        run: |
+          if [ -z "$UPDATE_TOKEN" ]; then
+            echo "::error::GH_TOKEN_FOR_UPDATES is not set. Create a fine-grained PAT with Contents and Pull requests write access and add it as a repository secret."
+            exit 1
+          fi
 
       - uses: DeterminateSystems/update-flake-lock@main
         with:
+          token: ${{ secrets.GH_TOKEN_FOR_UPDATES }}
           pr-title: "flake.lock: weekly update"
           pr-labels: dependencies

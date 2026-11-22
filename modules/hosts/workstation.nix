@@ -312,6 +312,10 @@ let
                 vencord.enable = false;
                 nixcord.enable = false;
                 qt.enable = false;
+                # Home-manager removed the wayprompt module (package dropped
+                # from nixpkgs); stylix's auto-enabled target would still
+                # define the removed option and fail evaluation.
+                wayprompt.enable = false;
               };
             };
 
