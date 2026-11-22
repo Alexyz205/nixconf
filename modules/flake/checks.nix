@@ -61,7 +61,12 @@ in
               cd work
               chmod -R u+w .
 
-              actionlint
+              # actionlint only auto-detects a project when the directory has
+              # both .github/workflows and .git; the store copy has no .git, so
+              # pass the workflows and the config explicitly.
+              mapfile -t wf_files < <(find .github/workflows -type f \( -name '*.yml' -o -name '*.yaml' \))
+              actionlint -config-file .github/actionlint.yaml "''${wf_files[@]}"
+
               yamllint -c .yamllint.yml .github/workflows
 
               # The FIDO2 resident-key allowlist is in .gitleaks.toml.

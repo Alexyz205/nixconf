@@ -1,0 +1,127 @@
+name: release
+
+on:
+  push:
+    tags: ["v[0-9]*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing pushed tag to release, e.g. v2026.11.22"
+        required: true
+        type: string
+      draft:
+        description: "Create the release as a draft"
+        required: false
+        type: boolean
+        default: true
+
+# Artifacts are ~1-2 GiB each and the VMA pulls a PVE-patched QEMU, so this
+# only ever runs on the self-hosted runner. Those labels are intentionally not
+# used by ci.yml: a self-hosted runner reachable from pull_request workflows is
+# remote code execution on the host.
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  artifacts:
+    runs-on: [self-hosted, linux, x86_64, nix]
+    env:
+      GH_TOKEN: ${{ github.token }}
+      INPUT_TAG: ${{ inputs.tag }}
+      INPUT_DRAFT: ${{ inputs.draft }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          ref: ${{ inputs.tag || github.ref }}
+
+      - name: validate tag
+        id: rel
+        run: |
+          set -euo pipefail
+          tag="${INPUT_TAG:-${GITHUB_REF_NAME}}"
+          if [[ ! "$tag" =~ ^v[0-9]{4}\.[0-9]{2}\.[0-9]{2}$ ]]; then
+            echo "::error::'$tag' does not match vYYYY.MM.DD"
+            exit 1
+          fi
+          if [[ "$(git rev-parse "refs/tags/$tag")" != "$(git rev-parse HEAD)" ]]; then
+            echo "::error::checked out commit is not $tag"
+            exit 1
+          fi
+          echo "name=$tag" >> "$GITHUB_OUTPUT"
+          echo "draft=${INPUT_DRAFT:-true}" >> "$GITHUB_OUTPUT"
+
+      - name: preflight disk space
+        run: |
+          set -euo pipefail
+          avail=$(df --output=avail -B1 /nix | tail -n 1)
+          need=$((24 * 1024 * 1024 * 1024))
+          echo "available on /nix: $((avail / 1024 / 1024)) MiB"
+          if ((avail < need)); then
+            echo "::error::need at least 24 GiB free on /nix"
+            exit 1
+          fi
+          nix --version
+
+      - name: build installer iso
+        id: iso
+        run: |
+          set -euo pipefail
+          out=$(nix build --print-out-paths -L \
+            .#nixosConfigurations.installer-iso.config.system.build.isoImage)
+          echo "path=$out" >> "$GITHUB_OUTPUT"
+
+      - name: build proxmox vma
+        id: vma
+        run: |
+          set -euo pipefail
+          out=$(nix build --print-out-paths -L .#packages.x86_64-linux.proxmox-vm)
+          echo "path=$out" >> "$GITHUB_OUTPUT"
+
+      - name: stage artifacts
+        env:
+          ISO_OUT: ${{ steps.iso.outputs.path }}
+          VMA_OUT: ${{ steps.vma.outputs.path }}
+        run: |
+          set -euo pipefail
+          rm -rf dist
+          mkdir -p dist
+          cp "$ISO_OUT"/iso/*.iso dist/
+          cp "$VMA_OUT"/*.vma.zst dist/
+          cp flake.nix flake.lock dist/
+
+          cat > dist/REBUILD.md <<EOF
+          Built from \`${{ steps.rel.outputs.name }}\`.
+
+          \`\`\`
+          nix build .#nixosConfigurations.installer-iso.config.system.build.isoImage
+          nix build .#packages.x86_64-linux.proxmox-vm
+          \`\`\`
+
+          Restore the VMA on Proxmox with \`qmrestore <file>.vma.zst <vmid> --unique\`.
+          EOF
+
+          (cd dist && sha256sum -- * > SHA256SUMS)
+          (cd dist && sha256sum -c --quiet SHA256SUMS)
+          ls -lh dist
+
+      - name: publish release
+        env:
+          TAG: ${{ steps.rel.outputs.name }}
+          DRAFT: ${{ steps.rel.outputs.draft }}
+        run: |
+          set -euo pipefail
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" dist/* --clobber
+            echo "updated existing release $TAG (draft state unchanged)"
+          else
+            args=(--verify-tag --title "nixconf $TAG" --generate-notes)
+            if [[ "$DRAFT" == "true" ]]; then
+              args+=(--draft)
+            fi
+            gh release create "$TAG" dist/* "${args[@]}"
+          fi

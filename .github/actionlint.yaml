@@ -1,0 +1,6 @@
+self-hosted-runner:
+  # Labels registered on the local release runner (see release.yml).
+  labels:
+    - linux
+    - x86_64
+    - nix
