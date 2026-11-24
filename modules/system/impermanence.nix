@@ -44,7 +44,12 @@ let
         files = lib.mkOption {
           type = lib.types.listOf (lib.types.either lib.types.str lib.types.attrs);
           default = [ "/etc/machine-id" ];
-          description = "System files linked into persistence.";
+          description = ''
+            System files linked into persistence. The SSH host keys are added
+            automatically (see the sshd hostKeys list), so never persist
+            /etc/ssh as a directory: the empty persistent copy hides the
+            generated sshd_config and sshd then fails to start.
+          '';
         };
 
         userDirectories = lib.mkOption {
@@ -99,10 +104,28 @@ let
           lib.mkDefault true
         );
 
+        warnings = lib.optional (lib.elem "/etc/ssh" config.modules.impermanence.directories) ''
+          modules.impermanence.directories contains "/etc/ssh". Bind-mounting the
+          directory hides the generated sshd_config and host keys on a fresh
+          install (sshd then fails to start). Persist the ssh_host_* files
+          instead, which the default `files` list already does.
+        '';
+
         environment.persistence.${config.modules.impermanence.persistPath} = {
           hideMounts = true;
-          directories = config.modules.impermanence.directories;
-          files = config.modules.impermanence.files;
+          # "/etc/ssh" is dropped even if a host still lists it: see the warning.
+          directories = builtins.filter (d: d != "/etc/ssh") config.modules.impermanence.directories;
+          # Persist every host key sshd is configured to use, whatever key types
+          # the current openssh default generates (rsa, ed25519,
+          # mldsa44_ed25519), plus the machine id.
+          files =
+            config.modules.impermanence.files
+            ++ lib.optionals (config.services ? openssh) (
+              lib.concatMap (key: [
+                key.path
+                "${key.path}.pub"
+              ]) config.services.openssh.hostKeys
+            );
           users.${config.modules.users.userName} = {
             directories = config.modules.impermanence.userDirectories;
             files = config.modules.impermanence.userFiles;

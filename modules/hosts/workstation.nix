@@ -200,7 +200,6 @@ let
                   # prune, logrotate) plus random-seed and rfkill live here.
                   # Without them those timers fire again on every boot.
                   "/var/lib/systemd"
-                  "/etc/ssh"
                   "/etc/NetworkManager/system-connections"
                   "/var/lib/NetworkManager"
                   "/var/lib/bluetooth"
