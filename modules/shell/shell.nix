@@ -100,8 +100,16 @@ let
         # MacBook never nests a local session under the workstation one.
         TMUX_AUTO_START = if pkgs.stdenv.hostPlatform.isDarwin then "0" else "1";
         BAT_THEME = "Catppuccin Mocha";
-        PAGER = "bat";
-        GIT_PAGER = "bat";
+        # bat's default style is `full` (header + grid + numbers), which adds a
+        # "STDIN" box every time bat pages another tool's output. Only style
+        # plain when bat is acting as a pager; `bat file` keeps decorations.
+        PAGER = "bat --style=plain";
+        GIT_PAGER = "bat --style=plain";
+        GH_PAGER = "bat --style=plain";
+        GLAB_PAGER = "bat --style=plain";
+        # bat falls back to PAGER for its own paging, so PAGER=bat would
+        # re-exec bat recursively. Hand paging to less (bat adds -RFK itself).
+        BAT_PAGER = "less";
         LANG = "en_US.UTF-8";
       };
     in

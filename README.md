@@ -284,9 +284,11 @@ The `server` tier (and therefore `desktop`) enables `modules.monitoring`:
 node_exporter on `127.0.0.1:9100` (set `modules.monitoring.expose = true`
 to scrape it over the LAN), smartd, weekly btrfs scrub, and a bounded journal.
 
-`modules.backup` (restic) is wired but **off by default** until a repository
-exists. See [docs/backup.md](docs/backup.md) for the sops secret, repository
-examples, and a restore test.
+`modules.backup` (restic) is off by default in the flake; it is enabled on
+`workstation` and `headless-worker`. On enabled hosts, `restic-nas snapshots` /
+`restic-nas restore ...` wrap the repository and sops password (`rs` is the zsh
+alias). See [docs/backup.md](docs/backup.md) for the sops secret, repository
+examples, default excludes, and a restore test.
 
 Wake-on-LAN is enabled on the server and desktop tiers; use `wol <MAC>` from
 another LAN host. LUKS changes what "wake" means (the server has no LUKS, the

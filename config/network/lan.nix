@@ -8,4 +8,8 @@
     mac = "d8:bb:c1:51:4f:f0";
     interface = "enp4s0";
   };
+  # DHCP reservation on the router; the NAS itself uses DHCP on en*.
+  backup-nas = {
+    ip = "192.168.1.113";
+  };
 }

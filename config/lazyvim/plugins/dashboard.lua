@@ -244,8 +244,8 @@ return {
 					title = "My Merge Requests",
 					section = "terminal",
 					enabled = is_gitlab,
-					cmd = "glab mr list --author=@me -P5 2>/dev/null "
-						.. "| sed '/^Showing/d' || echo 'No GitLab remote or token configured'",
+					cmd = "(glab mr list --author=@me -P5 2>/dev/null "
+						.. "|| echo 'No GitLab remote or token configured') | sed '/^Showing/d'",
 					height = 7,
 					padding = 1,
 					ttl = 5 * 60,
@@ -258,7 +258,8 @@ return {
 					title = "Pipelines",
 					section = "terminal",
 					enabled = is_gitlab,
-					cmd = "glab ci list -P5 2>/dev/null | sed '/^Showing/d;/^$/d' || echo 'No GitLab remote or token configured'",
+					cmd = "(glab ci list -P5 2>/dev/null "
+						.. "|| echo 'No GitLab remote or token configured') | sed '/^Showing/d;/^$/d'",
 					height = 7,
 					padding = 1,
 					ttl = 5 * 60,
@@ -271,7 +272,11 @@ return {
 					title = "My Pull Requests",
 					section = "terminal",
 					enabled = is_github,
-					cmd = "gh pr list --author @me --limit 5 2>/dev/null || echo 'No GitHub remote or token configured'",
+					cmd = [[{ gh pr list --author @me --limit 5 ]]
+						.. [[--json number,title,headRefName,isDraft ]]
+						.. [[--jq '.[] | "#\(.number) \(if .isDraft then "draft " else "" end)]]
+						.. [[\(.title[0:28]) \(.headRefName[0:16])"' ]]
+						.. [[|| echo 'No GitHub remote or token configured'; } | cat]],
 					height = 7,
 					padding = 1,
 					ttl = 5 * 60,
@@ -284,7 +289,16 @@ return {
 					title = "Workflow Runs",
 					section = "terminal",
 					enabled = is_github,
-					cmd = "gh run list --limit 5 2>/dev/null || echo 'No GitHub remote or token configured'",
+					cmd = [[{ gh run list --limit 5 --json ]]
+						.. [[workflowName,conclusion,status,displayTitle,databaseId,createdAt ]]
+						.. [[--jq '.[] | ((now - (.createdAt | fromdate)) / 60 | floor) as $m ]]
+						.. [[| (if $m < 60 then "\($m)m" elif $m < 1440 then "\($m / 60 | floor)h" ]]
+						.. [[else "\($m / 1440 | floor)d" end) as $age | "\(if .status != "completed" ]]
+						.. [[then "•" elif .conclusion == "success" then "✓" ]]
+						.. [[elif .conclusion == "failure" then "✗" elif .conclusion == "cancelled" ]]
+						.. [[then "⊘" else "·" end) \(.workflowName[0:14]) ]]
+						.. [[\(.displayTitle[0:26]) \(.databaseId) \($age)"' ]]
+						.. [[|| echo 'No GitHub remote or token configured'; } | cat]],
 					height = 7,
 					padding = 1,
 					ttl = 5 * 60,

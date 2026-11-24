@@ -231,6 +231,13 @@ let
               # scripts/migrate-impermanence.sh). Change the password by
               # updating this file, not with `passwd`.
               users.hashedPasswordFile = "/persistent/etc/alexis.hash";
+              # iPhone Termius key: a software Ed25519 key held in the Termius
+              # keychain (not FIDO2). The YubiKey credential is an OpenSSH
+              # ed25519-sk handle that Termius cannot use, so this is the
+              # mobile entry point. Reachable on the LAN only.
+              users.authorizedKeys = [
+                "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHaeIild93gZUb/7RdCAN/0UsvfvPbbpOt9767h9rKtm iphone_ssh"
+              ];
               packages = {
                 basic = true;
                 security = true;
@@ -287,11 +294,62 @@ let
               # Blender is the official upstream build: Cycles CUDA/OptiX
               # kernels ship precompiled, so there is no CUDA build here and
               # nothing to tune.
+              backup = {
+                enable = true;
+                repository = "sftp:backup-nas:/srv/restic/workstation";
+                paths = [
+                  "/etc"
+                  "/home"
+                  "/var/lib"
+                  "/var/lib/etcd-backups"
+                ];
+              };
+            };
+
+            sops.secrets.RESTIC_PASSWORD = {
+              sopsFile = ../../secrets/secrets.yaml;
+            };
+            sops.secrets.RESTIC_SSH_KEY = {
+              sopsFile = ../../secrets/secrets.yaml;
+              mode = "0400";
+              owner = "root";
+            };
+
+            # Talos etcd snapshot -> /var/lib/etcd-backups, which the restic
+            # job above ships to the NAS. Needs the talosconfig from
+            # `devenv tasks run kube:fetch`.
+            systemd.services.etcd-backup = {
+              description = "Talos etcd snapshot";
+              path = [
+                pkgs.talosctl
+                pkgs.coreutils
+                pkgs.findutils
+              ];
+              unitConfig.ConditionPathExists = "/home/${config.modules.users.userName}/.kube/talosconfig";
+              serviceConfig = {
+                Type = "oneshot";
+                User = config.modules.users.userName;
+                StateDirectory = "etcd-backups";
+              };
+              script = ''
+                ${pkgs.talosctl}/bin/talosctl \
+                  --talosconfig /home/${config.modules.users.userName}/.kube/talosconfig \
+                  -n 192.168.1.120 etcd snapshot \
+                  "/var/lib/etcd-backups/etcd-$(date +%F-%H%M).db"
+                ${pkgs.findutils}/bin/find /var/lib/etcd-backups -type f -mtime +14 -delete
+              '';
+            };
+            systemd.timers.etcd-backup = {
+              wantedBy = [ "timers.target" ];
+              timerConfig = {
+                OnCalendar = "03:30";
+                Persistent = true;
+              };
             };
 
             home-manager.users.${config.modules.users.userName} = {
               # Same software age key as the NixOS side (see modules.sops above):
-              # decrypts GITHUB_TOKEN and the sec/sece aliases on this host.
+              # decrypts the gh/glab credentials and the sec alias on this host.
               modules.sops.ageKeyFile = "/home/alexis/.config/sops/age/keys.txt";
               modules.sops.useYubikey = false;
               services.cliphist = {

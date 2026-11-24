@@ -61,8 +61,12 @@ in
           ];
 
           services.openssh.enable = true;
+          services.openssh.settings.PermitRootLogin = "prohibit-password";
           users.users.root = {
             password = "nixos";
+            openssh.authorizedKeys.keys = [
+              "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOBMQLDh11pxkVlW041VH9OmAYhpSwVwFu7vbOezQrIU alexis@workstation"
+            ];
             # The install-CD profile sets initialHashedPassword = ""; force it
             # null so only `password` is set (silences the multiple-password
             # options warning without changing root login).

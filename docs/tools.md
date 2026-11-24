@@ -39,7 +39,7 @@ by the host/profile tiers.
 | zoxide            | `z`, `zi`                                                        | Frecency directory jumping (`z nixconf`)                                                |
 | fzf               | `fzf`                                                            | Fuzzy finder used by tmux switchers, history pickers and LazyVim                        |
 | eza               | `ls`, `ll`, `la`, `lt`, `lta`, `ldir`, `lm`, `lz`, `ldu`, `ldus` | `ls` replacement with git status, icons, tree                                           |
-| bat               | `bat`                                                            | Syntax-highlighted pager for files and `git diff` (`PAGER`/`GIT_PAGER`)                 |
+| bat               | `bat`                                                            | Syntax highlighter; pager for files, `git diff`, `gh`/`glab` (plain style, no grid)     |
 | yazi              | `y`                                                              | Terminal file manager with previews, mounts, bulk rename                                |
 | television (`tv`) | `tv`, `f`                                                        | Fuzzy picker for files, history, channels; powers `f`                                   |
 | Ghostty           | `ghostty`                                                        | GPU terminal; tmux integration and config                                               |
@@ -151,16 +151,16 @@ These are installed globally so LazyVim/OpenCode and any editor find them on
 
 ## Secrets and identity
 
-| Tool                            | Purpose                                                                 |
-| ------------------------------- | ----------------------------------------------------------------------- |
-| `sops`                          | Edit/decrypt encrypted YAML (`secrets/secrets.yaml`)                    |
-| `age`                           | Modern encryption used by sops; YubiKey plugin for hardware identity    |
-| `age-plugin-yubikey`            | Age identity backed by the YubiKey                                      |
-| `gnupg`                         | GPG keys/signing where needed                                           |
-| `restic`                        | Encrypted deduplicated backups (service in `modules/system/backup.nix`) |
-| `ssh`, `ssh-keygen`             | SSH keys, resident FIDO2 keys, initrd/remote access                     |
-| `pamu2fcfg`, `pam_u2f`, `ykman` | FIDO2 enrollment, sudo/login/U2F mapping, YubiKey management            |
-| `bitwarden` (`bw` + desktop)    | Password manager / CLI                                                  |
+| Tool                            | Purpose                                                                              |
+| ------------------------------- | ------------------------------------------------------------------------------------ |
+| `sops`                          | Edit/decrypt encrypted YAML (`secrets/secrets.yaml`)                                 |
+| `age`                           | Modern encryption used by sops; YubiKey plugin for hardware identity                 |
+| `age-plugin-yubikey`            | Age identity backed by the YubiKey                                                   |
+| `gnupg`                         | GPG keys/signing where needed                                                        |
+| `restic` / `restic-nas`         | Encrypted deduplicated backups; `restic-nas` sets the repo and password (`rs` alias) |
+| `ssh`, `ssh-keygen`             | SSH keys, resident FIDO2 keys, initrd/remote access                                  |
+| `pamu2fcfg`, `pam_u2f`, `ykman` | FIDO2 enrollment, sudo/login/U2F mapping, YubiKey management                         |
+| `bitwarden` (`bw` + desktop)    | Password manager / CLI                                                               |
 
 Rules: never print or commit plaintext secrets; `sec` edits
 `secrets/secrets.yaml`; decryption needs the YubiKey except on the workstation
@@ -181,15 +181,15 @@ Rules: never print or commit plaintext secrets; `sec` edits
 
 ## System operations
 
-| Feature       | Tools                                                   | Purpose                                                                    |
-| ------------- | ------------------------------------------------------- | -------------------------------------------------------------------------- |
-| Monitoring    | `node_exporter`, `smartd`, btrfs scrub, journald limits | Metrics on `127.0.0.1:9100`, disk health, silent-corruption detection      |
-| Backup        | `restic` service                                        | Daily encrypted/pruned snapshots; off by default until a repository is set |
-| Secure Boot   | `lanzaboote`, `sbctl`                                   | Signed UKIs; opt-in after key enrollment                                   |
-| Wake-on-LAN   | `ethtool`, `wakeonlan`                                  | Magic-packet wake; server cold-boots, workstation suspends and wakes       |
-| Networking    | NetworkManager/systemd-networkd, `nmcli`, `resolvectl`  | Wired/Wi-Fi, DNS, firewall                                                 |
-| Disks         | `disko`, `lsblk`, `udisksctl`, `mount`                  | Declarative layout and inspection                                          |
-| Remote deploy | `deploy-rs`, `nixos-anywhere`                           | Push closures; install over SSH                                            |
+| Feature       | Tools                                                   | Purpose                                                                      |
+| ------------- | ------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| Monitoring    | `node_exporter`, `smartd`, btrfs scrub, journald limits | Metrics on `127.0.0.1:9100`, disk health, silent-corruption detection        |
+| Backup        | `restic` service, `restic-nas`                          | Daily encrypted/pruned snapshots; enabled on workstation and headless-worker |
+| Secure Boot   | `lanzaboote`, `sbctl`                                   | Signed UKIs; opt-in after key enrollment                                     |
+| Wake-on-LAN   | `ethtool`, `wakeonlan`                                  | Magic-packet wake; server cold-boots, workstation suspends and wakes         |
+| Networking    | NetworkManager/systemd-networkd, `nmcli`, `resolvectl`  | Wired/Wi-Fi, DNS, firewall                                                   |
+| Disks         | `disko`, `lsblk`, `udisksctl`, `mount`                  | Declarative layout and inspection                                            |
+| Remote deploy | `deploy-rs`, `nixos-anywhere`                           | Push closures; install over SSH                                              |
 
 ## Repo quality gates
 

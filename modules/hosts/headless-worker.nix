@@ -103,6 +103,25 @@ let
                 autoEnrollKeys = true;
                 autoReboot = true;
               };
+              backup = {
+                enable = true;
+                repository = "sftp:backup-nas:/srv/restic/headless-worker";
+                paths = [
+                  "/etc"
+                  "/home"
+                  "/var/lib/nixos"
+                  "/var/lib/systemd"
+                  "/var/lib/sbctl"
+                ];
+              };
+            };
+            sops.secrets.RESTIC_PASSWORD = {
+              sopsFile = ../../secrets/secrets.yaml;
+            };
+            sops.secrets.RESTIC_SSH_KEY = {
+              sopsFile = ../../secrets/secrets.yaml;
+              mode = "0400";
+              owner = "root";
             };
             users.users.${config.modules.users.userName}.openssh.authorizedKeys.keys = [
               (lib.trim (builtins.readFile yubiPub))
