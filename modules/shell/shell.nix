@@ -2,6 +2,10 @@ _:
 let
   palette = import ../../config/theme/catppuccin-mocha.nix;
   lan = import ../../config/network/lan.nix;
+  # nh resolves nixosConfigurations.<hostname> from the system hostname
+  # verbatim; hosts like RNSW-APIGEON1 use an uppercase hostname while flake
+  # attributes are lowercase, so the rebuild aliases pass this explicitly.
+  nhHost = "$(hostname | tr \"[:upper:]\" \"[:lower:]\")";
   baseAliases = {
     nf = "cd $NIXCONF";
     repos = "cd $REPOS";
@@ -36,10 +40,13 @@ let
   nixosAliases = {
     # Rebuilds all go through nh. `nr`/`nrb`/`nrt`/`nro` mirror
     # nixos-rebuild switch/build/test/boot, with nh's diff + nom output.
-    nr = "nh os switch $NIXCONF";
-    nrb = "nh os build $NIXCONF";
-    nrt = "nh os test $NIXCONF";
-    nro = "nh os boot $NIXCONF";
+    # nh auto-selects nixosConfigurations.<hostname> literally, and hosts such
+    # as RNSW-APIGEON1 carry an uppercase hostname while flake attrs are
+    # lowercase, so always pass the lowercased hostname explicitly.
+    nr = "nh os switch $NIXCONF -H ${nhHost}";
+    nrb = "nh os build $NIXCONF -H ${nhHost}";
+    nrt = "nh os test $NIXCONF -H ${nhHost}";
+    nro = "nh os boot $NIXCONF -H ${nhHost}";
   };
   darwinAliases = {
     dr = "nh darwin switch $NIXCONF";
@@ -120,6 +127,12 @@ let
       # applications (browser => chromium, images => imv, ...) declaratively.
       # Linux-only: the xdg.mimeApps module asserts non-darwin platforms.
       xdg.mimeApps.enable = pkgs.stdenv.hostPlatform.isLinux;
+      # The desktop rewrites mimeapps.list as a regular file at login, so the
+      # .backup from a previous switch is still there and the collision check
+      # aborts activation. force skips that check and relinks the managed file.
+      xdg.configFile = lib.mkIf pkgs.stdenv.hostPlatform.isLinux {
+        "mimeapps.list".force = true;
+      };
       home = {
         # Standalone profiles have no `home-manager.backupFileExtension`; this
         # user-level option makes activation move clobbered files (e.g. a
