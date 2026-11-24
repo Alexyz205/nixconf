@@ -1,8 +1,9 @@
--- Per-host GitLab personal access tokens, exported into the shell by sops
--- (secrets/env.yaml). Recognised hosts map to the env var holding their PAT.
-local gitlab_tokens = {
-	["git.dxyz.pro"] = "GITLAB_DXYZ_TOKEN",
-	["gitlab.alexyz.org"] = "GITLAB_ALEXYZ_TOKEN",
+-- Per-host GitLab personal access tokens live in glab's config
+-- (~/.config/glab-cli/config.yml, rendered from sops), so this set only
+-- whitelists the instances the plugin should activate for.
+local gitlab_hosts = {
+	["git.dxyz.pro"] = true,
+	["gitlab.alexyz.org"] = true,
 }
 
 -- Resolve the remote URL, preferring "upstream" (forks) over "origin".
@@ -26,15 +27,29 @@ local function remote_host()
 	return host and host:gsub("^.*@", ""):gsub(":.*$", "") or nil
 end
 
+-- Read the host's PAT from glab's store instead of the environment, so the
+-- token exists only in glab/nvim and never in every child process.
+local function glab_token(host)
+	if vim.fn.executable("glab") == 0 then
+		return nil
+	end
+	local out = vim.fn.system({ "glab", "config", "get", "token", "--host", host })
+	if vim.v.shell_error ~= 0 then
+		return nil
+	end
+	out = vim.trim(out)
+	return out ~= "" and out or nil
+end
+
 return {
 	"harrisoncramer/gitlab.nvim",
 	-- Only load in repos hosted on a recognised GitLab instance; the plugin and
 	-- its dependencies stay unloaded for GitHub/local repos.
 	cond = function()
-		if vim.fn.executable("git") == 0 then
+		if vim.fn.executable("git") == 0 or vim.fn.executable("glab") == 0 then
 			return false
 		end
-		return gitlab_tokens[remote_host()] ~= nil
+		return gitlab_hosts[remote_host()] ~= nil
 	end,
 	dependencies = {
 		"MunifTanjim/nui.nvim",
@@ -47,7 +62,6 @@ return {
 	end,
 	config = function()
 		local host = remote_host()
-		local token_var = gitlab_tokens[host]
 
 		-- Connection: auto-detect remote (upstream for forks, origin otherwise)
 		local function detect_remote()
@@ -56,11 +70,17 @@ return {
 		end
 
 		require("gitlab").setup({
-			-- Pick the token and API URL for whichever GitLab host this repo is on.
+			-- Pick the API URL and PAT stored by glab for whichever GitLab host
+			-- this repo is on.
 			auth_provider = function()
-				local token = token_var and os.getenv(token_var)
+				local token = glab_token(host)
 				if not token then
-					return nil, nil, (token_var or "no token configured") .. " is not set for " .. tostring(host)
+					return nil,
+						nil,
+						("no glab credential for %s (run: glab auth login --hostname %s)"):format(
+							tostring(host),
+							tostring(host)
+						)
 				end
 				return token, "https://" .. host, nil
 			end,

@@ -6,7 +6,6 @@ let
   url = "https://nextcloud.alexyz.org/remote.php/dav/files/alexyz";
   username = "alexyz";
   secretName = "NEXTCLOUD_PASSWORD";
-  secretFile = ../../secrets/secrets.yaml;
 
   # Options shared by the NixOS side (system mount) and both home-manager
   # backends (user mount). The mount point default differs per context.
@@ -43,11 +42,8 @@ let
       in
       {
         home.packages = [ pkgs.rclone ];
-        # Live in secrets.yaml (not env.yaml) so the password is never exported
-        # into the shell environment.
-        sops.secrets.${secretName} = {
-          sopsFile = secretFile;
-        };
+        # Nextcloud's password lives in the shared secrets/secrets.yaml.
+        sops.secrets.${secretName} = { };
         programs.zsh.initContent = lib.mkOrder 950 ''
           ncm() {
             mkdir -p "${mountPoint}"
@@ -83,9 +79,7 @@ let
       in
       {
         home.packages = [ pkgs.davfs2 ];
-        sops.secrets.${secretName} = {
-          sopsFile = secretFile;
-        };
+        sops.secrets.${secretName} = { };
         programs.zsh.initContent = lib.mkOrder 950 ''
           ncm() {
             mkdir -p "$HOME/.davfs2" "${mountPoint}"
@@ -140,11 +134,9 @@ in
         # /etc/davfs2/davfs2.conf.
         services.davfs2.enable = true;
         boot.kernelModules = [ "fuse" ];
-        # sops decrypts the password to /run/secrets/NEXTCLOUD_PASSWORD (via the
-        # sops activation script, which runs before multi-user.target).
-        sops.secrets.${secretName} = {
-          sopsFile = secretFile;
-        };
+        # sops decrypts the password (secrets/secrets.yaml, via the sops
+        # activation script, which runs before multi-user.target).
+        sops.secrets.${secretName} = { };
         # Provision the system-wide credentials file that root/systemd
         # mount.davfs reads. `requiredBy`/`before` on the mount unit guarantees
         # it exists before any start of the mount — including systemd's own

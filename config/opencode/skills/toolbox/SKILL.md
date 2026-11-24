@@ -59,7 +59,7 @@ run destructive/remote-changing commands without asking.
 ## Secrets / identity
 
 - `sops`, `age`, `age-plugin-yubikey`, `gpg`, `ssh`, `ssh-keygen`.
-- `sec` edits `secrets/secrets.yaml`; `sece` edits `secrets/env.yaml`.
+- `sec` edits `secrets/secrets.yaml` (the single sops file).
 - Never print or commit secrets; do not read plaintext identities.
 
 ## Editing / AI

@@ -82,7 +82,7 @@ by the host/profile tiers.
 | `nurl`                       | Generate `fetchurl`/`fetchFromGitHub` calls and hashes from a URL                  | —                                                     |
 | `nixpkgs-review`             | Build/test a nixpkgs PR locally and report failures                                | —                                                     |
 | `disko`                      | Declarative partitioning/formatting used by the installer                          | —                                                     |
-| `sops-nix`                   | Decrypt secrets at activation (see Security)                                       | `sec`, `sece`                                         |
+| `sops-nix`                   | Decrypt secrets at activation (see Security)                                       | `sec`                                                 |
 
 Notes:
 
@@ -151,19 +151,19 @@ These are installed globally so LazyVim/OpenCode and any editor find them on
 
 ## Secrets and identity
 
-| Tool                            | Purpose                                                                  |
-| ------------------------------- | ------------------------------------------------------------------------ |
-| `sops`                          | Edit/decrypt encrypted YAML (`secrets/env.yaml`, `secrets/secrets.yaml`) |
-| `age`                           | Modern encryption used by sops; YubiKey plugin for hardware identity     |
-| `age-plugin-yubikey`            | Age identity backed by the YubiKey                                       |
-| `gnupg`                         | GPG keys/signing where needed                                            |
-| `restic`                        | Encrypted deduplicated backups (service in `modules/system/backup.nix`)  |
-| `ssh`, `ssh-keygen`             | SSH keys, resident FIDO2 keys, initrd/remote access                      |
-| `pamu2fcfg`, `pam_u2f`, `ykman` | FIDO2 enrollment, sudo/login/U2F mapping, YubiKey management             |
-| `bitwarden` (`bw` + desktop)    | Password manager / CLI                                                   |
+| Tool                            | Purpose                                                                 |
+| ------------------------------- | ----------------------------------------------------------------------- |
+| `sops`                          | Edit/decrypt encrypted YAML (`secrets/secrets.yaml`)                    |
+| `age`                           | Modern encryption used by sops; YubiKey plugin for hardware identity    |
+| `age-plugin-yubikey`            | Age identity backed by the YubiKey                                      |
+| `gnupg`                         | GPG keys/signing where needed                                           |
+| `restic`                        | Encrypted deduplicated backups (service in `modules/system/backup.nix`) |
+| `ssh`, `ssh-keygen`             | SSH keys, resident FIDO2 keys, initrd/remote access                     |
+| `pamu2fcfg`, `pam_u2f`, `ykman` | FIDO2 enrollment, sudo/login/U2F mapping, YubiKey management            |
+| `bitwarden` (`bw` + desktop)    | Password manager / CLI                                                  |
 
-Rules: never print or commit plaintext secrets; `sec` edits `secrets.yaml`,
-`sece` edits `env.yaml`; decryption needs the YubiKey except on the workstation
+Rules: never print or commit plaintext secrets; `sec` edits
+`secrets/secrets.yaml`; decryption needs the YubiKey except on the workstation
 (software age key).
 
 ## Containers, infrastructure and AI

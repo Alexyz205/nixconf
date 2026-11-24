@@ -112,19 +112,14 @@ sudo systemctl restart nix-daemon
 ## Secrets
 
 ```bash
-sec    # sops $NIXCONF/secrets/secrets.yaml   (not exported to the shell)
-sece   # sops $NIXCONF/secrets/env.yaml       (exported as env vars at login)
+sec    # sops $NIXCONF/secrets/secrets.yaml   (rendered into CLI configs, not exported)
 ```
 
-The default sops file for NixOS is `env.yaml`. Secrets that must not become
-shell variables (Nextcloud password, restic password) belong in
-`secrets/secrets.yaml` and are referenced with an explicit `sopsFile`:
-
-```nix
-sops.secrets.RESTIC_PASSWORD = {
-  sopsFile = ../../secrets/secrets.yaml;
-};
-```
+`secrets/secrets.yaml` is the only sops file and the default for every host:
+CLI credentials, the Nextcloud password, and the restic credentials all live
+there, so `sops.secrets.<NAME> = { }` needs no `sopsFile`.
 
 After adding a recipient or editing from a machine other than the YubiKey host,
-re-key with `sops updatekeys secrets/env.yaml secrets/secrets.yaml`.
+re-key with `sops updatekeys secrets/secrets.yaml`. The former split
+`env.yaml` is merged by `scripts/migrate-secrets-single-file.sh` (idempotent,
+`--dry-run` supported).

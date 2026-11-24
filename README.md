@@ -125,8 +125,7 @@ the X11 GNOME work station.
 NixOS hosts and standalone Linux profiles both get Chromium
 (`modules.chromium`). NixOS installs `pkgs.chromium`; on generic-Linux hosts
 the module sets `package = null` and relies on the distro's Chromium because a
-nix-built Chromium cannot sandbox there. Chromium replaced Brave after the
-Brave package was removed from nixpkgs in late 2026.
+nix-built Chromium cannot sandbox there.
 
 Hosts are referenced by their flake attribute: `nixosConfigurations.workstation`,
 `darwinConfigurations.macbook`, `homeConfigurations."alexis@linux"`, etc.
@@ -380,26 +379,27 @@ unfree CLIs belong in the repo's `devenv.nix`, not in nixconf.
 Secrets are managed with [sops-nix](https://github.com/Mic92/sops-nix) using a
 YubiKey-based age identity.
 
-- Encrypted files live in `secrets/`, split by concern:
-  - `env.yaml` — environment secrets (`GITHUB_TOKEN`, and the per-host GitLab
-    PATs `GITLAB_DXYZ_TOKEN` / `GITLAB_ALEXYZ_TOKEN`) that
-    get exported into the shell at login. Edit with `sece` (alias for
-    `sops $NIXCONF/secrets/env.yaml`).
-  - `secrets.yaml` — plain secrets that are **not** loaded into the shell
-    environment (`NEXTCLOUD_PASSWORD`, `RESTIC_PASSWORD`, ...). Edit with `sec`
-    (alias for `sops $NIXCONF/secrets/secrets.yaml`). Server backups are
-    documented in [docs/backup.md](docs/backup.md).
+- Encrypted files live in `secrets/`:
+  - `secrets.yaml` — every secret: CLI credentials (`GITHUB_TOKEN`, and the
+    per-host GitLab PATs `GITLAB_DXYZ_TOKEN` / `GITLAB_ALEXYZ_TOKEN`), the
+    Nextcloud password, and the restic credentials. Values are rendered into
+    native config files at activation, never exported into the shell
+    environment. Edit with `sec` (alias for
+    `sops $NIXCONF/secrets/secrets.yaml`). Server backups are documented in
+    [docs/backup.md](docs/backup.md).
 - The module `modules/system/sops.nix` wires sops into NixOS: default sops file
-  (`env.yaml`), age key file (`/etc/yubi-age-identity`), age-plugin-yubikey,
-  and exposes a home-manager `sops` feature that decrypts `GITHUB_TOKEN` to
-  `~/.config/sops-nix/secrets/GITHUB_TOKEN`. The feature is shared by every
-  home-manager profile: NixOS hosts with the `sops` feature, standalone Linux
-  profiles, and the macOS home-manager config. It also defines the `sec`/`sece`
-  aliases.
-- The sops module exports env secrets (`env.yaml`) into `$GITHUB_TOKEN` at
-  login (only when the decrypted secret is readable), so `gh` works out of the
-  box on any profile with sops enabled. It also exports `SOPS_AGE_KEY_FILE`, so
-  plain `sops` works in any shell, including `devenv shell`.
+  (`secrets.yaml`), age key file (`/etc/yubi-age-identity`), age-plugin-yubikey,
+  and exposes a home-manager `sops` feature that decrypts those secrets under
+  `~/.config/sops-nix/secrets/`. The feature is shared by every home-manager
+  profile: NixOS hosts with the `sops` feature, standalone Linux profiles, and
+  the macOS home-manager config. It also defines the `sec` alias.
+- Credentials are never exported into the environment. The sops module renders
+  `gh`'s native store (`~/.config/gh/hosts.yml`) and glab's
+  (`~/.config/glab-cli/config.yml`) from templates at mode 0600, so both CLIs
+  and their git credential helpers work from systemd units, GUI apps, and
+  non-login shells without a token in `/proc/<pid>/environ`.
+  `SOPS_AGE_KEY_FILE` is still exported, so plain `sops` works in any shell,
+  including `devenv shell`.
 - The age identity and SSH keys are stored under `config/` and referenced by the
   feature modules. Decryption requires the YubiKey, except on the workstation:
   it has no USB port for the YubiKey, so it decrypts with a software age key
@@ -407,17 +407,19 @@ YubiKey-based age identity.
   recipient in `.sops.yaml`, so every secret stays decryptable on both the
   YubiKey and the workstation. The sops module exposes `modules.sops.ageKeyFile`
   and `modules.sops.useYubikey` for hosts that need the same fallback. Re-keying
-  after adding recipients is `sops updatekeys secrets/env.yaml secrets/secrets.yaml`
+  after adding recipients is `sops updatekeys secrets/secrets.yaml`
   (run from a machine with the YubiKey).
 - GitLab tooling (`glab`, the `gitlab.nvim` LazyVim plugin, and the per-host
   PATs `GITLAB_DXYZ_TOKEN` / `GITLAB_ALEXYZ_TOKEN`) lives in
   the standalone `gitlab` feature module and is
   part of the default desktop set — enabled on the workstation and every
   interactive Linux profile (`alexis@linux`, `alexis.pigeon@RNSL-APIGEON5`).
-  gitlab.nvim and the dashboard identify the
-  remote host (`git.dxyz.pro`, `gitlab.alexyz.org`, `github.com`)
-  and switch token/API accordingly; no global `GITLAB_TOKEN` is set so glab can
-  keep per-host credentials.
+  sops renders the PATs into glab's own config
+  (`~/.config/glab-cli/config.yml`, mode 0600, `use_keyring: false`), so each
+  host keeps its own credential and no `GITLAB_TOKEN` is set. gitlab.nvim and
+  the dashboard identify the remote host (`git.dxyz.pro`, `gitlab.alexyz.org`,
+  `github.com`) and ask glab for that host's token instead of reading the
+  environment; run `glab auth status --all` to inspect the stored credentials.
 
 ## Nextcloud
 

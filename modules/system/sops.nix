@@ -4,7 +4,7 @@
   ...
 }:
 let
-  envFile = ../../secrets/env.yaml;
+  secretsFile = ../../secrets/secrets.yaml;
   yubiIdentity = ../../config/sops/yubi-age-identity;
   homeSopsModule = config.nixconf.modules.homeManager.sops;
 in
@@ -45,7 +45,7 @@ in
       };
       config = lib.mkIf config.modules.sops.enable {
         sops = {
-          defaultSopsFile = envFile;
+          defaultSopsFile = secretsFile;
           age = {
             keyFile = lib.mkDefault config.modules.sops.ageKeyFile;
             sshKeyPaths = [ ];
@@ -73,25 +73,22 @@ in
       ...
     }:
     let
-      secretExports =
-        let
-          exportVar =
-            name: secret:
-            lib.optionalString (secret ? path && (secret.sopsFile or envFile) == envFile) ''
-              if [ -r "${secret.path}" ]; then
-                export ${name}="$(cat "${secret.path}")"
-              fi
-            '';
-        in
-        builtins.concatStringsSep "" (lib.mapAttrsToList exportVar (config.sops.secrets or { }));
       sopsAliases = {
         sec = "SOPS_AGE_KEY_FILE=${config.modules.sops.ageKeyFile} sops $NIXCONF/secrets/secrets.yaml";
-        sece = "SOPS_AGE_KEY_FILE=${config.modules.sops.ageKeyFile} sops $NIXCONF/secrets/env.yaml";
       };
     in
     {
       options.modules.sops = {
-        enable = lib.mkEnableOption "Sops secrets (env.yaml, GITHUB_TOKEN, sec/sece aliases)";
+        enable = lib.mkEnableOption "Sops secrets (secrets.yaml, gh/glab credentials, sec alias)";
+        githubUser = lib.mkOption {
+          type = lib.types.str;
+          default = "Alexyz205";
+          description = ''
+            GitHub account that owns `GITHUB_TOKEN`, written to
+            `~/.config/gh/hosts.yml` so `gh` and its git credential helper
+            authenticate without an environment variable.
+          '';
+        };
         useYubikey = lib.mkOption {
           type = lib.types.bool;
           default = true;
@@ -122,16 +119,26 @@ in
             keyFile = config.modules.sops.ageKeyFile;
             plugins = lib.optional config.modules.sops.useYubikey pkgs.age-plugin-yubikey;
           };
-          defaultSopsFile = envFile;
+          defaultSopsFile = secretsFile;
           secrets.GITHUB_TOKEN = { };
+          # Render gh's native credential store instead of exporting
+          # GITHUB_TOKEN: no secret in the environment, and gh keeps working
+          # from systemd units, GUI apps, and non-login shells.
+          templates."gh-hosts.yml" = {
+            path = "${config.xdg.configHome}/gh/hosts.yml";
+            mode = "0600";
+            content = ''
+              github.com:
+                  user: ${config.modules.sops.githubUser}
+                  oauth_token: ${config.sops.placeholder.GITHUB_TOKEN}
+                  git_protocol: https
+            '';
+          };
         };
         programs.zsh.shellAliases = sopsAliases;
-        programs.zsh.initContent = lib.mkOrder 950 (
-          secretExports
-          + ''
-            export SOPS_AGE_KEY_FILE="${config.modules.sops.ageKeyFile}"
-          ''
-        );
+        programs.zsh.initContent = lib.mkOrder 950 ''
+          export SOPS_AGE_KEY_FILE="${config.modules.sops.ageKeyFile}"
+        '';
       };
     };
 }
