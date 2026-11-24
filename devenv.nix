@@ -1,15 +1,17 @@
 # Dev environment for the nixconf repo itself.
 #
 # Purpose: provide the test prerequisites used by `scripts/test-all.sh`
-#   (test_disko needs `disko`, test_shellcheck needs `shellcheck`).
+#   (test_disko needs `disko`, test_shellcheck needs `shellcheck`) plus the
+#   repository's treefmt setup, git hooks and tasks.
 # Devenv also gives auto-activation when you `cd` into this repo.
 #
-# LSPs / formatters for LazyVim now live HERE (not in the lazyvim module):
-# every repo owns its LSPs and LazyVim picks them up from $PATH via devenv
-# auto-activation.
+# Editors' LSPs, formatters and linters are deliberately NOT installed here:
+# the global `modules.packages.lsp` and `ciSecurity` groups already put them
+# on $PATH for every host and home-manager profile. This file stays
+# duplicate-free and specific to this repo.
 #
-# This file is kept to ONLY what this repo needs. The full commented template
-# for copying into other repos lives at `examples/devenv.nix`.
+# The full commented template for copying into other repos lives at
+# `examples/devenv.nix`.
 { pkgs, ... }: {
   name = "nixconf";
 
@@ -20,42 +22,10 @@
   };
 
   packages = with pkgs; [
-    # Repo tooling (test suite prerequisites)
+    # Test-suite prerequisites for scripts/test-all.sh.
     disko
-    shellcheck # bash linter (also a test-suite prerequisite)
-
-    # CI / YAML / secrets checks (mirrored by checks.lint and the git hooks)
-    actionlint
-    gitleaks
-    yamllint
-    trivy
-    tokei
-
-    # nix: formatter nixfmt (LSP nil + linter statix via languages.nix)
-    nixfmt
-
-    # yaml: LSP yaml-language-server (secrets, devenv.yaml, .sops.yaml, theme.yml)
-    yaml-language-server
-
-    # lua: formatter stylua, linter luacheck (LSP lua-language-server via languages.lua)
-    stylua
-    luaPackages.luacheck
+    shellcheck # bash linter (test_shellcheck)
   ];
-
-  # Language toolchains: compiler/runtime + matching LSP/linter/formatter.
-  languages = {
-    # nix: LSP nil, linter statix + deadnix (formatter nixfmt via packages)
-    nix = {
-      enable = true;
-      lsp.package = pkgs.nil;
-    };
-
-    # shell / bash: LSP bash-language-server, linter shellcheck, formatter shfmt
-    shell.enable = true;
-
-    # lua: LSP lua-language-server (formatter stylua + linter luacheck via packages)
-    lua.enable = true;
-  };
 
   # Repo-wide formatters (nix / markdown / bash) via treefmt. Same tools LazyVim
   # uses: nixfmt (nix), prettierd (markdown), shfmt (sh). Run `treefmt` in
@@ -220,39 +190,6 @@
         files = "\\.(md|mdx)$";
         priority = 0;
       };
-      hadolint = {
-        enable = true;
-        name = "hadolint";
-        entry = "${pkgs.hadolint}/bin/hadolint";
-        language = "system";
-        files = "(^|/)(Dockerfile|Containerfile)(\\..*)?$";
-        priority = 10;
-      };
-      tflint = {
-        enable = true;
-        name = "tflint";
-        entry = "${pkgs.tflint}/bin/tflint";
-        language = "system";
-        files = "\\.tf$";
-        priority = 10;
-      };
-      "ansible-lint" = {
-        enable = true;
-        name = "ansible-lint";
-        entry = "${pkgs.ansible-lint}/bin/ansible-lint";
-        language = "system";
-        files = "^(playbooks|roles)/.*\\.ya?ml$";
-        priority = 10;
-      };
-      gersemi = {
-        enable = true;
-        name = "gersemi";
-        entry = "${pkgs.gersemi}/bin/gersemi --check";
-        language = "system";
-        files = "(^|/)(CMakeLists\\.txt|.*\\.cmake)$";
-        priority = 10;
-      };
-
       nixconf-fast = {
         enable = true;
         name = "nixconf fast suite (flake, eval, shellcheck)";
@@ -312,34 +249,21 @@
     };
     "repo:lint" = {
       description = "Lint GitHub workflows and YAML";
-      exec = "actionlint && yamllint -c .yamllint.yml .github/workflows";
+      exec = "${pkgs.actionlint}/bin/actionlint && ${pkgs.yamllint}/bin/yamllint -c .yamllint.yml .github/workflows";
     };
     "repo:secrets" = {
       description = "Scan the working tree for secrets (gitleaks)";
-      exec = "gitleaks dir . --no-banner --redact --config .gitleaks.toml";
+      exec = "${pkgs.gitleaks}/bin/gitleaks dir . --no-banner --redact --config .gitleaks.toml";
     };
     "repo:security" = {
       description = "Trivy misconfiguration/secret scan (advisory)";
       # The FIDO2 resident-key handle is hardware-bound; see .gitleaks.toml.
-      exec = "trivy fs --scanners misconfig,secret --severity HIGH,CRITICAL --skip-files config/ssh/id_ed25519_sk_rk_alexis-perso .";
+      exec = "${pkgs.trivy}/bin/trivy fs --scanners misconfig,secret --severity HIGH,CRITICAL --skip-files config/ssh/id_ed25519_sk_rk_alexis-perso .";
     };
     "repo:stats" = {
       description = "Code statistics with tokei";
-      exec = "tokei --sort code";
+      exec = "${pkgs.tokei}/bin/tokei --sort code";
     };
   };
 
-  # Generate `.devcontainer/devcontainer.json`. The base image has no Nix nor
-  # devenv, so the Nix feature installs both (flakes enabled) and the direnv
-  # extension enables devenv auto-activation inside the container.
-  devcontainer = {
-    enable = true;
-    settings = {
-      image = "mcr.microsoft.com/devcontainers/base:ubuntu-24.04";
-    };
-  };
-
-  containers."test" = {
-    startupCommand = "${pkgs.nix}/bin/nix flake check";
-  };
 }

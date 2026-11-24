@@ -63,7 +63,6 @@ let
     "controller"
     "thunderbird"
     "youtubeMusic"
-    "cap"
     "gitlab"
     "blender"
     "freecad"

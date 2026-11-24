@@ -24,7 +24,6 @@ _: {
             "libfido2"
           ];
           casks = [
-            "cap"
             "ghostty"
             "macfuse"
           ];

@@ -54,41 +54,6 @@
         "type": "github"
       }
     },
-    "mk-shell-bin": {
-      "locked": {
-        "lastModified": 1677004959,
-        "narHash": "sha256-/uEkr1UkJrh11vD02aqufCxtbF5YnhRTIKlx5kyvf+I=",
-        "owner": "rrbutani",
-        "repo": "nix-mk-shell-bin",
-        "rev": "ff5d8bd4d68a347be5042e2f16caee391cd75887",
-        "type": "github"
-      },
-      "original": {
-        "owner": "rrbutani",
-        "repo": "nix-mk-shell-bin",
-        "type": "github"
-      }
-    },
-    "nix2container": {
-      "inputs": {
-        "nixpkgs": [
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1792225367,
-        "narHash": "sha256-Uz/SQyKSOQc/ZsIgLTOr+pWGqhzcemyEA2vBAL6KGZM=",
-        "owner": "nlewo",
-        "repo": "nix2container",
-        "rev": "535166ecac3fcdff43787aa958dd7e954770581d",
-        "type": "github"
-      },
-      "original": {
-        "owner": "nlewo",
-        "repo": "nix2container",
-        "type": "github"
-      }
-    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1792842277,
@@ -125,8 +90,6 @@
       "inputs": {
         "devenv": "devenv",
         "git-hooks": "git-hooks",
-        "mk-shell-bin": "mk-shell-bin",
-        "nix2container": "nix2container",
         "nixpkgs": "nixpkgs",
         "treefmt-nix": "treefmt-nix"
       }

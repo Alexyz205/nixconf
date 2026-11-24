@@ -69,10 +69,6 @@ let
       youtubeMusic
       { modules.youtubeMusic.enable = true; }
     ];
-    cap = [
-      cap
-      { modules.cap.enable = true; }
-    ];
     thunderbird = [
       thunderbird
       { modules.thunderbird.enable = true; }
@@ -144,7 +140,7 @@ let
 
   # Tier 1 — the default desktop set every interactive Linux profile starts
   # from: dotfiles support (sops/yubikey/ghostty/containers), the common apps
-  # (gitlab, youtube-music, chromium, cap, artcraft, vlc) and their unfree hook.
+  # (gitlab, youtube-music, chromium, artcraft, vlc) and their unfree hook.
   defaultExtra =
     extras.sops
     ++ extras.yubikey
@@ -153,7 +149,6 @@ let
     ++ extras.gitlab
     ++ extras.youtubeMusic
     ++ extras.chromium
-    ++ extras.cap
     ++ artcraft
     ++ [
       { modules.packages.desktop = true; }
@@ -188,7 +183,7 @@ let
       { modules.opencode.mcp.freecad.enable = true; }
     ];
 
-  # macOS can't run the Linux-only packages (cap/artcraft/youtube-music,
+  # macOS can't run the Linux-only packages (artcraft/youtube-music,
   # and the `desktop` group's vlc which has no aarch64-darwin build), so it gets
   # a cross-platform subset of the default set.
   macosExtra =
