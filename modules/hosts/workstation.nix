@@ -251,9 +251,10 @@ let
               # iPhone Termius key: a software Ed25519 key held in the Termius
               # keychain (not FIDO2). The YubiKey credential is an OpenSSH
               # ed25519-sk handle that Termius cannot use, so this is the
-              # mobile entry point. Reachable on the LAN only.
+              # mobile entry point. Single source: config/ssh/iphone.pub,
+              # shared with the NAS hosts and Proxmox (root@pam).
               users.authorizedKeys = [
-                "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHaeIild93gZUb/7RdCAN/0UsvfvPbbpOt9767h9rKtm iphone_ssh"
+                (builtins.replaceStrings [ "\n" ] [ "" ] (builtins.readFile ../../config/ssh/iphone.pub))
               ];
               packages = {
                 basic = true;

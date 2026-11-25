@@ -9,6 +9,10 @@ let
   yubiPub = ../../config/ssh/id_ed25519_sk_rk_alexis-perso.pub;
   resticPub = ../../config/ssh/restic-backup.pub;
   resticKeys = lib.optional (builtins.pathExists resticPub) (lib.trim (builtins.readFile resticPub));
+  # Optional extra client key (phone SSH app, spare laptop). Add the single
+  # public line to config/ssh/iphone.pub; absent file = no extra key.
+  phonePub = ../../config/ssh/iphone.pub;
+  phoneKeys = lib.optional (builtins.pathExists phonePub) (lib.trim (builtins.readFile phonePub));
   features = config.nixconf.nixosFeatures.base;
   mkBtrfsLayout = config.nixconf.mkBtrfsLayout;
   mkHostCommon = config.nixconf.mkHostCommon;
@@ -39,6 +43,7 @@ let
           {
             config,
             lib,
+            pkgs,
             ...
           }:
           {
@@ -111,6 +116,10 @@ let
               enabledCollectors = lib.mkAfter [ "zfs" ];
             };
 
+            # The zfs collector shells out to `zpool`; without it in the unit's
+            # PATH it exports no zfs_pool_* series and logs nothing useful.
+            systemd.services.prometheus-node-exporter.path = [ pkgs.zfs ];
+
             # Key-only root access: no password in the Nix store, no SSH
             # password authentication. The SSH key is the only way in.
             services.openssh.settings = {
@@ -126,12 +135,14 @@ let
               hashedPassword = "!";
               openssh.authorizedKeys.keys = [
                 "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOBMQLDh11pxkVlW041VH9OmAYhpSwVwFu7vbOezQrIU alexis@workstation"
-              ];
+              ]
+              ++ phoneKeys;
             };
             users.users.${config.modules.users.userName}.openssh.authorizedKeys.keys = [
               (lib.trim (builtins.readFile yubiPub))
               "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOBMQLDh11pxkVlW041VH9OmAYhpSwVwFu7vbOezQrIU alexis@workstation"
-            ];
+            ]
+            ++ phoneKeys;
 
             nix.gc = {
               automatic = true;

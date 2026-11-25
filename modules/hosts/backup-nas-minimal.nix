@@ -5,12 +5,18 @@
 }:
 let
   yubiPub = ../../config/ssh/id_ed25519_sk_rk_alexis-perso.pub;
+  # Optional extra client key (phone SSH app, spare laptop). Add the single
+  # public line to config/ssh/iphone.pub; absent file = no extra key.
+  lib = inputs.nixpkgs.lib;
+  phonePub = ../../config/ssh/iphone.pub;
+  phoneKeys = lib.optional (builtins.pathExists phonePub) (lib.trim (builtins.readFile phonePub));
 in
 {
   flake.nixosConfigurations.backup-nas-minimal = inputs.nixpkgs.lib.nixosSystem {
     system = "x86_64-linux";
     modules = [
       inputs.disko.nixosModules.disko
+      config.nixconf.modules.nixos.monitoring
       config.nixconf.modules.nixos.nas
       config.nixconf.modules.nixos.tailscale
       (
@@ -52,7 +58,8 @@ in
             openssh.authorizedKeys.keys = [
               "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOBMQLDh11pxkVlW041VH9OmAYhpSwVwFu7vbOezQrIU alexis@workstation"
               (lib.trim (builtins.readFile yubiPub))
-            ];
+            ]
+            ++ phoneKeys;
           };
           users.users.alexis = {
             isNormalUser = true;
@@ -60,7 +67,8 @@ in
             openssh.authorizedKeys.keys = [
               "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOBMQLDh11pxkVlW041VH9OmAYhpSwVwFu7vbOezQrIU alexis@workstation"
               (lib.trim (builtins.readFile yubiPub))
-            ];
+            ]
+            ++ phoneKeys;
           };
           security.sudo.wheelNeedsPassword = false;
 
@@ -80,8 +88,27 @@ in
               lib.trim (builtins.readFile ../../config/ssh/restic-backup.pub)
             );
             ups.enable = false;
-            exportNodeMetrics = false;
+            # Prometheus (in the k8s cluster) scrapes node_exporter on 9100;
+            # modules.nas keeps the rule LAN-scoped.
+            exportNodeMetrics = true;
           };
+
+          modules.monitoring = {
+            enable = true;
+            # Bind 0.0.0.0 via the override below but leave expose = false so
+            # the generic firewall opener stays off and only the
+            # modules.nas LAN rule grants access.
+            expose = false;
+          };
+
+          services.prometheus.exporters.node = {
+            listenAddress = lib.mkForce "0.0.0.0";
+            enabledCollectors = lib.mkAfter [ "zfs" ];
+          };
+
+          # The zfs collector shells out to `zpool`; without it in the unit's
+          # PATH it exports no zfs_pool_* series and logs nothing useful.
+          systemd.services.prometheus-node-exporter.path = [ pkgs.zfs ];
 
           # Same role as the production NAS: subnet router for the LAN.
           modules.tailscale = {
