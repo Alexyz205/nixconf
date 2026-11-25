@@ -31,6 +31,13 @@ let
           settings.workstation = {
             HostName = "workstation.alexyz.org";
           };
+          # Short aliases for the NAS (PiHole static records).
+          settings.nas = {
+            HostName = "nas.alexyz.org";
+          };
+          settings.backup-nas = {
+            HostName = "nas.alexyz.org";
+          };
           settings."*" = {
             IdentityFile = [ "~/.ssh/id_ed25519" ] ++ config.modules.ssh.identityFiles;
             IdentitiesOnly = "yes";

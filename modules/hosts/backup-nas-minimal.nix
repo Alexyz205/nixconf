@@ -3,6 +3,9 @@
   inputs,
   ...
 }:
+let
+  yubiPub = ../../config/ssh/id_ed25519_sk_rk_alexis-perso.pub;
+in
 {
   flake.nixosConfigurations.backup-nas-minimal = inputs.nixpkgs.lib.nixosSystem {
     system = "x86_64-linux";
@@ -48,6 +51,7 @@
             hashedPassword = "!";
             openssh.authorizedKeys.keys = [
               "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOBMQLDh11pxkVlW041VH9OmAYhpSwVwFu7vbOezQrIU alexis@workstation"
+              (lib.trim (builtins.readFile yubiPub))
             ];
           };
           users.users.alexis = {
@@ -55,6 +59,7 @@
             extraGroups = [ "wheel" ];
             openssh.authorizedKeys.keys = [
               "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOBMQLDh11pxkVlW041VH9OmAYhpSwVwFu7vbOezQrIU alexis@workstation"
+              (lib.trim (builtins.readFile yubiPub))
             ];
           };
           security.sudo.wheelNeedsPassword = false;
