@@ -223,6 +223,38 @@ privacy VPN.
 | Linux client sees only 100.x peers                    | Add `acceptRoutes = true` (or `tailscale set --accept-routes`). Phones do it automatically.                  |
 | `invalid_client` during tailnet signup                | Authentik has not re-applied the rotated blueprint yet: restart `deploy/authentik-worker`.                   |
 
+## Second router on pve0 (redundancy)
+
+The NAS is the primary subnet router. To keep LAN access when the NAS is down or
+upgrading, the Proxmox host advertises the same `/24`. pve0 is Debian, not part
+of this NixOS tree, so this one-time setup is imperative:
+
+```bash
+ssh root@192.168.1.110
+. /etc/os-release; C=$VERSION_CODENAME          # trixie
+
+curl -fsSL "https://pkgs.tailscale.com/stable/debian/${C}.noarmor.gpg" \
+  -o /usr/share/keyrings/tailscale-archive-keyring.gpg
+curl -fsSL "https://pkgs.tailscale.com/stable/debian/${C}.tailscale-keyring.list" \
+  -o /etc/apt/sources.list.d/tailscale.list
+apt-get update && apt-get install -y tailscale
+
+printf 'net.ipv4.ip_forward = 1\nnet.ipv6.conf.all.forwarding = 1\n' \
+  >/etc/sysctl.d/99-tailscale.conf
+sysctl --system
+
+tailscale up --advertise-routes=192.168.1.0/24 --accept-dns=false --hostname=pve0
+```
+
+Then approve `192.168.1.0/24` for **pve0** in the console (Machines -> pve0 ->
+Subnets), and disable key expiry or tag it like the NAS. Multiple routers for
+the same prefix are supported: clients use one and fall back when it goes away.
+pve0's `pve-firewall` is currently disabled; if you enable it later, trust
+`tailscale0` and allow forwarding.
+
+Rollback: `tailscale down && systemctl disable --now tailscaled && apt-get remove tailscale`
+(and delete `/etc/sysctl.d/99-tailscale.conf`).
+
 ## Limitations
 
 - The NAS is a single point of failure for remote LAN access. Cloudflare Tunnel

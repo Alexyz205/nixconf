@@ -58,7 +58,14 @@ ssh nas 'wakeonlan d8:bb:c1:51:4f:f0'   # workstation MAC from config/network/la
 
 The NAS wakes the target, the target boots, and then it is reachable again
 through the NAS subnet route (`workstation.alexyz.org`) even though the
-workstation itself is not a tailnet node. Waking the _router_ host is the
+workstation itself is not a tailnet node. With the second router on `pve0`
+(see [tailscale.md](tailscale.md)), waking does not depend on the NAS either:
+
+```bash
+ssh pve0 'wakeonlan d8:bb:c1:51:4f:f0'
+```
+
+Waking the _router_ host is the
 exception: if the NAS is asleep there is no path left, so keep it on UPS and
 never let it be the machine you wake remotely. WoL is unauthenticated: anyone
 on that L2 segment can wake the machine, but it grants no access.
