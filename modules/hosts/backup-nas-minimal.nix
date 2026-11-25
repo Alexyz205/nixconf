@@ -91,6 +91,7 @@ in
             # Prometheus (in the k8s cluster) scrapes node_exporter on 9100;
             # modules.nas keeps the rule LAN-scoped.
             exportNodeMetrics = true;
+            media.enable = true;
           };
 
           modules.monitoring = {
@@ -156,6 +157,9 @@ in
             pkgs.curl
             pkgs.git
             pkgs.vim
+            # Sender for Wake-on-LAN: this host is the always-on tailnet peer on
+            # the LAN, so `ssh nas 'wakeonlan <mac>'` wakes sleeping machines.
+            pkgs.wakeonlan
           ];
         }
       )

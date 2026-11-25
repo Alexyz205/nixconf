@@ -53,6 +53,25 @@ _: {
           description = "Expose node_exporter on 9100 to the LAN.";
         };
 
+        media = {
+          enable = lib.mkEnableOption "media dataset with a read-only NFS export and an SMB drop share";
+          dataset = lib.mkOption {
+            type = lib.types.str;
+            default = "media";
+            description = "Dataset under the pool that holds the media library.";
+          };
+          mountPoint = lib.mkOption {
+            type = lib.types.str;
+            default = "/srv/media";
+            description = "Mount point (NFS export path) of the media dataset.";
+          };
+          smbUser = lib.mkOption {
+            type = lib.types.str;
+            default = "media";
+            description = "System/Samba user owning the writable SMB share.";
+          };
+        };
+
         ups = {
           enable = lib.mkEnableOption "NUT UPS monitoring and clean shutdown";
           name = lib.mkOption {
@@ -93,6 +112,15 @@ _: {
             ${config.boot.zfs.package}/bin/zfs set mountpoint=/srv/nfs/longhorn ${cfg.poolName}/longhorn || true
             ${config.boot.zfs.package}/bin/zfs set mountpoint=/srv/restic ${cfg.poolName}/restic || true
             ${config.boot.zfs.package}/bin/zfs set mountpoint=/srv/backup ${cfg.poolName}/backup || true
+            ${lib.optionalString cfg.media.enable ''
+              if ! ${config.boot.zfs.package}/bin/zfs list -H -o name ${cfg.poolName}/${cfg.media.dataset} >/dev/null 2>&1; then
+                ${config.boot.zfs.package}/bin/zfs create -o mountpoint=${cfg.media.mountPoint} ${cfg.poolName}/${cfg.media.dataset}
+              else
+                ${config.boot.zfs.package}/bin/zfs set mountpoint=${cfg.media.mountPoint} ${cfg.poolName}/${cfg.media.dataset} || true
+              fi
+              ${pkgs.coreutils}/bin/chown root:${cfg.media.smbUser} ${cfg.media.mountPoint}
+              ${pkgs.coreutils}/bin/chmod 0775 ${cfg.media.mountPoint}
+            ''}
           '';
         };
 
@@ -125,6 +153,14 @@ _: {
               "no_subtree_check"
               "no_root_squash"
             ]);
+          }
+          // lib.optionalAttrs cfg.media.enable {
+            "${cfg.media.mountPoint}" = lib.genAttrs cfg.nfsClients (_: [
+              "ro"
+              "sync"
+              "no_subtree_check"
+              "root_squash"
+            ]);
           };
         };
         systemd.services.nfs-server = {
@@ -136,6 +172,66 @@ _: {
           wants = [ "zfs-mount.service" ];
         };
 
+        # Writable drop point for the media library. The cluster only ever
+        # mounts it read-only over NFS; SMB is the ingest path.
+        services.samba = lib.mkIf cfg.media.enable {
+          enable = true;
+          # SMB2/3 only: no NetBIOS name browsing and no winbind.
+          nmbd.enable = false;
+          winbindd.enable = false;
+          settings = {
+            global = {
+              "server string" = "backup-nas";
+              "server role" = "standalone server";
+              security = "user";
+              "map to guest" = "Never";
+              # LAN + tailnet (100.64.0.0/10) so the share also works from a
+              # phone/Mac over Tailscale; smbd authenticates real users.
+              "hosts allow" = "192.168.1.0/24 100.64.0.0/10 127.0.0.1";
+              "hosts deny" = "0.0.0.0/0";
+            };
+            media = {
+              path = cfg.media.mountPoint;
+              browseable = "yes";
+              "read only" = "no";
+              "valid users" = cfg.media.smbUser;
+              "force user" = cfg.media.smbUser;
+              "force group" = cfg.media.smbUser;
+              "create mask" = "0644";
+              "directory mask" = "0755";
+            };
+          };
+        };
+
+        # Locked system accounts. Each option is defined once: mixing a dynamic
+        # `users.groups.${name}` path with a static `users.groups.backup` in the
+        # same attrset makes Nix complain "attribute 'users' already defined".
+        # SMB password is set once with `smbpasswd -a media` (no store secret).
+        users.groups = {
+          backup = { };
+        }
+        // lib.optionalAttrs cfg.media.enable {
+          ${cfg.media.smbUser} = { };
+        };
+        users.users = {
+          backup = {
+            isNormalUser = true;
+            group = "backup";
+            home = "/srv/restic";
+            createHome = false;
+            shell = pkgs.bash;
+            openssh.authorizedKeys.keys = cfg.resticAuthorizedKeys;
+          };
+        }
+        // lib.optionalAttrs cfg.media.enable {
+          ${cfg.media.smbUser} = {
+            isSystemUser = true;
+            group = cfg.media.smbUser;
+            home = cfg.media.mountPoint;
+            createHome = false;
+          };
+        };
+
         services.openssh.extraConfig = ''
           Match User backup
             ForceCommand internal-sftp
@@ -143,16 +239,6 @@ _: {
             X11Forwarding no
             PermitTTY no
         '';
-
-        users.groups.backup = { };
-        users.users.backup = {
-          isNormalUser = true;
-          group = "backup";
-          home = "/srv/restic";
-          createHome = false;
-          shell = pkgs.bash;
-          openssh.authorizedKeys.keys = cfg.resticAuthorizedKeys;
-        };
 
         systemd.services.restic-repo-dirs = {
           description = "Create restic repository directories";
@@ -173,7 +259,13 @@ _: {
         networking.nftables.enable = lib.mkIf cfg.exportNodeMetrics true;
 
         networking.firewall = {
-          allowedTCPPorts = [ 2049 ];
+          allowedTCPPorts = [
+            2049
+          ]
+          ++ lib.optionals cfg.media.enable [
+            139
+            445
+          ];
           allowedUDPPorts = [ 2049 ];
           extraInputRules = lib.optionalString cfg.exportNodeMetrics ''
             ip saddr ${cfg.lanCidr} tcp dport 9100 accept
@@ -261,8 +353,12 @@ _: {
               echo "offsite pool not present; skipping"
               exit 0
             fi
-            exec syncoid --recursive --no-privilege-elevation --no-sync-snap \
-              ${cfg.poolName} offsite/${cfg.poolName}
+            # Explicit dataset list instead of --recursive: the media dataset
+            # is bulk, replaceable data and must not consume the USB disk.
+            for ds in longhorn restic backup; do
+              syncoid --no-privilege-elevation --no-sync-snap \
+                ${cfg.poolName}/$ds offsite/${cfg.poolName}/$ds || exit 1
+            done
           '';
         };
 

@@ -47,10 +47,21 @@ wol aa:bb:cc:dd:ee:ff
 ```
 
 From a phone, a WoL app on the same VLAN. A magic packet is Ethernet
-broadcast, so it does not cross routers or VLANs; from outside the LAN, run
-`wol` on an always-on LAN host (headless-worker) or configure the router's WoL
-forwarding (UDP 9 to the broadcast address). WoL is unauthenticated: anyone on
-that L2 segment can wake the machine, but it grants no access.
+broadcast, so it does not cross routers or VLANs — and Tailscale is layer 3,
+so it cannot carry WoL either: the sleeping machine has no tailnet presence to
+tunnel to. From outside the LAN, run `wol` on an always-on tailnet peer that
+sits on the same segment. Here that is the NAS (subnet router):
+
+```bash
+ssh nas 'wakeonlan d8:bb:c1:51:4f:f0'   # workstation MAC from config/network/lan.nix
+```
+
+The NAS wakes the target, the target boots, and then it is reachable again
+through the NAS subnet route (`workstation.alexyz.org`) even though the
+workstation itself is not a tailnet node. Waking the _router_ host is the
+exception: if the NAS is asleep there is no path left, so keep it on UPS and
+never let it be the machine you wake remotely. WoL is unauthenticated: anyone
+on that L2 segment can wake the machine, but it grants no access.
 
 ## LUKS: the important part
 
