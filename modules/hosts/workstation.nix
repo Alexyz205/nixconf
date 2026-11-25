@@ -349,6 +349,9 @@ let
                 StateDirectory = "etcd-backups";
               };
               script = ''
+                # Endpoint is the Talos VIP: its address is in the API
+                # certificate SANs (Talos has no certSANs configured for DNS
+                # names), so a hostname would fail TLS verification.
                 ${pkgs.talosctl}/bin/talosctl \
                   --talosconfig /home/${config.modules.users.userName}/.kube/talosconfig \
                   -n 192.168.1.120 etcd snapshot \

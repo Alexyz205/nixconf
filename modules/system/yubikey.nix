@@ -5,7 +5,6 @@
 let
   yubiKey = "id_ed25519_sk_rk_alexis-perso";
   yubiPub = "${../../config/ssh}/${yubiKey}.pub";
-  handle = "${../../config/ssh}/${yubiKey}";
   u2fOrigin = "pam://localhost";
   u2fMapping = ../../config/Yubico/u2f_keys;
 
@@ -15,9 +14,6 @@ let
       ...
     }:
     let
-      sshKeyFile = lib.optionalAttrs (builtins.pathExists handle) {
-        ".ssh/${yubiKey}".source = handle;
-      };
       u2fKeyFile = lib.optionalAttrs (builtins.pathExists u2fMapping) {
         ".config/Yubico/u2f_keys".source = u2fMapping;
       };
@@ -28,10 +24,12 @@ let
         libu2f-host
         pam_u2f
       ];
+      # Only the public key is tracked. The FIDO2 private handle is downloaded
+      # from the resident key on each machine with `ssh-keygen -K` (see the
+      # enrollment notes below) and stays in ~/.ssh, never in git.
       home.file = {
         ".ssh/${yubiKey}.pub".source = yubiPub;
       }
-      // sshKeyFile
       // u2fKeyFile;
       # Append the resident YubiKey to the default identity list owned by the
       # ssh module (id_ed25519 stays primary).
@@ -71,10 +69,13 @@ in
       # LUKS:     disko enrolls automatically during disko-install
       # Sudo/PAM: pre-register ONCE, bound to this ISO's YubiKey, and commit:
       #             pamu2fcfg -u <user> -o pam://localhost > config/Yubico/u2f_keys
-      # SSH:      recover the resident key handle ONCE into the repo:
+      # SSH:      download the resident key handle on each machine (touch +
+      #           FIDO2 PIN). It stays in ~/.ssh and is NOT committed — only
+      #           the .pub is tracked. Home-manager points at the file, so run
+      #           this once per host before relying on the key:
       #             ssh-keygen -K
-      #             mv ~/id_ed25519_sk_rk_alexis-perso config/ssh/${yubiKey}
-      #             mv ~/id_ed25519_sk_rk_alexis-perso.pub config/ssh/${yubiKey}.pub
+      #           (writes ~/.ssh/id_ed25519_sk_rk_alexis-perso{,.pub}; the
+      #           public half in config/ssh/ is the authoritative copy)
       config = lib.mkIf config.modules.yubikey.enable {
         environment.systemPackages = with pkgs; [
           yubikey-manager

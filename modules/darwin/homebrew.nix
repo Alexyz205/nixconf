@@ -26,6 +26,7 @@ _: {
           casks = [
             "ghostty"
             "macfuse"
+            "tailscale-app"
           ];
           masApps = { };
         };

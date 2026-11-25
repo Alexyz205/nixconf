@@ -18,6 +18,12 @@
 # =========================================================
 age-keys.txt
 *.age
+
+# SSH private keys / FIDO2 key handles. Only *.pub files belong in the repo.
+config/ssh/id_*
+!config/ssh/id_*.pub
+config/ssh/*.pem
+config/ssh/*.key
 *.gpg
 
 # =========================================================

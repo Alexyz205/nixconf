@@ -9,6 +9,7 @@
     modules = [
       inputs.disko.nixosModules.disko
       config.nixconf.modules.nixos.nas
+      config.nixconf.modules.nixos.tailscale
       (
         { pkgs, lib, ... }:
         {
@@ -75,6 +76,12 @@
             );
             ups.enable = false;
             exportNodeMetrics = false;
+          };
+
+          # Same role as the production NAS: subnet router for the LAN.
+          modules.tailscale = {
+            enable = true;
+            advertiseRoutes = [ "192.168.1.0/24" ];
           };
 
           boot.loader.systemd-boot.enable = true;

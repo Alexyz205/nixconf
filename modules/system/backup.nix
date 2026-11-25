@@ -34,8 +34,12 @@ _: {
         };
         sshHostName = lib.mkOption {
           type = lib.types.str;
-          default = (import ../../config/network/lan.nix).backup-nas.ip;
-          description = "Address behind the SSH Host alias.";
+          default = "nas.alexyz.org";
+          description = ''
+            Address behind the SSH Host alias. The PiHole record is the source
+            of truth; set it to an IP only if this host must back up while
+            cluster DNS is unavailable.
+          '';
         };
         sshKeyFile = lib.mkOption {
           type = lib.types.str;

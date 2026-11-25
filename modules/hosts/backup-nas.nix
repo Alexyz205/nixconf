@@ -31,6 +31,7 @@ let
         config.nixconf.modules.nixos.disko
         config.nixconf.modules.nixos.monitoring
         config.nixconf.modules.nixos.nas
+        config.nixconf.modules.nixos.tailscale
       ]
       ++ features
       ++ [
@@ -89,6 +90,13 @@ let
                 ];
                 resticAuthorizedKeys = resticKeys;
                 ups.enable = true;
+              };
+              # Out-of-band door into the LAN: this host advertises the whole
+              # subnet, so tailnet clients reach Proxmox, the Talos VIP, PiHole
+              # and Traefik without any of them running Tailscale.
+              tailscale = {
+                enable = true;
+                advertiseRoutes = [ "192.168.1.0/24" ];
               };
               users.extraGroups = [ "wheel" ];
               packages = {

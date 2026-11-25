@@ -298,6 +298,15 @@ another LAN host. LUKS changes what "wake" means (the server has no LUKS, the
 workstation stops at its passphrase): see
 [docs/wake-on-lan.md](docs/wake-on-lan.md).
 
+## Remote access (Tailscale)
+
+`modules.tailscale` runs a WireGuard mesh for accessing the homelab privately.
+The NAS advertises `192.168.1.0/24`, so a phone on 5G reaches Proxmox, the Talos
+VIP, PiHole, Traefik and every `*.alexyz.org` Ingress without a port forward.
+It is out-of-band of the Talos cluster on purpose, and separate from Mullvad
+(privacy egress) and Cloudflare Tunnel (public ingress). Approval, split DNS,
+ACL policy and troubleshooting: [docs/tailscale.md](docs/tailscale.md).
+
 ## Deploy and rollback
 
 `headless-worker` is deployed with deploy-rs: `dep` builds locally and pushes

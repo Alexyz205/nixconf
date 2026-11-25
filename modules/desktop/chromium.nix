@@ -50,7 +50,7 @@ let
       }
       {
         name = "Proxmox";
-        url = "https://192.168.1.110:8006";
+        url = "https://proxmox.alexyz.org:8006";
       }
     ];
   };
