@@ -165,6 +165,13 @@ _: {
           '';
         };
 
+        # extraInputRules is implemented by the nftables backend only; with the
+        # default iptables firewall the option is accepted and silently
+        # discarded, which leaves node_exporter unreachable despite the rule
+        # below. Enabling nftables is the supported backend switch (setting
+        # networking.firewall.backend alone trips the extraCommands assert).
+        networking.nftables.enable = lib.mkIf cfg.exportNodeMetrics true;
+
         networking.firewall = {
           allowedTCPPorts = [ 2049 ];
           allowedUDPPorts = [ 2049 ];

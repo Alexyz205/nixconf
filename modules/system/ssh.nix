@@ -38,6 +38,13 @@ let
           settings.backup-nas = {
             HostName = "nas.alexyz.org";
           };
+          # Proxmox node (web UI on 8006, SSH on 22).
+          settings.proxmox = {
+            HostName = "proxmox.alexyz.org";
+          };
+          settings.pve = {
+            HostName = "proxmox.alexyz.org";
+          };
           settings."*" = {
             IdentityFile = [ "~/.ssh/id_ed25519" ] ++ config.modules.ssh.identityFiles;
             IdentitiesOnly = "yes";
