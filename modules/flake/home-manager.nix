@@ -155,7 +155,6 @@ let
     ++ artcraft
     ++ [
       { modules.packages.desktop = true; }
-      allowDefaultUnfree
     ];
 
   # Tier 2 — personal machines: the default set plus the personal-only apps.
@@ -286,7 +285,14 @@ let
         inherit (inputs) lazyvim;
         inherit self;
       };
-      modules = [ baseModule ] ++ modules ++ extra ++ linuxModules ++ [ shellTarget ];
+      modules = [
+        baseModule
+      ]
+      ++ modules
+      ++ [ allowDefaultUnfree ]
+      ++ extra
+      ++ linuxModules
+      ++ [ shellTarget ];
     };
   # Container profiles: terminal-only, no extras. Plain images run as root;
   # devcontainer base images run as their non-root `vscode` user, so both get a
