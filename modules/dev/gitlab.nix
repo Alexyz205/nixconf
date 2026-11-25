@@ -13,22 +13,30 @@ let
     gciv = "glab ci view";
   };
 
-  # Per-host PATs, keyed by the instance they authenticate. sops renders them
-  # into glab's native credential store (~/.config/glab-cli/config.yml) rather
-  # than exporting environment variables: no token leaks into child processes,
-  # and glab keeps a separate credential per host (a GITLAB_TOKEN export would
-  # override every host's stored token).
-  gitlabTokens = {
-    "git.dxyz.pro" = "GITLAB_DXYZ_TOKEN";
-    "gitlab.alexyz.org" = "GITLAB_ALEXYZ_TOKEN";
+  # Authentication is deliberately not managed by Nix: glab stores the host's
+  # OAuth token (or PAT) in the OS keyring after one interactive login
+  # (`glab auth login --hostname <host> --web`), falling back to its own 0600
+  # config when no keyring is available. This keeps credentials out of the repo,
+  # sops and the Nix store, and lets each machine authenticate only the hosts it
+  # is allowed to use. Only the non-secret credential helpers are declared here.
+  gitlabOptions = {
+    enable = lib.mkEnableOption "GitLab (glab, gitlab.nvim, per-host login)";
+    hosts = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [
+        "git.dxyz.pro"
+        "gitlab.alexyz.org"
+      ];
+      description = ''
+        GitLab hosts for which the glab credential helper is wired into git.
+        Authentication remains interactive per host; listing a host here does not
+        grant access to it.
+      '';
+    };
   };
 
-  gitlabHosts = builtins.attrNames gitlabTokens;
-
-  gitlabSecrets = lib.genAttrs (builtins.attrValues gitlabTokens) (_: { });
-
   credentialHelpers =
-    pkgs:
+    pkgs: hosts:
     builtins.listToAttrs (
       map (host: {
         name = "https://${host}";
@@ -36,31 +44,11 @@ let
           ""
           "!${pkgs.glab}/bin/glab auth git-credential"
         ];
-      }) gitlabHosts
+      }) hosts
     );
 
-  glabTemplates = hmConfig: {
-    "glab-cli-config.yml" = {
-      path = "${hmConfig.xdg.configHome}/glab-cli/config.yml";
-      mode = "0600";
-      content =
-        "hosts:\n"
-        + lib.concatStringsSep "" (
-          lib.mapAttrsToList (
-            host: var:
-            "  ${host}:\n"
-            + "    api_host: ${host}\n"
-            + "    api_protocol: https\n"
-            + "    git_protocol: https\n"
-            + "    use_keyring: false\n"
-            + "    token: ${hmConfig.sops.placeholder.${var}}\n"
-          ) gitlabTokens
-        );
-    };
-  };
-
-  gitlabCfg =
-    { pkgs, hmConfig }:
+  mkGitlabCfg =
+    { cfg, pkgs }:
     {
       home.packages = [
         pkgs.glab
@@ -70,12 +58,10 @@ let
         pkgs.go
       ];
       programs = {
-        git.settings.credential = credentialHelpers pkgs;
+        git.settings.credential = credentialHelpers pkgs cfg.hosts;
         lazyvim.plugins.gitlab = gitlabLua;
         zsh.shellAliases = gitlabAliases;
       };
-      sops.secrets = gitlabSecrets;
-      sops.templates = glabTemplates hmConfig;
     };
 in
 {
@@ -87,20 +73,20 @@ in
       ...
     }:
     {
-      options.modules.gitlab.enable = lib.mkEnableOption "GitLab (glab, gitlab.nvim, per-host tokens)";
+      options.modules.gitlab = gitlabOptions;
       config = lib.mkIf config.modules.gitlab.enable {
         environment.systemPackages = [
           pkgs.glab
           pkgs.go
         ];
-        programs.git.config.credential = credentialHelpers pkgs;
-        sops.secrets = gitlabSecrets;
-        home-manager.users.${config.modules.users.userName} =
-          { config, ... }:
-          gitlabCfg {
+        programs.git.config.credential = credentialHelpers pkgs config.modules.gitlab.hosts;
+        home-manager.users = lib.genAttrs config.modules.users.homeUsers (
+          _:
+          mkGitlabCfg {
+            cfg = config.modules.gitlab;
             inherit pkgs;
-            hmConfig = config;
-          };
+          }
+        );
       };
     };
 
@@ -112,10 +98,10 @@ in
       ...
     }:
     {
-      options.modules.gitlab.enable = lib.mkEnableOption "GitLab (glab, gitlab.nvim, per-host tokens)";
-      config = lib.mkIf config.modules.gitlab.enable (gitlabCfg {
+      options.modules.gitlab = gitlabOptions;
+      config = lib.mkIf config.modules.gitlab.enable (mkGitlabCfg {
+        cfg = config.modules.gitlab;
         inherit pkgs;
-        hmConfig = config;
       });
     };
 }

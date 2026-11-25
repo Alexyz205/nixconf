@@ -77,9 +77,13 @@ in
     {
       options.modules.ghostty.enable = lib.mkEnableOption "Ghostty terminal";
       config = lib.mkIf config.modules.ghostty.enable {
-        home-manager.users.${config.modules.users.userName} = terminalDefaults { inherit pkgs; } // {
-          programs.ghostty = ghosttyCfg { inherit pkgs; };
-        };
+        home-manager.users = lib.genAttrs config.modules.users.homeUsers (
+          _:
+          terminalDefaults { inherit pkgs; }
+          // {
+            programs.ghostty = ghosttyCfg { inherit pkgs; };
+          }
+        );
       };
     };
 

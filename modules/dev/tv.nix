@@ -24,7 +24,7 @@ in
       options.modules.tv.enable = lib.mkEnableOption "Television (tv) fuzzy finder";
       config = lib.mkIf config.modules.tv.enable {
         environment.systemPackages = [ pkgs.television ];
-        home-manager.users.${config.modules.users.userName} = tvCfg;
+        home-manager.users = lib.genAttrs config.modules.users.homeUsers (_: tvCfg);
       };
     };
 

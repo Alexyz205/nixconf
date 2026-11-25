@@ -1,10 +1,17 @@
--- Per-host GitLab personal access tokens live in glab's config
--- (~/.config/glab-cli/config.yml, rendered from sops), so this set only
--- whitelists the instances the plugin should activate for.
-local gitlab_hosts = {
-	["git.dxyz.pro"] = true,
-	["gitlab.alexyz.org"] = true,
-}
+-- gitlab.nvim builds its Go server on first use; the server has no cgo
+-- dependencies, so force the pure-Go build instead of requiring gcc on NixOS.
+vim.env.CGO_ENABLED = "0"
+
+-- gitlab.nvim authenticates through the glab CLI: `glab auth login` stores the
+-- OAuth token in the OS keyring, and the provider below reads it back for the
+-- repository's host instead of exporting GITLAB_TOKEN to every child process.
+local function gitlab_hosts()
+	local hosts = {}
+	for _, host in ipairs(vim.g.nixconf_gitlab_hosts or {}) do
+		hosts[host] = true
+	end
+	return hosts
+end
 
 -- Resolve the remote URL, preferring "upstream" (forks) over "origin".
 local function remote_url()
@@ -27,18 +34,21 @@ local function remote_host()
 	return host and host:gsub("^.*@", ""):gsub(":.*$", "") or nil
 end
 
--- Read the host's PAT from glab's store instead of the environment, so the
--- token exists only in glab/nvim and never in every child process.
+-- Read the host's token from glab's store instead of the environment, so the
+-- token exists only in glab/nvim and never in every child process. OAuth access
+-- tokens expire, so make an authenticated glab call first: that is what makes
+-- glab refresh an expired token before it is read back.
 local function glab_token(host)
 	if vim.fn.executable("glab") == 0 then
 		return nil
 	end
-	local out = vim.fn.system({ "glab", "config", "get", "token", "--host", host })
-	if vim.v.shell_error ~= 0 then
+	vim.system({ "glab", "auth", "status", "--hostname", host }, { text = true, timeout = 10000 }):wait()
+	local result = vim.system({ "glab", "config", "get", "token", "--host", host }, { text = true }):wait()
+	if result.code ~= 0 then
 		return nil
 	end
-	out = vim.trim(out)
-	return out ~= "" and out or nil
+	local token = vim.trim(result.stdout or "")
+	return token ~= "" and token or nil
 end
 
 return {
@@ -49,7 +59,7 @@ return {
 		if vim.fn.executable("git") == 0 or vim.fn.executable("glab") == 0 then
 			return false
 		end
-		return gitlab_hosts[remote_host()] ~= nil
+		return gitlab_hosts()[remote_host()] ~= nil
 	end,
 	dependencies = {
 		"MunifTanjim/nui.nvim",
@@ -75,12 +85,12 @@ return {
 			auth_provider = function()
 				local token = glab_token(host)
 				if not token then
-					return nil,
-						nil,
-						("no glab credential for %s (run: glab auth login --hostname %s)"):format(
-							tostring(host),
-							tostring(host)
-						)
+					local err = ("no glab credential for %s (run: glab auth login --hostname %s)"):format(
+						tostring(host),
+						tostring(host)
+					)
+					vim.notify(err, vim.log.levels.ERROR)
+					return nil, nil, err
 				end
 				return token, "https://" .. host, nil
 			end,

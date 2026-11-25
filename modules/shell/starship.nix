@@ -230,12 +230,15 @@ in
     {
       options.modules.starship.enable = lib.mkEnableOption "Starship prompt";
       config = lib.mkIf config.modules.starship.enable {
-        home-manager.users.${config.modules.users.userName} = {
-          programs.starship = starshipCfg;
-        }
-        // lib.optionalAttrs (config ? stylix) {
-          stylix.targets.starship.enable = false;
-        };
+        home-manager.users = lib.genAttrs config.modules.users.homeUsers (
+          _:
+          {
+            programs.starship = starshipCfg;
+          }
+          // lib.optionalAttrs (config ? stylix) {
+            stylix.targets.starship.enable = false;
+          }
+        );
       };
     };
 

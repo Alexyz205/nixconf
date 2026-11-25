@@ -2,22 +2,26 @@
 
 ## Inventory
 
-| Flake output                             | Type          | Tier / notes                                                                                                              |
-| ---------------------------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| `nixosConfigurations.workstation`        | NixOS desktop | `desktop` tier, disko + LUKS, NVIDIA, niri                                                                                |
-| `nixosConfigurations.headless-worker`    | NixOS server  | `server` tier, disko + btrfs, systemd-networkd                                                                            |
-| `nixosConfigurations.backup-nas`         | NixOS NAS     | WTR production layout: `base` tier + ZFS/NFSv4/SFTP/restic/snapshots/NUT; see `proxmox-infra/hardware/nas-build-plan.md`  |
-| `nixosConfigurations.backup-nas-minimal` | NixOS NAS     | **Current test NAS** (`192.168.1.113`): ZFS/NFSv4/SFTP/restic with key-only root (no password); no base/home-manager tier |
-| `nixosConfigurations.proxmox-vm`         | NixOS VM      | minimal (`nix`, `users`, `ssh`), qemu-guest + cloud-init                                                                  |
-| `nixosConfigurations.installer-iso`      | USB ISO       | guided installer (`nixos-installer`)                                                                                      |
-| `darwinConfigurations.macbook`           | nix-darwin    | Homebrew + Ghostty                                                                                                        |
-| `homeConfigurations.*`                   | standalone HM | `alexis@linux`, `alexis@macos`, `alexis.pigeon@RNSL-APIGEON5`, `alexis@server`, `root@container`, `vscode@container`      |
-| `deploy.nodes.headless-worker`           | deploy-rs     | push a locally built closure to the server                                                                                |
+| Flake output                             | Type          | Tier / notes                                                                                                                                                                                |
+| ---------------------------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `nixosConfigurations.workstation`        | NixOS desktop | `desktop` tier, disko + LUKS, NVIDIA, niri                                                                                                                                                  |
+| `nixosConfigurations.rnsw-apigeon1`      | NixOS desktop | `desktop` tier, disko + LUKS on both NVMe (2 TB system + 512 GB `/data`), RTX 4090 (driver 620), Take-Two corporate stack; `alexis.pigeon` is the default session, `alexis` the local admin |
+| `nixosConfigurations.headless-worker`    | NixOS server  | `server` tier, disko + btrfs, systemd-networkd                                                                                                                                              |
+| `nixosConfigurations.backup-nas`         | NixOS NAS     | WTR production layout: `base` tier + ZFS/NFSv4/SFTP/restic/snapshots/NUT; see `proxmox-infra/hardware/nas-build-plan.md`                                                                    |
+| `nixosConfigurations.backup-nas-minimal` | NixOS NAS     | **Current test NAS** (`192.168.1.113`): ZFS/NFSv4/SFTP/restic with key-only root (no password); no base/home-manager tier                                                                   |
+| `nixosConfigurations.proxmox-vm`         | NixOS VM      | minimal (`nix`, `users`, `ssh`), qemu-guest + cloud-init                                                                                                                                    |
+| `nixosConfigurations.installer-iso`      | USB ISO       | guided installer (`nixos-installer`)                                                                                                                                                        |
+| `darwinConfigurations.macbook`           | nix-darwin    | Homebrew + Ghostty                                                                                                                                                                          |
+| `homeConfigurations.*`                   | standalone HM | `alexis@linux`, `alexis@macos`, `alexis.pigeon@RNSL-APIGEON5`, `alexis@server`, `root@container`, `vscode@container`                                                                        |
+| `deploy.nodes.headless-worker`           | deploy-rs     | push a locally built closure to the server                                                                                                                                                  |
 
 Hosts are composed from tiers defined in `modules/flake/nixos.nix`: the tier
 module imports each feature **and** enables it with `mkDefault`, so a host file
 only lists deltas. Disable a tier feature with a plain `modules.<name>.enable =
 false`, or override its settings (`modules.sops.useYubikey = false`).
+
+The corporate workstation has its own install + enrollment runbook:
+[docs/rnsw-apigeon1.md](rnsw-apigeon1.md).
 
 ## Rebuild
 
@@ -114,12 +118,52 @@ sudo systemctl restart nix-daemon
 ## Secrets
 
 ```bash
-sec    # sops $NIXCONF/secrets/secrets.yaml   (rendered into CLI configs, not exported)
+sec    # sops $NIXCONF/secrets/secrets.yaml   (personal host secrets)
+sece   # sops $NIXCONF/secrets/corp.yaml      (corporate host secrets)
+secx   # sops <file>                          (same key, any sops file, e.g. corp.yaml)
 ```
 
-`secrets/secrets.yaml` is the only sops file and the default for every host:
-CLI credentials, the Nextcloud password, and the restic credentials all live
-there, so `sops.secrets.<NAME> = { }` needs no `sopsFile`.
+The three aliases use `modules.sops.interactiveAgeKeyFile`, which defaults to the
+YubiKey identity when `useYubikey = true` (touch required, cached 15 s) and to
+`modules.sops.ageKeyFile` otherwise. `modules.sops.ageKeyFile` stays the identity
+used by unattended activation, so a host can boot with a software key and still
+edit secrets with the YubiKey.
+
+`secrets/secrets.yaml` is the default sops file for every host that does not
+override `modules.sops.secretsFile`: the Nextcloud password and the restic
+credentials live there, so `sops.secrets.<NAME> = { }` needs no `sopsFile`.
+Corporate hosts pin `modules.sops.secretsFile` to `secrets/corp.yaml` (LDAP bind
+password, NAS, Nessus and SentinelOne keys) and declare those secrets with an
+explicit `sopsFile = ../../secrets/corp.yaml`.
+
+Git `user.name`/`user.email` and the GitLab/GitHub credentials are **not** sops
+secrets. `modules/dev/git.nix` switches identity by directory (`~/repos/work/`,
+`~/repos/personal/`), and `gh`/`glab` keep their tokens in the OS keyring after a
+one-time login:
+
+```bash
+gh auth login --hostname github.com --git-protocol https --web \
+  --scopes "repo,read:org,gist,workflow"
+glab auth login --hostname gitlab.alexyz.org --web
+glab auth login --hostname git.dxyz.pro --web
+# Self-managed OAuth app: redirect http://localhost:7171/auth/redirect,
+# Confidential off, scopes openid profile read_user write_repository api.
+glab config set client_id <application-id> --host git.dxyz.pro
+# The login flow defaults ssh_hostname to github.com.
+glab config set ssh_hostname git.dxyz.pro --host git.dxyz.pro
+```
+
+Only the machine that runs the login can use that host; the repo, sops files and
+Nix store contain no CLI token. Run `gh auth status` / `glab auth status --all`
+to verify. GitLab OAuth access tokens expire and are renewed by the next
+authenticated `glab` call, which is also what `gitlab.nvim` relies on.
+
+`modules.users.homeUsers` lists every account that gets a home-manager profile.
+On `rnsw-apigeon1` it is `[ "alexis" "alexis.pigeon" ]`, so both accounts get
+the same feature modules. The sops identity differs: `alexis` uses the rnsw
+software key for unattended `corp.yaml` access, while `alexis.pigeon` uses the
+YubiKey identity (`modules.sops.interactiveYubikey = true`), so `sec`/`sece`
+work with a touch and no private key is copied into the corporate home.
 
 After adding a recipient or editing from a machine other than the YubiKey host,
 re-key with `sops updatekeys secrets/secrets.yaml`. The former split

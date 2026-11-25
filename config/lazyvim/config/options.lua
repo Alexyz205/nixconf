@@ -8,6 +8,10 @@ opt.updatetime = 200
 g.snacks_animate = false
 g.lazyvim_python_lsp = "basedpyright"
 
+-- GitLab instances glab is logged in to. Kept here so the dashboard panes and
+-- the gitlab.nvim spec share one list.
+g.nixconf_gitlab_hosts = { "git.dxyz.pro", "gitlab.alexyz.org" }
+
 vim.filetype.add({ extension = { ino = "cpp" } })
 
 -- Keep swap files for crash recovery, but out of the project tree.

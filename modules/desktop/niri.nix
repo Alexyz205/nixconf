@@ -250,6 +250,30 @@ let
             props."allow-when-locked" = true;
             content.spawn-sh = "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle";
           };
+
+          # Transport. niri maps none of these by default, so both the keyboard
+          # media keys and the AVRCP buttons of a Bluetooth headset are dropped
+          # without an explicit bind (playerctl drives the active MPRIS player).
+          "XF86AudioPlay" = _: {
+            props."allow-when-locked" = true;
+            content.spawn-sh = "${pkgs.lib.getExe pkgs.playerctl} play-pause";
+          };
+          "XF86AudioPause" = _: {
+            props."allow-when-locked" = true;
+            content.spawn-sh = "${pkgs.lib.getExe pkgs.playerctl} play-pause";
+          };
+          "XF86AudioStop" = _: {
+            props."allow-when-locked" = true;
+            content.spawn-sh = "${pkgs.lib.getExe pkgs.playerctl} stop";
+          };
+          "XF86AudioPrev" = _: {
+            props."allow-when-locked" = true;
+            content.spawn-sh = "${pkgs.lib.getExe pkgs.playerctl} previous";
+          };
+          "XF86AudioNext" = _: {
+            props."allow-when-locked" = true;
+            content.spawn-sh = "${pkgs.lib.getExe pkgs.playerctl} next";
+          };
         };
 
         layout = {
@@ -385,6 +409,7 @@ in
       };
       config = lib.mkIf config.modules.niri.enable {
         programs.niri.enable = true;
+        environment.systemPackages = [ pkgs.playerctl ];
         programs.niri.package = mkNiri {
           inherit pkgs;
           settings = config.modules.niri.settings;

@@ -131,11 +131,14 @@ let
         };
         # Base SSH client config for every home-manager NixOS host.
         sharedModules = [ sshClient ];
-        users.${config.modules.users.userName} = {
-          home.stateVersion = stateVersion;
+        # Every interactive account gets the same skeleton: state version, the
+        # latest Nix, and the SSH client module. Hosts with more than one
+        # account opt in through modules.users.homeUsers.
+        users = lib.genAttrs config.modules.users.homeUsers (_: {
+          home.stateVersion = lib.mkDefault stateVersion;
           nix.package = lib.mkForce pkgs.nixVersions.latest;
-          modules.ssh.enable = true;
-        };
+          modules.ssh.enable = lib.mkDefault true;
+        });
       };
     };
 in

@@ -21,6 +21,10 @@ let
           wakeonlan
           tokei
           sd
+          zip
+          unzip
+          p7zip
+          unrar
         ];
         # Nix ecosystem power tools: rebuilds/diffs, build output, closure
         # inspection, run-anything and command-not-found.

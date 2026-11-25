@@ -23,9 +23,12 @@ in
       options.modules.devenv.enable = lib.mkEnableOption "devenv native auto-activation";
       config = lib.mkIf config.modules.devenv.enable {
         environment.systemPackages = [ pkgs.devenv ];
-        home-manager.users.${config.modules.users.userName} = homeCfg {
-          inherit pkgs lib;
-        };
+        home-manager.users = lib.genAttrs config.modules.users.homeUsers (
+          _:
+          homeCfg {
+            inherit pkgs lib;
+          }
+        );
       };
     };
 

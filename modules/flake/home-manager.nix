@@ -12,7 +12,6 @@ let
     nix
     shell
     git
-    bitwarden
     ssh
     bat
     eza
@@ -32,6 +31,10 @@ let
   # Opt-in extras, each gated by its own `enable` option. Every extra follows
   # the same shape: the feature module + the flag that switches it on.
   extras = with config.nixconf.modules.homeManager; {
+    bitwarden = [
+      bitwarden
+      { modules.bitwarden.enable = true; }
+    ];
     sops = [
       inputs.sops-nix.homeManagerModules.sops
       sops
@@ -158,6 +161,7 @@ let
   # Tier 2 — personal machines: the default set plus the personal-only apps.
   personalExtra =
     defaultExtra
+    ++ extras.bitwarden
     ++ extras.claude
     ++ extras.thunderbird
     ++ extras.nextcloud
@@ -180,7 +184,15 @@ let
     ++ extras.freecad
     ++ extras.blender
     ++ [
+      {
+        modules.git = {
+          userName = "Alexis Pigeon";
+          userEmail = "alexis.pigeon@take2games.com";
+        };
+        modules.gitlab.hosts = [ "git.dxyz.pro" ];
+      }
       { modules.opencode.mcp.freecad.enable = true; }
+      { modules.chromium.okta = true; }
     ];
 
   # macOS can't run the Linux-only packages (artcraft/youtube-music,
@@ -192,6 +204,7 @@ let
     ++ extras.ghostty
     ++ extras.containers
     ++ extras.gitlab
+    ++ extras.bitwarden
     ++ [ { modules.packages.desktop = true; } ];
 
   # Required for standalone home-manager on non-NixOS Linux: wires nix.sh into
@@ -234,7 +247,6 @@ let
             shell.enable = true;
             ssh.enable = true;
             git.enable = true;
-            bitwarden.enable = true;
             bat.enable = true;
             eza.enable = true;
             diskusage.enable = true;
@@ -329,7 +341,7 @@ in
       username = "alexis";
       homeDirectory = "/home/alexis";
       hmProfile = "alexis@server";
-      extra = extras.sops;
+      extra = extras.sops ++ extras.bitwarden;
     };
   }
   // containerConfigs;

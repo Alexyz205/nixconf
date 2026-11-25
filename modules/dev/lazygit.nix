@@ -55,7 +55,8 @@ in
       options.modules.lazygit.enable = lib.mkEnableOption "Lazygit";
       config = lib.mkIf config.modules.lazygit.enable {
         environment.systemPackages = [ pkgs.lazygit ];
-        home-manager.users.${config.modules.users.userName} =
+        home-manager.users = lib.genAttrs config.modules.users.homeUsers (
+          _:
           homeCfg
           // lib.optionalAttrs (config ? stylix) {
             # We ship our own catppuccin theme; stylix's lazygit target would
@@ -63,7 +64,8 @@ in
             # merge), producing doubled/duplicated colors. Same guard as
             # yazi/starship/bat.
             stylix.targets.lazygit.enable = false;
-          };
+          }
+        );
       };
     };
 

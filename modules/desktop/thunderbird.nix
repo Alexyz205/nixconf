@@ -117,11 +117,14 @@ in
     {
       options.modules.thunderbird = thunderbirdOptions;
       config = lib.mkIf config.modules.thunderbird.enable {
-        home-manager.users.${config.modules.users.userName} = mkHmCfg {
-          inherit pkgs;
-          email = config.modules.thunderbird.email;
-          realName = config.modules.thunderbird.realName;
-        };
+        home-manager.users = lib.genAttrs config.modules.users.homeUsers (
+          _:
+          mkHmCfg {
+            inherit pkgs;
+            email = config.modules.thunderbird.email;
+            realName = config.modules.thunderbird.realName;
+          }
+        );
       };
     };
 

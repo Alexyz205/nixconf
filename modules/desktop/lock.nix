@@ -18,7 +18,8 @@ in
         # wire this up, but niri does not, so without it unlocking always fails.
         security.pam.services.hyprlock = { };
 
-        home-manager.users.${config.modules.users.userName} =
+        home-manager.users = lib.genAttrs config.modules.users.homeUsers (
+          _:
           let
             hyprlock = "${lib.getExe pkgs.hyprlock} --no-fade-in --immediate-render";
             niri = lib.getExe pkgs.niri;
@@ -215,7 +216,8 @@ in
                 after-resume = "${niri} msg action power-on-monitors";
               };
             };
-          };
+          }
+        );
       };
     };
 }

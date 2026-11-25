@@ -562,15 +562,18 @@ in
     {
       options.modules.yazi.enable = lib.mkEnableOption "Yazi (terminal file manager)";
       config = lib.mkIf config.modules.yazi.enable {
-        home-manager.users.${config.modules.users.userName} = {
-          programs.yazi = lib.recursiveUpdate yaziCfg (mkYaziCfg {
-            inherit pkgs;
-          });
-          programs.zsh.shellAliases.ygr = "y \"$(git rev-parse --show-toplevel 2>/dev/null)\"";
-        }
-        // lib.optionalAttrs (config ? stylix) {
-          stylix.targets.yazi.enable = false;
-        };
+        home-manager.users = lib.genAttrs config.modules.users.homeUsers (
+          _:
+          {
+            programs.yazi = lib.recursiveUpdate yaziCfg (mkYaziCfg {
+              inherit pkgs;
+            });
+            programs.zsh.shellAliases.ygr = "y \"$(git rev-parse --show-toplevel 2>/dev/null)\"";
+          }
+          // lib.optionalAttrs (config ? stylix) {
+            stylix.targets.yazi.enable = false;
+          }
+        );
       };
     };
 

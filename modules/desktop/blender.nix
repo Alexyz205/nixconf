@@ -199,9 +199,11 @@ in
         enable = lib.mkEnableOption "Blender (official build, prebuilt Cycles CUDA/OptiX) and 3D-print addons";
       };
       config = lib.mkIf (config.modules.blender.enable && pkgs.stdenv.hostPlatform.isLinux) {
-        home-manager.users.${config.modules.users.userName} =
+        home-manager.users = lib.genAttrs config.modules.users.homeUsers (
+          _:
           { pkgs, lib, ... }:
-          homeCfg { inherit pkgs lib; };
+          homeCfg { inherit pkgs lib; }
+        );
       };
     };
 

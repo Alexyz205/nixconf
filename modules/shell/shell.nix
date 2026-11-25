@@ -187,8 +187,6 @@ let
               bold yellow => syntax "#6b635b"
             syntax-theme = Catppuccin Mocha
         '';
-        ".config/git/config-personal".source =
-          config.lib.file.mkOutOfStoreSymlink "${nixconf}/config/git/config-personal";
         ".config/eza/theme.yml".text = ''
           # Generated from config/theme/catppuccin-mocha.nix — do not edit by hand.
           colourful: true
@@ -346,8 +344,8 @@ in
         # $SHELL stays wrong.
         users.users.${config.modules.users.userName}.shell = pkgs.zsh;
         environment.systemPackages = with pkgs; [ git ];
-        home-manager.users.${config.modules.users.userName} = mkShellCfg (
-          baseAliases // lanAliases // nixAliases // nixosAliases
+        home-manager.users = lib.genAttrs config.modules.users.homeUsers (
+          _: mkShellCfg (baseAliases // lanAliases // nixAliases // nixosAliases)
         );
       };
     };

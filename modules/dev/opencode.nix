@@ -69,12 +69,14 @@ in
       };
       config = lib.mkIf config.modules.opencode.enable {
         environment.systemPackages = [ pkgs.opencode ];
-        home-manager.users.${config.modules.users.userName} =
+        home-manager.users = lib.genAttrs config.modules.users.homeUsers (
+          _:
           { pkgs, lib, ... }:
           opencodeHome {
             inherit pkgs lib;
             mcp = config.modules.opencode.mcp;
-          };
+          }
+        );
       };
     };
 

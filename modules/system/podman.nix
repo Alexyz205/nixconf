@@ -23,6 +23,13 @@ _: {
             dates = "weekly";
           };
         };
+        # Corp images built from AD/idmap-mounted trees carry UIDs no subuid
+        # range can map (e.g. 1755687193:1755600513 in dxyzsdk), so rootless
+        # unpack dies with "potentially insufficient UIDs or GIDs". Squash
+        # unmapped IDs to the calling user instead of failing the pull.
+        # Rootless-only: rootful can chown arbitrary numeric IDs.
+        virtualisation.containers.storage.rootless.settings.storage.options.overlay.ignore_chown_errors =
+          "true";
       };
     };
 }

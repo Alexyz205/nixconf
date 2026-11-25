@@ -96,10 +96,13 @@ in
         # function directly), lazyvim also has to pull in the upstream
         # home-manager module, so the module value is `imports` merged with the
         # cfg attrset.
-        home-manager.users.${config.modules.users.userName} = {
-          imports = [ inputs.lazyvim.homeManagerModules.default ];
-        }
-        // homeCfg { inherit pkgs; };
+        home-manager.users = lib.genAttrs config.modules.users.homeUsers (
+          _:
+          {
+            imports = [ inputs.lazyvim.homeManagerModules.default ];
+          }
+          // homeCfg { inherit pkgs; }
+        );
       };
     };
 

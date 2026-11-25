@@ -179,15 +179,18 @@ in
             "dir_mode=0775"
           ];
         };
-        home-manager.users.${config.modules.users.userName} = mkNextcloudHome {
-          inherit
-            config
-            lib
-            pkgs
-            mountPoint
-            ;
-          backend = "systemd";
-        };
+        home-manager.users = lib.genAttrs config.modules.users.homeUsers (
+          _:
+          mkNextcloudHome {
+            inherit
+              config
+              lib
+              pkgs
+              mountPoint
+              ;
+            backend = "systemd";
+          }
+        );
       };
     };
 

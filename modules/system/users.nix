@@ -12,6 +12,16 @@ _: {
           type = lib.types.str;
           default = "alexis";
         };
+        homeUsers = lib.mkOption {
+          type = lib.types.listOf lib.types.str;
+          default = [ config.modules.users.userName ];
+          description = ''
+            Accounts that get a home-manager profile from the feature modules.
+            Defaults to the primary local user; hosts with a second interactive
+            account (e.g. rnsw-apigeon1's LDAP account) list both here so they
+            receive the same modules instead of a hand-maintained subset.
+          '';
+        };
         uid = lib.mkOption {
           type = lib.types.int;
           default = 1000;

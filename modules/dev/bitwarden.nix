@@ -109,9 +109,12 @@ in
           pkgs.bitwarden-cli
         ]
         ++ lib.optionals config.modules.bitwarden.desktop [ (mkBitwardenDesktop pkgs) ];
-        home-manager.users.${config.modules.users.userName} = mkCfg {
-          inherit config pkgs;
-        };
+        home-manager.users = lib.genAttrs config.modules.users.homeUsers (
+          _:
+          mkCfg {
+            inherit config pkgs;
+          }
+        );
       };
     };
 

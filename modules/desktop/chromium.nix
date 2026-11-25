@@ -3,14 +3,19 @@
   ...
 }:
 let
-  extensions = [
+  # Extensions every machine installs. Kept as `{ id }` attrsets so the
+  # home-manager module can consume them directly; the NixOS module flattens
+  # the IDs into the ExtensionInstallForcelist policy instead.
+  baseExtensions = [
     { id = "mnjggcdmjocbbbhaepohbliplgamfdfc"; } # SponsorBlock
-    { id = "eimadpbcbfnmbkopoojfekhnkhdbieeh"; } # Dark Reader
     { id = "dbepggeogbaibhgnhhndojpepiihcmeb"; } # Vimium
     { id = "bkkmolkhemgaeaeggcmfbghljjjoofoh"; } # Catppuccin Mocha theme
-    { id = "nngceckbapebfimnlniiiahkandclblb"; } # Bitwarden (Vaultwarden)
-    { id = "kgcjekpmcjjogibpjebkhaanilehneje"; } # Karakeep
   ];
+  # Okta Browser Plugin
+  oktaExtension = {
+    id = "glnpjglilkicbckjpbgcfkogebgllemb";
+  };
+  extensionId = ext: ext.id;
   bookmarks = [
     {
       name = "GitHub";
@@ -155,7 +160,11 @@ let
     version = 1;
   };
 
-  chromiumCfg =
+  mkChromiumCfg =
+    {
+      okta,
+      withExtensions,
+    }:
     {
       pkgs,
       config,
@@ -172,11 +181,24 @@ let
       programs.chromium = {
         enable = true;
         package = if isGenericLinux then null else pkgs.chromium;
-        inherit extensions;
+        # NixOS installs extensions through the ExtensionInstallForcelist
+        # system policy instead, so every account gets them, not just this
+        # home-manager user.
+        extensions = lib.optionals withExtensions (baseExtensions ++ lib.optionals okta [ oktaExtension ]);
       };
-      home.file.".config/chromium/Default/Bookmarks" = {
-        text = bookmarksJson;
-        force = true;
+      # Chromium's default download directory is ~/Downloads; declare the XDG
+      # download dir and create the folder so fresh/impermanent homes have it.
+      xdg.userDirs = {
+        enable = true;
+        download = "${config.home.homeDirectory}/Downloads";
+        createDirectories = false;
+      };
+      home.file = {
+        ".config/chromium/Default/Bookmarks" = {
+          text = bookmarksJson;
+          force = true;
+        };
+        "Downloads/.keep".text = "";
       };
       # Default browser: text/html and the http(s) scheme handlers. The nix
       # chromium package ships chromium-browser.desktop.
@@ -198,9 +220,62 @@ in
       ...
     }:
     {
-      options.modules.chromium.enable = lib.mkEnableOption "Chromium browser with Catppuccin Mocha theme";
+      options.modules.chromium = {
+        enable = lib.mkEnableOption "Chromium browser with Catppuccin Mocha theme";
+        okta = lib.mkEnableOption "Okta Browser Plugin extension";
+        startupUrls = lib.mkOption {
+          type = lib.types.listOf lib.types.str;
+          default = [ ];
+          description = ''
+            Pages opened on Chromium startup ("On startup: Open a specific page
+            or set of pages"). Enforced through system policy on NixOS, so every
+            account gets them and a manual "open last session" cannot override
+            the list. Left empty, the profile's own startup preference wins.
+          '';
+        };
+        extraExtensions = lib.mkOption {
+          type = lib.types.listOf lib.types.str;
+          default = [ ];
+          example = [ "nngceckbapebfimnlniiiahkandclblb" ];
+          description = ''
+            Extra extension IDs force-installed on top of the shared set,
+            through the ExtensionInstallForcelist system policy. Pass the 32
+            character ID from chrome://extensions, optionally followed by
+            ";<update manifest url>" for extensions outside the Chrome Web
+            Store.
+          '';
+        };
+      };
       config = lib.mkIf config.modules.chromium.enable {
-        home-manager.users.${config.modules.users.userName} = chromiumCfg;
+        # Extensions are mandatory: installed silently for every account and
+        # profile, and not removable from the UI. Home-manager only keeps the
+        # per-user files (bookmarks, Downloads, MIME handlers).
+        programs.chromium = {
+          enable = true;
+          extensions =
+            map extensionId baseExtensions
+            ++ lib.optional config.modules.chromium.okta (extensionId oktaExtension)
+            ++ config.modules.chromium.extraExtensions;
+          extraOpts = lib.optionalAttrs (config.modules.chromium.startupUrls != [ ]) {
+            RestoreOnStartup = 4; # Open a list of URLs
+            RestoreOnStartupURLs = config.modules.chromium.startupUrls;
+          };
+        }
+        # Download directory stays recommended, and its absolute per-user path
+        # is only safe on single-account hosts; multi-account hosts rely on
+        # Chromium's ~/Downloads default plus the XDG folder.
+        // lib.optionalAttrs (builtins.length (builtins.attrNames config.home-manager.users) == 1) {
+          extraOptsRecommended.DefaultDownloadDirectory = "${
+            config.users.users.${config.modules.users.userName}.home
+          }/Downloads";
+        };
+        home-manager.users = lib.genAttrs config.modules.users.homeUsers (
+          _:
+          mkChromiumCfg {
+            okta = config.modules.chromium.okta;
+            withExtensions = false;
+          }
+        );
       };
     };
 
@@ -212,9 +287,19 @@ in
       ...
     }:
     {
-      options.modules.chromium.enable = lib.mkEnableOption "Chromium browser with Catppuccin Mocha theme";
-      config = lib.mkIf config.modules.chromium.enable (chromiumCfg {
-        inherit pkgs config;
-      });
+      options.modules.chromium = {
+        enable = lib.mkEnableOption "Chromium browser with Catppuccin Mocha theme";
+        okta = lib.mkEnableOption "Okta Browser Plugin extension";
+      };
+      config = lib.mkIf config.modules.chromium.enable (
+        mkChromiumCfg
+          {
+            okta = config.modules.chromium.okta;
+            withExtensions = true;
+          }
+          {
+            inherit pkgs config;
+          }
+      );
     };
 }

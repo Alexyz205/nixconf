@@ -48,7 +48,7 @@ gum style \
 echo
 
 step "Selecting host"
-HOST=$(gum choose --header "Which host to install?" headless-worker workstation)
+HOST=$(gum choose --header "Which host to install?" headless-worker workstation rnsw-apigeon1)
 ok "Selected host: $HOST"
 
 USERNAME=$(nix eval "$FLAKE_DIR#$HOST.config.modules.users.userName" --raw 2>/dev/null || echo "alexis")
@@ -235,8 +235,19 @@ ok "Flake copied to /mnt/etc/nixos"
 
 echo
 step "Setting password for $USERNAME"
-echo "$USERNAME:$PASSWD" | chpasswd -R /mnt
-ok "Password set for $USERNAME"
+# Hosts with an ephemeral root keep the hash on /persistent instead of
+# /etc/shadow (hashedPasswordFile), so chpasswd would be lost at the next boot.
+HASH_FILE=$(nix eval --json "$FLAKE_DIR#$HOST.config.modules.users.hashedPasswordFile" 2>/dev/null || echo null)
+if [[ $HASH_FILE != null && -n $HASH_FILE ]]; then
+  HASH_FILE=${HASH_FILE//\"/}
+  mkdir -p "/mnt$(dirname "$HASH_FILE")"
+  openssl passwd -6 "$PASSWD" >"/mnt$HASH_FILE"
+  chmod 600 "/mnt$HASH_FILE"
+  ok "Password hash written to $HASH_FILE"
+else
+  echo "$USERNAME:$PASSWD" | chpasswd -R /mnt
+  ok "Password set for $USERNAME"
+fi
 
 echo
 step "Making sure home directory is owned by $USERNAME"
@@ -244,6 +255,20 @@ mkdir -p "/mnt/home/$USERNAME/.config"
 chown -R "$USER_UID:$USER_GID" "/mnt/home/$USERNAME"
 ok "Home directory owned by $USERNAME ($USER_UID:$USER_GID)"
 
+echo
+step "SOPS age key (optional)"
+info "Hosts using modules.sops need an age key; without it only local login works."
+info "For rnsw-apigeon1 that is the generated rnsw-apigeon1.key file."
+KEY_SRC=$(gum input --placeholder "Path to the age key file (empty to skip)")
+if [[ -n $KEY_SRC && -f $KEY_SRC ]]; then
+  install -Dm600 "$KEY_SRC" "/mnt/home/$USERNAME/.config/sops/age/keys.txt"
+  chown -R "$USER_UID:$USER_GID" "/mnt/home/$USERNAME/.config/sops"
+  ok "sops age key installed for $USERNAME"
+else
+  warn "No key copied: place it at ~/.config/sops/age/keys.txt and run 'sudo systemctl restart sops-install-secrets'"
+fi
+
+echo
 if [[ $USE_YUBIKEY == "Yes" ]]; then
   echo
   step "Provisioning YubiKey PAM mapping for login/sudo"

@@ -221,8 +221,16 @@ let
         bind p previous-window
         bind -n C-Tab next-window
         bind -n C-S-Tab previous-window
+        # Catppuccin styles only menu-selected-style; tmux >= 3.6 defaults the
+        # rest to theme-aware greys (themedarkgrey), which look off-theme.
+        set -g menu-style "fg=${palette.text},bg=${palette.surface0}"
+        set -g menu-border-style "fg=${palette.overlay0},bg=${palette.surface0}"
+        set -g menu-selected-style "fg=${palette.crust},bg=${palette.mauve},bold"
         bind C-g display-popup -d "#{pane_current_path}" -w 80% -h 80% -E "lazygit"
         bind C-n display-popup -d "#{pane_current_path}" -w 50% -h 25% -T "New session" -E 'exec bash ${../../config/tmux/nixconf-menu.sh} new-session'
+        # prefix+s names a new session and jumps to it, leaving the current
+        # session running. prefix+f stays the window/session switcher.
+        bind s display-popup -d "#{pane_current_path}" -w 50% -h 25% -T "New session" -E 'exec bash ${../../config/tmux/nixconf-menu.sh} new-session'
         bind C-y display-popup -d "#{pane_current_path}" -w 90% -h 90% -E "yazi"
         bind C-t display-popup -d "#{pane_current_path}" -w 75% -h 75% -E "zsh"
         bind r display-popup -w 70% -h 60% -E "${pkgs.writeShellScript "repo-switcher" ''
@@ -246,8 +254,7 @@ let
           "Sessions"     s "display-popup -d '#{pane_current_path}' -E 'exec bash ${../../config/tmux/nixconf-menu.sh} sessions'" \
           "Lazygit"      l "display-popup -d '#{pane_current_path}' -w 80% -h 60% -E 'exec bash ${../../config/tmux/nixconf-menu.sh} lazygit'" \
           "Yazi"         y "display-popup -d '#{pane_current_path}' -w 80% -h 60% -E 'exec bash ${../../config/tmux/nixconf-menu.sh} yazi'" \
-          "SSH host"     h "display-popup -w 70% -h 60% -E 'exec bash ${../../config/tmux/nixconf-menu.sh} ssh'" \
-          "Exit"         q ""
+          "SSH host"     h "display-popup -w 70% -h 60% -E 'exec bash ${../../config/tmux/nixconf-menu.sh} ssh'"
         set -g set-titles on
         set -g set-titles-string "#S - #W"
         set -g status-position top
@@ -268,12 +275,12 @@ in
     {
       options.modules.tmux.enable = lib.mkEnableOption "Tmux";
       config = lib.mkIf config.modules.tmux.enable {
-        home-manager.users.${config.modules.users.userName} = {
+        home-manager.users = lib.genAttrs config.modules.users.homeUsers (_: {
           programs.tmux = tmuxCfg { inherit pkgs; };
           xdg.configFile."tmux/nested.conf".text = nestedConf;
           programs.zsh.shellAliases = tmuxAliases;
           home.packages = tmuxDeps { inherit lib pkgs; };
-        };
+        });
       };
     };
 

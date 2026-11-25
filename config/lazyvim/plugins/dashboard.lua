@@ -9,10 +9,13 @@ local function get_remote_url()
 	return remote_url_cache
 end
 
-local gitlab_hosts = {
-	["git.dxyz.pro"] = true,
-	["gitlab.alexyz.org"] = true,
-}
+local function gitlab_hosts()
+	local hosts = {}
+	for _, host in ipairs(vim.g.nixconf_gitlab_hosts or {}) do
+		hosts[host] = true
+	end
+	return hosts
+end
 
 local function remote_host()
 	local url = get_remote_url()
@@ -21,7 +24,7 @@ end
 
 local function is_gitlab()
 	local host = remote_host():gsub("^.*@", ""):gsub(":.*$", "")
-	return gitlab_hosts[host] == true and LazyVim.has("gitlab.nvim")
+	return gitlab_hosts()[host] == true and LazyVim.has("gitlab.nvim")
 end
 
 local function is_github()

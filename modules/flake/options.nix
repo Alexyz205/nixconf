@@ -58,6 +58,8 @@ in
         "vesktop"
         "nvidia-x11"
         "nvidia-settings"
+        # RAR extraction from yazi.
+        "unrar"
       ];
       description = "Package names allowed through nixpkgs' unfree check on every host and profile.";
     };

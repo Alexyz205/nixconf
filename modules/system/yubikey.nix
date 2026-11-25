@@ -116,8 +116,9 @@ in
         users.users.${config.modules.users.userName}.openssh.authorizedKeys.keys =
           lib.mkIf config.modules.yubikey.sshKey
             [ (lib.trim (builtins.readFile yubiPub)) ];
-        home-manager.users.${config.modules.users.userName} =
-          lib.mkIf config.modules.yubikey.sshKey yubiCfg;
+        home-manager.users = lib.genAttrs config.modules.users.homeUsers (
+          _: lib.mkIf config.modules.yubikey.sshKey yubiCfg
+        );
       };
     };
 

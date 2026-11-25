@@ -7,6 +7,14 @@ vim.filetype.add({
 
 return {
 	{
+		-- Snacks' picker preview calls `render-markdown.render()` after a bare
+		-- `require`, which on lazyvim-nix resolves the dev-path module without
+		-- running the plugin's setup; state.config is still nil there and the
+		-- call crashes. Load eagerly so setup always precedes Snacks.
+		"MeanderingProgrammer/render-markdown.nvim",
+		lazy = false,
+	},
+	{
 		-- LazyVim's cmake extra expects neocmakelsp, which nixpkgs doesn't ship.
 		-- Use the packaged cmake-language-server instead.
 		"neovim/nvim-lspconfig",

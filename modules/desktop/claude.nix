@@ -39,7 +39,7 @@ in
         environment.systemPackages = [
           inputs.claude-desktop.packages.${pkgs.stdenv.hostPlatform.system}.default
         ];
-        home-manager.users.${config.modules.users.userName} = homeConfig { inherit pkgs; };
+        home-manager.users = lib.genAttrs config.modules.users.homeUsers (_: homeConfig { inherit pkgs; });
       };
     };
 

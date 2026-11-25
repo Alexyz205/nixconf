@@ -48,6 +48,8 @@ let
                 # Required for hardware.nvidia to actually activate: the module is
                 # gated on "nvidia" being listed here (nvidia.nix: nvidiaEnabled).
                 videoDrivers = [ "nvidia" ];
+                # xserver pulls xterm into systemPackages; Ghostty is the terminal.
+                excludePackages = [ pkgs.xterm ];
               };
               # Disable TTS service: the graphical-desktop default enables
               # speech-dispatcher (pulls mbrola/espeak/flite, ~890MB, unused here).
@@ -170,6 +172,15 @@ let
             };
 
             modules = {
+              # Personal machine: commit as the personal identity by default;
+              # repositories under ~/repos/work/ switch to the work identity.
+              git = {
+                userName = "Alexyz205";
+                userEmail = "anathos205@gmail.com";
+              };
+              # Only the personal GitLab is authenticated on this host; a work
+              # repository still gets the right identity but no work credential.
+              gitlab.hosts = [ "gitlab.alexyz.org" ];
               # Host-specific deltas only: the desktop tier enables the base,
               # server and desktop feature set (see modules/flake/nixos.nix).
               # BBR + fq + larger buffers, and disable EEE on the Intel I226-V
@@ -178,6 +189,15 @@ let
                 enable = true;
                 interface = lan.workstation.interface;
               };
+              # Browser extensions: the shared set (SponsorBlock, Vimium,
+              # Catppuccin theme) force-installs everywhere, these are
+              # personal-machine only. uBlock Origin proper is Manifest V2 and
+              # no longer loads in current Chromium, so use uBO Lite (MV3).
+              chromium.extraExtensions = [
+                "nngceckbapebfimnlniiiahkandclblb" # Bitwarden (Vaultwarden)
+                "kgcjekpmcjjogibpjebkhaanilehneje" # Karakeep
+                "ddkjiahejlhfcafbddmgiahcphecmpfh" # uBlock Origin Lite
+              ];
               # S3 (deep) makes NIC wake-on-LAN reliable; the lock module
               # suspends after 15 min idle and WoL resumes it.
               wakeOnLan.sleepState = "deep";
@@ -348,7 +368,7 @@ let
 
             home-manager.users.${config.modules.users.userName} = {
               # Same software age key as the NixOS side (see modules.sops above):
-              # decrypts the gh/glab credentials and the sec alias on this host.
+              # decrypts secrets.yaml and backs the sec alias on this host.
               modules.sops.ageKeyFile = "/home/alexis/.config/sops/age/keys.txt";
               modules.sops.useYubikey = false;
               services.cliphist = {

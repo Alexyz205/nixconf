@@ -111,13 +111,15 @@ _: {
           environment.systemPackages = [ (mkBtop pkgs cudaSupport) ];
           # Hand home-manager its own module args; carry the NixOS-side
           # cudaSupport across so both sides build the same btop.
-          home-manager.users.${config.modules.users.userName} =
+          home-manager.users = lib.genAttrs config.modules.users.homeUsers (
+            _:
             {
               pkgs,
               config,
               ...
             }:
-            btopCfg { inherit pkgs config cudaSupport; };
+            btopCfg { inherit pkgs config cudaSupport; }
+          );
         }
       );
     };

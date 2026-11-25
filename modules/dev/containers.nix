@@ -68,7 +68,7 @@ in
           devpod
           docker-compose
         ];
-        home-manager.users.${config.modules.users.userName} = homeConfig { inherit pkgs; };
+        home-manager.users = lib.genAttrs config.modules.users.homeUsers (_: homeConfig { inherit pkgs; });
       };
     };
 

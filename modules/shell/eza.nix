@@ -34,7 +34,7 @@ _: {
       options.modules.eza.enable = lib.mkEnableOption "Eza";
       config = lib.mkIf config.modules.eza.enable {
         environment.systemPackages = [ pkgs.eza ];
-        home-manager.users.${config.modules.users.userName} = homeCfg;
+        home-manager.users = lib.genAttrs config.modules.users.homeUsers (_: homeCfg);
       };
     };
 

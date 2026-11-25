@@ -16,7 +16,7 @@ end; their configuration lives in their own feature modules.
 | `modules/system/*`         | boot, disko, sops, SSH, YubiKey, monitoring, backup, Secure Boot, Wake-on-LAN                                | NixOS                |
 | `devenv.nix`               | only this repo's build/test prerequisites                                                                    | repo dev shell       |
 | per-project `devenv.nix`   | compilers, Terraform, kubectl, Helm, language runtimes                                                       | each project         |
-| flake inputs               | `pkgs.opencode`, custom ArtCraft/niri/cap packages                                                           | flake                |
+| flake inputs               | `pkgs.opencode`, custom ArtCraft/niri packages                                                               | flake                |
 
 The package groups are toggles:
 
@@ -66,6 +66,8 @@ by the host/profile tiers.
 | `wakeonlan`      | `wol <MAC>`: send a Wake-on-LAN magic packet                         |
 | `tokei`          | Code statistics by language (files, code, comments, blanks)          |
 | `sd`             | Simpler, faster `sed` for find/replace with literal/regex            |
+| `zip`, `unzip`   | Zip creation/extraction                                              |
+| `7z`, `unrar`    | 7z (`p7zip`) and RAR (`unrar`, unfree) archive handling              |
 
 ## Nix ecosystem
 
@@ -145,15 +147,15 @@ These are installed globally so LazyVim/OpenCode and any editor find them on
 | Ansible   | `ansible-language-server`                                       | —           | `ansible-lint`      |
 | Helm      | `helm-ls`                                                       | —           | —                   |
 
-`devenv.nix` in this repo additionally installs the repo-only quality tools
-(`shellcheck`, `nixfmt`, `shfmt`, `statix`, `deadnix`, `stylua`, `luacheck`,
-`actionlint`, `gitleaks`, `yamllint`, `trivy`, `tokei`).
+`devenv.nix` in this repo installs only the test prerequisites (`disko`,
+`shellcheck`); the formatters, LSPs and linters above come from the global
+`packages.lsp`/`ciSecurity` groups, and the git hooks bring their own tools.
 
 ## Secrets and identity
 
 | Tool                            | Purpose                                                                              |
 | ------------------------------- | ------------------------------------------------------------------------------------ |
-| `sops`                          | Edit/decrypt encrypted YAML (`secrets/secrets.yaml`)                                 |
+| `sops`                          | Edit/decrypt encrypted YAML (`secrets/secrets.yaml`, `secrets/corp.yaml`)            |
 | `age`                           | Modern encryption used by sops; YubiKey plugin for hardware identity                 |
 | `age-plugin-yubikey`            | Age identity backed by the YubiKey                                                   |
 | `gnupg`                         | GPG keys/signing where needed                                                        |
@@ -161,10 +163,15 @@ These are installed globally so LazyVim/OpenCode and any editor find them on
 | `ssh`, `ssh-keygen`             | SSH keys, resident FIDO2 keys, initrd/remote access                                  |
 | `pamu2fcfg`, `pam_u2f`, `ykman` | FIDO2 enrollment, sudo/login/U2F mapping, YubiKey management                         |
 | `bitwarden` (`bw` + desktop)    | Password manager / CLI                                                               |
+| `gh`, `glab`                    | GitHub/GitLab CLIs; credentials come from interactive login, not sops                |
 
 Rules: never print or commit plaintext secrets; `sec` edits
-`secrets/secrets.yaml`; decryption needs the YubiKey except on the workstation
-(software age key).
+`secrets/secrets.yaml` and `sece` edits `secrets/corp.yaml`; decryption needs
+the YubiKey except on the workstation (software age key). `gh auth login` and
+`glab auth login` store their token in the OS keyring (or their own 0600 config
+when no keyring runs); the repo only wires the non-secret credential helpers.
+Git identity follows the directory tree: `~/repos/work/` is work,
+`~/repos/personal/` is personal.
 
 ## Containers, infrastructure and AI
 
@@ -178,6 +185,12 @@ Rules: never print or commit plaintext secrets; `sec` edits
 | `uv`                  | Fast Python installer/resolver (with OpenCode MCP / personal profiles)         |
 | `opencode`            | AI coding agent; config in `config/opencode`, MCP servers                      |
 | `nvim` (LazyVim)      | Editor with the LSP/formatter set above, gitlab.nvim, yazi.nvim, opencode.nvim |
+
+Rootless podman loads `storage.rootless.conf.d/10-nixos-rootless.conf` with
+`overlay.ignore_chown_errors = "true"`. Layers carrying UIDs/GIDs no subuid range
+can map (corp images built from AD/idmapped trees, e.g. `dxyzsdk`) then unpack
+with those IDs squashed to the calling user instead of failing the pull with
+"potentially insufficient UIDs or GIDs". Rootful is untouched.
 
 ## System operations
 
@@ -198,7 +211,6 @@ Pre-commit (fast, staged):
 - `nixfmt`, `shfmt`, `statix`, `deadnix`, `shellcheck`, `luacheck`, `stylua`
 - `markdownlint-cli2`, `ruff check`, `ruff format`
 - `actionlint`, `yamllint`, `gitleaks`
-- `hadolint`, `tflint`, `ansible-lint`, `gersemi` (only when matching files exist)
 
 Pre-push:
 
@@ -272,7 +284,7 @@ allowlist is deliberate and documented here.
 ## Desktop applications (not dev tools)
 
 The desktop modules install Chromium, Claude, Discord, Steam/Heroic, Prism,
-Moonlight (moonshine), Thunderbird, YouTube Music, Cap, GitLab tooling, imv,
+Moonlight (moonshine), Thunderbird, YouTube Music, GitLab tooling, imv,
 ArtCraft (Photo/Light/PDF/Film/Word/Grid/Cad/Deck/SoundCraft), Blender and
 FreeCAD. They are enabled by the `desktop` tier and the `personalExtra`/`workExtra`
 profiles; see their modules for details. `vlc` is Linux-only; macOS gets a
