@@ -64,6 +64,10 @@ let
       chromium
       { modules.chromium.enable = true; }
     ];
+    rdp = [
+      rdp
+      { modules.rdp.enable = true; }
+    ];
     claude = [
       claude
       { modules.claude.enable = true; }
@@ -152,6 +156,7 @@ let
     ++ extras.gitlab
     ++ extras.youtubeMusic
     ++ extras.chromium
+    ++ extras.rdp
     ++ artcraft
     ++ [
       { modules.packages.desktop = true; }

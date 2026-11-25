@@ -37,7 +37,7 @@ _tv_smart_autocomplete() {
 	local -a triggers=(
 		alias unalias export unset cd ls rmdir z
 		cat less head tail vim nvim nano bat cp mv rm touch chmod chown ln
-		tar zip unzip gzip gunzip xz
+		tar
 		docker git code hx
 	)
 

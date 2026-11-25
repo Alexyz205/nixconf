@@ -5,7 +5,6 @@
 }:
 let
   system = "x86_64-linux";
-  flakeConfig = config;
   features = config.nixconf.nixosFeatures.desktop;
   mkHostCommon = config.nixconf.mkHostCommon;
   palette = import ../../config/theme/catppuccin-mocha.nix;
@@ -39,7 +38,6 @@ let
             ...
           }:
           {
-            nixpkgs.config.allowUnfreePredicate = flakeConfig.nixconf.allowUnfreePredicate;
             disko.devices.disk.main.device = diskDevice;
 
             services = {

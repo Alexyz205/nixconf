@@ -66,8 +66,7 @@ by the host/profile tiers.
 | `wakeonlan`      | `wol <MAC>`: send a Wake-on-LAN magic packet                         |
 | `tokei`          | Code statistics by language (files, code, comments, blanks)          |
 | `sd`             | Simpler, faster `sed` for find/replace with literal/regex            |
-| `zip`, `unzip`   | Zip creation/extraction                                              |
-| `7z`, `unrar`    | 7z (`p7zip`) and RAR (`unrar`, unfree) archive handling              |
+| `7z`, `tar`      | 7z (`p7zip`) for 7z/zip/rar; `tar` from the base system              |
 
 ## Nix ecosystem
 

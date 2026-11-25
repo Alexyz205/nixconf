@@ -67,6 +67,7 @@ let
     "blender"
     "freecad"
     "imv"
+    "rdp"
     "photocraft"
     "lightcraft"
     "pdfcraft"
@@ -108,6 +109,7 @@ let
       # Flake-level overlays (e.g. the fetchgit CA wrapper). The inner NixOS
       # module shadows `config`, so bind the flake config first.
       flakeOverlays = config.nixconf.modules.overlays;
+      unfreePredicate = config.nixconf.allowUnfreePredicate;
     in
     {
       config,
@@ -119,6 +121,8 @@ let
       system.stateVersion = stateVersion;
       networking.hostName = hostName;
       nixpkgs.overlays = flakeOverlays;
+      # One unfree predicate for every host (see nixconf.allowUnfreePredicate).
+      nixpkgs.config.allowUnfreePredicate = unfreePredicate;
       # Latest stable Nix for the daemon + CLI on every host.
       nix.package = pkgs.nixVersions.latest;
       time.timeZone = "Europe/Paris";

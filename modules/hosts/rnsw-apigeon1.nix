@@ -7,7 +7,6 @@
 }:
 let
   system = "x86_64-linux";
-  flakeConfig = config;
   features = config.nixconf.nixosFeatures.desktop;
   mkHostCommon = config.nixconf.mkHostCommon;
   palette = import ../../config/theme/catppuccin-mocha.nix;
@@ -84,8 +83,6 @@ in
             '';
         in
         {
-          nixpkgs.config.allowUnfreePredicate = flakeConfig.nixconf.allowUnfreePredicate;
-
           # The disko module owns the main layout (1 GiB ESP + LUKS/btrfs); the
           # host points it at the 2 TB disk and sizes the swapfile.
           disko.devices.disk.main = {

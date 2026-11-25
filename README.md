@@ -41,7 +41,7 @@ modules/
 ├── hosts/              # One file per machine / image
 ├── system/             # boot, disko, network, nextcloud, nix, podman, sops, security, ssh, users, yubikey
 ├── shell/              # shell, starship, tmux, zoxide, eza, diskusage, bat, btop, yazi, ghostty
-├── desktop/            # niri, chromium, claude, discord, steam, youtube-music, ...
+├── desktop/            # niri, chromium, claude, discord, steam, rdp, youtube-music, ...
 └── dev/                # devenv, git, gitlab, lazygit, lazyvim, opencode, containers, ...
 config/                 # Dotfiles & static assets referenced from feature modules
 scripts/                # install.sh, test-all.sh, build-iso.sh
@@ -115,7 +115,7 @@ Standalone home-manager profiles (`flake.homeConfigurations`):
 
 The profile extras are layered (`modules/flake/home-manager.nix`):
 `defaultExtra` is the base every interactive Linux profile starts from (sops,
-yubikey, ghostty, containers plus gitlab, youtube-music, chromium, artcraft
+yubikey, ghostty, containers plus gitlab, youtube-music, chromium, rdp, artcraft
 and vlc); `personalExtra` builds on it with claude, thunderbird, Nextcloud and
 the Blender/FreeCAD 3D stack; `workExtra` is the default set plus FreeCAD (with
 the OpenCode MCP bridge) used by the `RNSL` work station. macOS gets a

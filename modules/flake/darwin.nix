@@ -8,6 +8,7 @@ let
   # Flake-level overlays. The inner nix-darwin module shadows `config`, so bind
   # the flake config first.
   flakeOverlays = config.nixconf.modules.overlays;
+  unfreePredicate = config.nixconf.allowUnfreePredicate;
 
   # Shared nix-darwin boilerplate: host identity + home-manager wiring that
   # every darwin host repeats. Keeps hosts to their deltas only.
@@ -31,6 +32,7 @@ let
       system.stateVersion = systemStateVersion;
       system.primaryUser = userName;
       nixpkgs.overlays = flakeOverlays;
+      nixpkgs.config.allowUnfreePredicate = unfreePredicate;
       home-manager = {
         useGlobalPkgs = true;
         useUserPackages = true;
