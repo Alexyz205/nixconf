@@ -150,7 +150,13 @@ in
           };
         };
 
-        security.pki.certificates = lib.mkIf cfg.installCa [ (builtins.readFile t2RootCa) ];
+        # Install the CA from the derivation path (no builtins.readFile): reading
+        # a fetchurl output at evaluation time is import-from-derivation, which
+        # makes *evaluation* of this host require the corporate network. With
+        # certificateFiles the cert is only fetched when the system is actually
+        # built (on the corp network / from cache), so flake eval, dry-runs and
+        # the pre-push test suite work anywhere.
+        security.pki.certificateFiles = lib.mkIf cfg.installCa [ t2RootCa ];
 
         services.sssd = {
           enable = true;

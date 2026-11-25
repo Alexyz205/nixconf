@@ -65,6 +65,25 @@ supported path:
 nixos-anywhere --flake .#headless-worker root@<ip>
 ```
 
+## Work laptop (`rnsw-apigeon1`)
+
+`rnsw-apigeon1` pulls two corporate artifacts from `packages.gametools.dev`:
+the T2 Palo Alto root CA (`modules/system/corp-auth.nix`) and the SentinelOne
+agent package (`modules/system/sentinelone.nix`). Both are fixed-output,
+hash-pinned, and unreachable outside the corporate network.
+
+Evaluation is network-independent on purpose. The CA is installed with
+`security.pki.certificateFiles` (a store path), **not** `builtins.readFile`,
+because reading a `fetchurl` output during evaluation is import-from-derivation:
+it made every `nix eval`/dry-run of this host block on the corporate mirror.
+So `nix flake check`, the pre-push suite and `nix build --dry-run .#rnsw-apigeon1`
+work from home.
+
+Building the host still needs the corp network (or a store/binary cache already
+containing those two artifacts), so build it on the laptop itself or over VPN.
+For an emergency push from an untrusted network:
+`SKIP_NIXCONF_TESTS=1 git push`.
+
 ## Rollback
 
 Every switch keeps the previous generation. From the boot menu pick the last

@@ -43,7 +43,6 @@ let
           {
             config,
             lib,
-            pkgs,
             ...
           }:
           {
@@ -115,10 +114,6 @@ let
               listenAddress = lib.mkForce "0.0.0.0";
               enabledCollectors = lib.mkAfter [ "zfs" ];
             };
-
-            # The zfs collector shells out to `zpool`; without it in the unit's
-            # PATH it exports no zfs_pool_* series and logs nothing useful.
-            systemd.services.prometheus-node-exporter.path = [ pkgs.zfs ];
 
             # Key-only root access: no password in the Nix store, no SSH
             # password authentication. The SSH key is the only way in.

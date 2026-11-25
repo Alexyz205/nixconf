@@ -106,10 +106,6 @@ in
             enabledCollectors = lib.mkAfter [ "zfs" ];
           };
 
-          # The zfs collector shells out to `zpool`; without it in the unit's
-          # PATH it exports no zfs_pool_* series and logs nothing useful.
-          systemd.services.prometheus-node-exporter.path = [ pkgs.zfs ];
-
           # Same role as the production NAS: subnet router for the LAN.
           modules.tailscale = {
             enable = true;
