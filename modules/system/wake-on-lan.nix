@@ -17,7 +17,10 @@ _: {
         for path in "$@"; do
           [ -e "$path" ] || continue
           name=''${path##*/}
-          ${pkgs.ethtool}/bin/ethtool -s "$name" wol g || true
+          ${pkgs.ethtool}/bin/ethtool -s "$name" wol g ||
+            echo "wake-on-lan: failed to set wol g on $name" >&2
+          ${pkgs.ethtool}/bin/ethtool "$name" 2>/dev/null |
+            grep -iE 'Supports Wake-on|Wake-on:' >&2 || true
         done
       '';
     in

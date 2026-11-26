@@ -158,7 +158,9 @@ in
             pkgs.git
             pkgs.vim
             # Sender for Wake-on-LAN: this host is the always-on tailnet peer on
-            # the LAN, so `ssh nas 'wakeonlan <mac>'` wakes sleeping machines.
+            # the LAN, so `ssh nas 'wakeonlan -i 192.168.1.255 <mac>'` wakes
+            # sleeping machines. The directed broadcast is required: this host
+            # has no default route, so 255.255.255.255 is unreachable.
             pkgs.wakeonlan
           ];
         }

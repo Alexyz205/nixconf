@@ -113,7 +113,9 @@ let
             };
 
             # Sender for Wake-on-LAN: the NAS is the always-on tailnet peer on
-            # this LAN segment, so `ssh nas 'wakeonlan <mac>'` works remotely.
+            # this LAN segment, so `ssh nas 'wakeonlan -i 192.168.1.255 <mac>'`
+            # works remotely. The directed broadcast is required: the NAS has
+            # no default route, so 255.255.255.255 is unreachable.
             environment.systemPackages = [ pkgs.wakeonlan ];
 
             services.prometheus.exporters.node = {

@@ -181,7 +181,7 @@ let
               gitlab.hosts = [ "gitlab.alexyz.org" ];
               # Host-specific deltas only: the desktop tier enables the base,
               # server and desktop feature set (see modules/flake/nixos.nix).
-              # BBR + fq + larger buffers, and disable EEE on the Intel I226-V
+              # BBR + fq + larger buffers, and disable EEE on the Intel I225-V
               # (igc) NIC, which otherwise flaps the 2.5GbE link.
               networkTuning = {
                 enable = true;
@@ -196,10 +196,11 @@ let
                 "kgcjekpmcjjogibpjebkhaanilehneje" # Karakeep
                 "ddkjiahejlhfcafbddmgiahcphecmpfh" # uBlock Origin Lite
               ];
-              # S3 (deep) makes NIC wake-on-LAN reliable; the lock module
-              # suspends after 15 min idle and WoL resumes it. Naming the
-              # interface also emits a 40-enp4s0.link (WakeOnLan=magic) at udev
-              # link setup, so the setting survives NetworkManager resets.
+              # S3 (deep) makes the NIC wake-on-LAN path usable; the lock
+              # module suspends after 15 min idle. WoL works with the MSI BIOS
+              # settings (Wake Up Event By=BIOS, Resume By PCI-E/Onboard Intel
+              # LAN, ErP disabled); the stock igc driver is used, no kernel
+              # patch. See docs/wake-on-lan.md.
               wakeOnLan = {
                 sleepState = "deep";
                 interfaces = [ lan.workstation.interface ];

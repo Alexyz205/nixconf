@@ -14,10 +14,10 @@
 This repo's choice:
 
 - `headless-worker`: no LUKS, so WoL cold-boots it and SSH comes up.
-- `workstation`: `modules.wakeOnLan.sleepState = "deep"` selects S3; the lock
-  module suspends after 15 minutes idle, LUKS stays unlocked, and WoL resumes
-  it. Verify `cat /sys/power/mem_sleep` shows `[deep]`; if the machine only
-  offers `[s2idle]`, remove `sleepState` (WoL from s2idle is unreliable).
+- `workstation`: `modules.wakeOnLan.sleepState = "deep"` selects S3 and the
+  lock module suspends after 15 minutes idle. S3 WoL works with the MSI BIOS
+  wake settings (see [Firmware](#firmware)); the stock `igc` driver is used,
+  with no kernel patch. See "Workstation I225-V: what fixed WoL" below.
 - `rnsw-apigeon1`: corporate desktop, `enp0s31f6`, hibernates as the primary
   sleep state (see below). The firmware exposes `GLAN S4` wake, so WoL from
   hibernation/power-off is the reliable path; `mem_sleep` only offers
@@ -39,6 +39,17 @@ Wake-on-LAN needs the NIC powered while the machine is off:
 
 - Enable **Wake on LAN / Power On by PCI-E/PCI** in the UEFI/BIOS.
 - Disable **ErP Ready / EuP / Deep Sleep** (they cut standby power to the NIC).
+- MSI Click BIOS: `Settings > Advanced > Wake Up Event Setup`:
+  - `Wake Up Event By = BIOS` (not OS: BIOS mode activates the Resume items;
+    OS mode lets the firmware clear `PME_Enable`).
+  - `Resume By PCI-E Device = Enabled`.
+  - `Resume By Onboard Intel LAN = Enabled` if present (enable `Network Stack`
+    under `Advanced > Integrated Peripherals` first if the option is hidden).
+  - `ErP Ready = Disabled` under `Power Management Setup`. `Max Power Saving`
+    is not present on every BIOS version.
+- This is the configuration that fixed the workstation's I225-V WoL. After a
+  BIOS update, re-check these settings; A.10 -> AB2 also updates the Secure
+  Boot keys, so lanzaboote may need re-enrollment.
 - Use the wired Ethernet port; Wi-Fi WoWLAN is a different, less reliable setup.
 
 ## Sending the packet
@@ -64,8 +75,14 @@ tunnel to. From outside the LAN, run `wol` on an always-on tailnet peer that
 sits on the same segment. Here that is the NAS (subnet router):
 
 ```bash
-ssh nas 'wakeonlan d8:bb:c1:51:4f:f0'   # workstation MAC from config/network/lan.nix
+ssh nas 'wakeonlan -i 192.168.1.255 d8:bb:c1:51:4f:f0'
 ```
+
+Always pass `-i 192.168.1.255` on the NAS: `wakeonlan` defaults to the limited
+broadcast `255.255.255.255`, which is only routable through a default route,
+and the NAS has none (`ssh nas 'ip route get 255.255.255.255'` answers
+`Network is unreachable`). The directed subnet broadcast matches the connected
+route on `eno1` and is sent without a default gateway.
 
 The NAS wakes the target, the target boots, and then it is reachable again
 through the NAS subnet route (`workstation.alexyz.org`) even though the
@@ -73,7 +90,7 @@ workstation itself is not a tailnet node. With the second router on `pve0`
 (see [tailscale.md](tailscale.md)), waking does not depend on the NAS either:
 
 ```bash
-ssh pve0 'wakeonlan d8:bb:c1:51:4f:f0'
+ssh pve0 'wakeonlan -i 192.168.1.255 d8:bb:c1:51:4f:f0'
 ```
 
 Waking the _router_ host is the
@@ -98,7 +115,7 @@ stops at the initrd passphrase prompt. It does not bypass encryption. Options:
    passphrase, and the normal boot continues. Needs:
    - a software SSH key authorized for initrd (a YubiKey key needs physical
      touch, which defeats remote unlock),
-   - the NIC driver in the initrd (`igc` for the Intel I226-V),
+   - the NIC driver in the initrd (`igc` for the Intel I225-V),
    - DHCP (or a static address) before the root is mounted.
      The initrd shell is not behind the normal firewall; restrict it to the LAN
      and a dedicated key/port.
@@ -154,14 +171,48 @@ sudo cryptsetup luksDump /dev/nvme0n1p2 | grep -i tpm2
 Test once end-to-end: `systemctl hibernate`, send `wsa` from RNSL, and confirm
 the machine powers on, unseals TPM2, and resumes the session.
 
+## Workstation I225-V: what fixed WoL
+
+S3 WoL on the workstation's onboard Intel I225-V (`8086:15f3`, rev 03) works
+with the MSI BIOS wake settings under [Firmware](#firmware); the stock `igc`
+driver is used, with no kernel patch.
+
+What did **not** fix it (all tested on this host):
+
+- The I226 `PHPM` D3 link-disable bug does not apply here: at suspend this
+  unit reports `PHPM=0x00044080`; `DIS_100_D3`, `DIS_1000_D3` and
+  `DIS_2500_D3` are not set, so clearing `DIS_100_D3` in the driver was a
+  no-op.
+- Forcing 10M or 100M before suspend kept the link up and the NIC counted the
+  magic packet, but the system still did not resume.
+- The OS side was already correct: `Wake-on: g`,
+  `/sys/class/net/enp4s0/device/power/wakeup=enabled`, `/proc/acpi/wakeup`
+  NIC/root port enabled, and packets reached the NIC while awake.
+- The NAS sender was fixed separately: it has no default route, so use
+  `wakeonlan -i 192.168.1.255 ...`.
+
+The missing piece was the BIOS wake configuration (details under
+[Firmware](#firmware)):
+
+- `Wake Up Event By = BIOS` (not OS; OS mode lets the firmware clear
+  `PME_Enable`).
+- `Resume By PCI-E Device = Enabled`.
+- `Resume By Onboard Intel LAN = Enabled` if present (enable `Network Stack`
+  first if hidden).
+- `ErP Ready = Disabled`.
+
+Verify with `ssh nas cat /tmp/wol-ping.log` (`result=0`) or ping
+`192.168.1.100` after the packet. The screen may stay black while the machine
+is awake; a key wakes the display.
+
 ## What people usually do
 
 - **Unencrypted server** (headless-worker): WoL cold-boot; it reaches SSH on
   its own. This is the common homelab setup.
 - **Encrypted desktop with YubiKey-only LUKS** (this workstation): suspend
-  instead of powering off, then wake with WoL. LUKS stays unlocked, so there is
-  no prompt and no extra keyslot. This is the usual answer when the disk is
-  protected by a physical token.
+  instead of powering off and wake with WoL; the BIOS wake settings above keep
+  the I225-V usable from S3. LUKS stays unlocked while suspended, so there is
+  no prompt.
 - **Encrypted server**: initrd SSH plus a real passphrase keyslot; remote
   operators type the passphrase in the initrd. TPM2 auto-unlock is common on
   laptops with Secure Boot; Tang/Clevis is common in datacenters with an
