@@ -33,6 +33,8 @@ node_modules/
 *.o
 *.a
 .ruff_cache/
+__pycache__/
+*.py[cod]
 
 # =========================================================
 # OS / editor cruft

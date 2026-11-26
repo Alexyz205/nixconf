@@ -11,7 +11,26 @@ in
       ...
     }:
     {
-      options.modules.lock.enable = lib.mkEnableOption "Hyprlock lock screen + swayidle idle suspend";
+      options.modules.lock = {
+        enable = lib.mkEnableOption "Hyprlock lock screen + swayidle idle sleep";
+        idleAction = lib.mkOption {
+          type = lib.types.enum [
+            "suspend"
+            "hibernate"
+          ];
+          default = "suspend";
+          description = ''
+            Sleep action scheduled after the idle lock. Hibernate needs a
+            working swap/resume setup (and an unlock path if it is woken
+            remotely); suspend keeps the LUKS key in RAM.
+          '';
+        };
+        idleActionDelay = lib.mkOption {
+          type = lib.types.ints.positive;
+          default = 900;
+          description = "Seconds after the idle lock before idleAction runs.";
+        };
+      };
 
       config = lib.mkIf config.modules.lock.enable {
         # hyprlock authenticates via PAM. The NixOS hyprland/hyprlock modules
@@ -59,14 +78,14 @@ in
             '';
 
             # Single lock entry point: backgrounds hyprlock and waits (bounded)
-            # for the lock to be up, so a suspend can never race ahead of the
+            # for the lock to be up, so a sleep action can never race ahead of the
             # lock screen. Exits 2 if a lock screen is already showing, 1 if
             # the lock never materialised within the wait.
             #
             # The guard is process-based (not LockedHint) on purpose: the
             # swayidle `lock` event fires as soon as logind reports the session
-            # locked — e.g. right after `systemctl lock` (the Mod+X bind) or
-            # before suspend — when hyprlock hasn't spawned yet, and that event
+            # locked — e.g. right after `loginctl lock-session` (the Mod+X bind)
+            # or before sleep — when hyprlock hasn't spawned yet, and that
             # IS the trigger to spawn it.
             lockScript = pkgs.writeShellScript "niri-lock-screen" ''
               set -u
@@ -91,13 +110,13 @@ in
               exit 1
             '';
 
-            # Lock the screen on idle and schedule the power-off + suspend.
+            # Lock the screen on idle and schedule the power-off + sleep action.
             #
-            # The suspend must NOT be a swayidle timeout: niri buffers idle
+            # The sleep action must NOT be a swayidle timeout: niri buffers idle
             # events while an ext-session-lock is held and only flushes them on
-            # unlock, so a `timeout 1800 systemctl suspend` fires the instant
+            # unlock, so a `timeout 1800 systemctl hibernate` fires the instant
             # you type your password and the machine sleeps in your face.
-            # Scheduling the suspend here (15 min after the lock) is
+            # Scheduling the action here (idleActionDelay after the lock) is
             # deterministic and independent of idle events; the guard still
             # requires the session to be locked, so an early unlock cancels it.
             idleLockScript = pkgs.writeShellScript "niri-idle-lock" ''
@@ -106,12 +125,12 @@ in
 
               ${lockedCheck}
 
-              lockPending="''${XDG_RUNTIME_DIR:-/tmp}/niri-idle-suspend.pending"
+              lockPending="''${XDG_RUNTIME_DIR:-/tmp}/niri-idle-sleep.pending"
 
               ${lockScript}
               case $? in
                 0) ;;
-                2) exit 0 ;; # already locked, don't stack a suspend
+                2) exit 0 ;; # already locked, don't stack a sleep action
                 *) exit 1 ;;
               esac
 
@@ -120,8 +139,8 @@ in
 
               # Power off monitors shortly after locking (niri wakes them on activity).
               ( sleep 5; locked && ${niri} msg action power-off-monitors ) &
-              # Suspend 15 min after the lock, only while the session is still locked.
-              ( sleep 900; rm -f "$lockPending"; locked && ${systemctl} suspend ) &
+              # Sleep after the configured delay, only while the session is still locked.
+              ( sleep ${toString config.modules.lock.idleActionDelay}; rm -f "$lockPending"; locked && ${systemctl} ${config.modules.lock.idleAction} ) &
               disown 2>/dev/null || true
               exit 0
             '';
@@ -197,18 +216,18 @@ in
               enable = true;
               timeouts = [
                 # Lock after 15 min idle; the lock script schedules the monitor
-                # power-off and the 30-min suspend (see niri-idle-lock above).
+                # power-off and the configured sleep action (see niri-idle-lock).
                 {
                   timeout = 900;
                   command = "${idleLockScript}";
                 }
               ];
               events = {
-                # Lock before ANY sleep (idle suspend, power key, lid close) and on
-                # `systemctl lock` / loginctl lock-session (the Mod+X bind). The
+                # Lock before ANY sleep (idle sleep, power key, lid close) and on
+                # `loginctl lock-session` (the Mod+X bind). The
                 # lock script backgrounds hyprlock and waits <=3s for it to be up,
                 # so swayidle's delay inhibitor (held while before-sleep runs)
-                # never stalls a suspend. The Mod+X bind is the niri module's
+                # never stalls a sleep action. The Mod+X bind is the niri module's
                 # `systemctl lock`, so manual and idle lock share this path.
                 before-sleep = "${lockScript}";
                 lock = "${lockScript}";

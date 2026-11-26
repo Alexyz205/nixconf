@@ -24,6 +24,8 @@ let
   # always-on host that is woken/ssh'd first).
   lanAliases = {
     wsw = "wakeonlan ${lan.workstation.mac}";
+    # Corporate desktop: only works from the same L2 segment (10.113.64.0/24).
+    wsa = "wakeonlan ${lan.rnsw-apigeon1.mac}";
   };
   nixAliases = {
     nc = "nix flake check $NIXCONF";

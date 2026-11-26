@@ -68,6 +68,7 @@ let
     "freecad"
     "imv"
     "rdp"
+    "moonlight"
     "photocraft"
     "lightcraft"
     "pdfcraft"

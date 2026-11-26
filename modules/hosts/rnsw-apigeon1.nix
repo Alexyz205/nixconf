@@ -121,9 +121,23 @@ in
           };
 
           # Hibernation resumes from the swapfile inside the unlocked LUKS
-          # container. systemd-hibernate records the btrfs swapfile offset in the
-          # HibernateLocation EFI variable, so no static resume_offset is needed.
-          boot.resumeDevice = "/dev/mapper/crypted";
+          # container. Do NOT set boot.resumeDevice: that adds a static
+          # `resume=/dev/mapper/crypted` with resume_offset=0, which systemd
+          # rejects for a btrfs swapfile (CanHibernate returns "na"). At
+          # hibernate time systemd records the real device + offset in the
+          # HibernateLocation EFI variable; the initrd generator reads it back
+          # and unlocks crypted before resuming.
+          #
+          # LZ4 is the fastest kernel hibernation compressor to decompress
+          # (the default LZO is smaller but slower to resume). TPM2 unseals the
+          # LUKS keyslot in the initrd (PCR 7 = Secure Boot policy), so a WoL
+          # wake resumes without a passphrase. Enroll once with:
+          #   sudo systemd-cryptenroll --tpm2-device=auto --tpm2-pcrs=7 \
+          #     /dev/disk/by-id/nvme-PC_SN810_NVMe_WDC_2048GB_21284T443808-part2
+          # and keep the existing passphrase keyslot as recovery.
+          boot.kernelParams = [ "hibernate.compressor=lz4" ];
+          boot.initrd.luks.devices."crypted".crypttabExtraOpts = [ "tpm2-device=auto" ];
+          security.tpm2.enable = true;
 
           services = {
             xserver = {
@@ -326,6 +340,15 @@ in
 
             btop.cudaSupport = true;
 
+            # Hibernate is the primary sleep state on this host (the platform
+            # only exposes s2idle, where WoL is unreliable). Lock after 15 min,
+            # hibernate 45 min later (60 min total idle), and leave the
+            # workstation default (suspend) alone.
+            lock = {
+              idleAction = "hibernate";
+              idleActionDelay = 2700;
+            };
+
             # Both accounts get the themed bar; niri itself is the same wrapped
             # system package for every user.
             noctalia.users = [
@@ -346,6 +369,12 @@ in
                 };
                 # Left-handed mouse: swap primary/secondary buttons.
                 input.mouse.left-handed = _: { };
+                # Hibernate to the 64G swapfile. Only this host has swap large
+                # enough for the hibernation image, so the bind stays host-local.
+                binds."Mod+Shift+X" = _: {
+                  props."hotkey-overlay-title" = "Hibernate";
+                  content.spawn-sh = "${pkgs.lib.getExe' pkgs.systemd "systemctl"} hibernate";
+                };
               };
             };
 
@@ -478,6 +507,11 @@ in
                 interactiveYubikey = true;
                 secretsFile = ../../secrets/corp.yaml;
               };
+              # Corporate fleet SSH aliases (tk2edcdxzci1, ...): generated at
+              # home-manager activation from the local infra_management
+              # checkout into ~/.ssh/config.d/work. The local admin account has
+              # no work checkout, so it stays disabled there.
+              modules.ssh.workHosts = true;
             };
 
             # Stylix targets for apps this host does not run (same list as the

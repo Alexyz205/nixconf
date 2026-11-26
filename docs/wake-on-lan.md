@@ -16,6 +16,10 @@ This repo's choice:
   module suspends after 15 minutes idle, LUKS stays unlocked, and WoL resumes
   it. Verify `cat /sys/power/mem_sleep` shows `[deep]`; if the machine only
   offers `[s2idle]`, remove `sleepState` (WoL from s2idle is unreliable).
+- `rnsw-apigeon1`: corporate desktop, `enp0s31f6`, hibernates as the primary
+  sleep state (see below). The firmware exposes `GLAN S4` wake, so WoL from
+  hibernation/power-off is the reliable path; `mem_sleep` only offers
+  `[s2idle]`.
 
 Verify on a running host:
 
@@ -44,6 +48,8 @@ From any host on the same LAN (the `wol` alias is `wakeonlan`):
 
 ```bash
 wol aa:bb:cc:dd:ee:ff
+wsw        # wake the home workstation
+wsa        # wake rnsw-apigeon1 (corporate VLAN)
 ```
 
 From a phone, a WoL app on the same VLAN. A magic packet is Ethernet
@@ -101,6 +107,48 @@ stops at the initrd passphrase prompt. It does not bypass encryption. Options:
 Do not add a TPM unlock or initrd SSH without deciding which trade-off you
 want; each is a deliberate change to the boot security model.
 
+## Corporate desktop: rnsw-apigeon1 (hibernate + TPM2)
+
+`rnsw-apigeon1` is on the corporate `10.113.64.0/24` VLAN and is woken from
+`RNSL-APIGEON5` with the `wsa` alias (MAC in `config/network/lan.nix`). The
+Take2 VPN carries the broadcast on this setup; if a future VPN drops L2
+broadcast, run `wsa` on an always-on host on that VLAN instead.
+
+The desktop is configured around **hibernate**, not suspend:
+
+- `Mod+Shift+X` hibernates immediately; `Mod+Ctrl+X` suspends for a short break.
+- Idle: lock at 15 min, hibernate 45 min after the lock (60 min total).
+- `hibernate.compressor=lz4` makes resume decompression faster than the LZO
+  default; the image is written inside the LUKS container.
+- The initrd gets the hibernate location from the `HibernateLocation` EFI
+  variable (`boot.resumeDevice` is deliberately not set: a static `resume=`
+  with offset 0 makes systemd refuse hibernation for a btrfs swapfile).
+
+LUKS is unlocked in the initrd before the image resumes. For an unattended
+remote wake, enroll the TPM2 keyslot (Secure Boot + PCR 7):
+
+```bash
+sudo systemd-cryptenroll --tpm2-device=auto --tpm2-pcrs=7 \
+  /dev/disk/by-id/nvme-PC_SN810_NVMe_WDC_2048GB_21284T443808-part2
+```
+
+Keep the existing passphrase keyslot as recovery. Re-enroll after changing
+Secure Boot keys/db or the firmware policy (PCR 7 changes). Anyone who can
+power on the machine can then boot it; the disk remains encrypted if removed.
+Confirm the policy allows TPM2 auto-unlock on a work device.
+
+Verify after the rebuild/reboot:
+
+```bash
+busctl call org.freedesktop.login1 /org/freedesktop/login1 \
+  org.freedesktop.login1.Manager CanHibernate      # s "yes"
+sudo ethtool enp0s31f6 | grep -i Wake-on          # Wake-on: g
+sudo cryptsetup luksDump /dev/nvme0n1p2 | grep -i tpm2
+```
+
+Test once end-to-end: `systemctl hibernate`, send `wsa` from RNSL, and confirm
+the machine powers on, unseals TPM2, and resumes the session.
+
 ## What people usually do
 
 - **Unencrypted server** (headless-worker): WoL cold-boot; it reaches SSH on
@@ -131,10 +179,11 @@ If only `systemd-fido2` and a recovery keyslot exist, add a passphrase slot
 Record the wired MACs here (or in your password manager) so any LAN host can
 wake the machines:
 
-| Host            | Interface | MAC                 |
-| --------------- | --------- | ------------------- |
-| workstation     | `enp4s0`  | `d8:bb:c1:51:4f:f0` |
-| headless-worker | `en*`     |                     |
+| Host            | Interface   | MAC                 |
+| --------------- | ----------- | ------------------- |
+| workstation     | `enp4s0`    | `d8:bb:c1:51:4f:f0` |
+| rnsw-apigeon1   | `enp0s31f6` | `4c:d7:17:a6:60:06` |
+| headless-worker | `en*`       |                     |
 
 These values also live in `config/network/lan.nix`, which feeds the
 `Host workstation` SSH block (`192.168.1.100`) and the `wsw` alias

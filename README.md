@@ -296,7 +296,22 @@ examples, default excludes, and a restore test.
 Wake-on-LAN is enabled on the server and desktop tiers; use `wol <MAC>` from
 another LAN host. LUKS changes what "wake" means (the server has no LUKS, the
 workstation stops at its passphrase): see
-[docs/wake-on-lan.md](docs/wake-on-lan.md).
+[docs/wake-on-lan.md](docs/wake-on-lan.md). The corporate desktop
+(`rnsw-apigeon1`) is woken with `wsa`, hibernates by default, and uses TPM2
+(Secure Boot/PCR 7) to unseal LUKS on a remote resume.
+
+Work SSH aliases (the `tk2edcdxzci*` fleet, the studio workstation, this
+desktop) are generated from the local `infra_management` inventory into
+`~/.ssh/config.d/work` and never committed (this repository is public):
+see [docs/ssh.md](docs/ssh.md).
+
+Remote desktop uses Moonlight (client) + Sunshine (Windows host) with NVENC,
+and keeps RDP/Remmina as a console fallback:
+see [docs/moonlight-sunshine.md](docs/moonlight-sunshine.md).
+
+GlobalProtect on the RNSL work profile uses the upstream `gpclient` CLI
+(`gpvpn` wrapper, SAML/Okta through the external browser, `pkexec` for the
+tunnel): see [docs/globalprotect.md](docs/globalprotect.md).
 
 ## Remote access (Tailscale)
 

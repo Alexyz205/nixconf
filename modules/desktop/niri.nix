@@ -231,10 +231,15 @@ let
           "Mod+Shift+E" = hotkey "Exit niri" { quit = _: { }; };
           "Mod+Shift+Q" = _: { content.quit = _: { }; };
           "Mod+Shift+P" = hotkey "Power off monitors" { power-off-monitors = _: { }; };
-          # Lock via logind: `systemctl lock` fires swayidle's `lock` event
-          # (modules/desktop/lock.nix), the same code path as the idle lock.
+          # Lock via logind: `loginctl lock-session` fires swayidle's `lock`
+          # event (modules/desktop/lock.nix), the same code path as the idle
+          # lock. There is no `systemctl lock` verb.
           "Mod+X" = hotkey "Lock screen" {
-            spawn-sh = "${pkgs.lib.getExe' pkgs.systemd "systemctl"} lock";
+            spawn-sh = "${pkgs.lib.getExe' pkgs.systemd "loginctl"} lock-session";
+          };
+          # Short break: keep the LUKS key in RAM (fast resume, no unlock).
+          "Mod+Ctrl+X" = hotkey "Suspend" {
+            spawn-sh = "${pkgs.lib.getExe' pkgs.systemd "systemctl"} suspend";
           };
 
           # Volume.
@@ -325,6 +330,22 @@ let
           }
           {
             matches = [ { app-id = "^vesktop$"; } ];
+            open-on-workspace = "game";
+          }
+          {
+            # RDP fallback for rnsw-studio1 (Remmina, or a bare FreeRDP client).
+            # Remmina reports "remmina" on Wayland and org.remmina.Remmina from
+            # its desktop file; xfreerdp/sdl-freerdp arrive through XWayland.
+            matches = [
+              { app-id = "^(remmina|org\\.remmina\\.Remmina)$"; }
+              { app-id = "^(xfreerdp|wlfreerdp|sdl-freerdp|freerdp|FreeRDP)$"; }
+            ];
+            open-on-workspace = "game";
+          }
+          {
+            # Moonlight: both the browser and the streaming window use the
+            # upstream desktop-file app-id, so streams stay on workspace 3.
+            matches = [ { app-id = "^com\\.moonlight_stream\\.Moonlight$"; } ];
             open-on-workspace = "game";
           }
           {

@@ -68,6 +68,14 @@ let
       rdp
       { modules.rdp.enable = true; }
     ];
+    moonlight = [
+      moonlight
+      { modules.moonlight.enable = true; }
+    ];
+    globalprotect = [
+      globalprotect
+      { modules.globalprotect.enable = true; }
+    ];
     claude = [
       claude
       { modules.claude.enable = true; }
@@ -157,6 +165,7 @@ let
     ++ extras.youtubeMusic
     ++ extras.chromium
     ++ extras.rdp
+    ++ extras.moonlight
     ++ artcraft
     ++ [
       { modules.packages.desktop = true; }
@@ -187,8 +196,12 @@ let
     defaultExtra
     ++ extras.freecad
     ++ extras.blender
+    ++ extras.globalprotect
     ++ [
       {
+        # Corporate fleet aliases (tk2edcdxzci1, ...) generated from the local
+        # infra_management checkout into ~/.ssh/config.d/work.
+        modules.ssh.workHosts = true;
         modules.git = {
           userName = "Alexis Pigeon";
           userEmail = "alexis.pigeon@take2games.com";

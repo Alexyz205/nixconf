@@ -22,6 +22,12 @@ let
     clipboard_enabled = true
     clipboard_history_max_entries = 100
 
+    # niri has a single ext-session-lock slot. hyprlock/swayidle own it
+    # (modules/desktop/lock.nix); enabling Noctalia's lockscreen too makes the
+    # two clients race, and one is refused after every idle/suspend.
+    [lockscreen]
+    enabled = false
+
     [bar.default]
     position = "top"
     enabled = true

@@ -50,6 +50,7 @@ by the host/profile tiers.
 | lazygit           | `lg`                                                             | TUI for staging, commits, branches, rebase, worktrees                                   |
 | cliphist          | `cliphist`                                                       | Wayland clipboard history                                                               |
 | imv               | `imv`                                                            | Lightweight image viewer (Wayland/X11)                                                  |
+| Moonlight         | `moonlight-qt`                                                   | Low-latency Sunshine client; RDP/Remmina stays as the console fallback                  |
 
 ## Core CLI
 
@@ -63,7 +64,7 @@ by the host/profile tiers.
 | `yq`             | YAML/JSON/XML/TOML querying and conversion                           |
 | `tree-sitter`    | Parser CLI, grammar tests and syntax tooling                         |
 | `fastfetch`      | Fast system information summary                                      |
-| `wakeonlan`      | `wol <MAC>`: send a Wake-on-LAN magic packet                         |
+| `wakeonlan`      | `wol <MAC>`, `wsw`, `wsa`: send a Wake-on-LAN magic packet           |
 | `tokei`          | Code statistics by language (files, code, comments, blanks)          |
 | `sd`             | Simpler, faster `sed` for find/replace with literal/regex            |
 | `7z`, `tar`      | 7z (`p7zip`) for 7z/zip/rar; `tar` from the base system              |
@@ -193,15 +194,18 @@ with those IDs squashed to the calling user instead of failing the pull with
 
 ## System operations
 
-| Feature       | Tools                                                   | Purpose                                                                      |
-| ------------- | ------------------------------------------------------- | ---------------------------------------------------------------------------- |
-| Monitoring    | `node_exporter`, `smartd`, btrfs scrub, journald limits | Metrics on `127.0.0.1:9100`, disk health, silent-corruption detection        |
-| Backup        | `restic` service, `restic-nas`                          | Daily encrypted/pruned snapshots; enabled on workstation and headless-worker |
-| Secure Boot   | `lanzaboote`, `sbctl`                                   | Signed UKIs; opt-in after key enrollment                                     |
-| Wake-on-LAN   | `ethtool`, `wakeonlan`                                  | Magic-packet wake; server cold-boots, workstation suspends and wakes         |
-| Networking    | NetworkManager/systemd-networkd, `nmcli`, `resolvectl`  | Wired/Wi-Fi, DNS, firewall                                                   |
-| Disks         | `disko`, `lsblk`, `udisksctl`, `mount`                  | Declarative layout and inspection                                            |
-| Remote deploy | `deploy-rs`, `nixos-anywhere`                           | Push closures; install over SSH                                              |
+| Feature        | Tools                                                   | Purpose                                                                      |
+| -------------- | ------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| Monitoring     | `node_exporter`, `smartd`, btrfs scrub, journald limits | Metrics on `127.0.0.1:9100`, disk health, silent-corruption detection        |
+| Backup         | `restic` service, `restic-nas`                          | Daily encrypted/pruned snapshots; enabled on workstation and headless-worker |
+| Secure Boot    | `lanzaboote`, `sbctl`                                   | Signed UKIs; opt-in after key enrollment                                     |
+| Wake-on-LAN    | `ethtool`, `wakeonlan`                                  | Magic-packet wake (`wol`, `wsw`, `wsa`); hibernate/TPM2 on rnsw              |
+| Remote desktop | `moonlight-qt`, `remmina`, `freerdp`                    | Sunshine/Moonlight for low latency; RDP console fallback                     |
+| Work SSH       | `sync-work-ssh`                                         | Fleet aliases from infra_management into ~/.ssh/config.d/work                |
+| VPN            | `gpclient`, `gpvpn`                                     | GlobalProtect SSO via the external browser; `pkexec` sets up the tunnel      |
+| Networking     | NetworkManager/systemd-networkd, `nmcli`, `resolvectl`  | Wired/Wi-Fi, DNS, firewall                                                   |
+| Disks          | `disko`, `lsblk`, `udisksctl`, `mount`                  | Declarative layout and inspection                                            |
+| Remote deploy  | `deploy-rs`, `nixos-anywhere`                           | Push closures; install over SSH                                              |
 
 ## Repo quality gates
 
