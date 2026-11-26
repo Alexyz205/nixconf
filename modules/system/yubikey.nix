@@ -127,7 +127,6 @@ in
             ${lib.concatMapStringsSep "\n" (key: "IdentityFile ~/.ssh/${key}") presentYubiKeys}
             IdentitiesOnly yes
             SecurityKeyProvider internal
-            IdentityAgent none
           '';
         };
         # Personal hosts authorize only the personal key. The work public key

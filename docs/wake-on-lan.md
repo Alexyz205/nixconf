@@ -2,7 +2,9 @@
 
 `modules/system/wake-on-lan.nix` enables magic-packet wake on wired NICs.
 
-- On systemd-networkd hosts it sets `WakeOnLan=magic` at link setup.
+- Naming an interface in `modules.wakeOnLan.interfaces` also makes NixOS emit a
+  `40-<if>.link` with `WakeOnLan=magic`, applied by udev at link setup (the
+  workstation does this for `enp4s0`).
 - On every host a one-shot `wake-on-lan.service` runs
   `ethtool -s <if> wol g` for each `en*` interface (or the configured list),
   and `wake-on-lan-before-sleep.service` reapplies it before every suspend.
@@ -24,6 +26,9 @@ This repo's choice:
 Verify on a running host:
 
 ```bash
+cat /sys/power/mem_sleep                       # [deep] on the workstation
+ls -l /etc/systemd/network/40-enp4s0.link      # WakeOnLan=magic
+systemctl status wake-on-lan.service wake-on-lan-before-sleep.service
 sudo ethtool enp4s0 | grep -i wake
 # Wake-on: g
 ```

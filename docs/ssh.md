@@ -139,8 +139,9 @@ gh ssh-key add config/ssh/id_ed25519_sk_rk_alexis-work.pub --title "work yubikey
 
 `Host *` sets, among others:
 
-- `IdentitiesOnly=yes`, `IdentityAgent=none`, the software key and the personal
-  and work YubiKey resident keys (from `modules.yubikey`).
+- `IdentitiesOnly=yes`, the agent socket from `services.ssh-agent` (OpenSSH's
+  default `SSH_AUTH_SOCK`), `AddKeysToAgent=yes`, the software key and the
+  personal and work YubiKey resident keys (from `modules.yubikey`).
 - `ControlMaster=auto`, `ControlPath=~/.ssh/cm/%C`, `ControlPersist=10m`:
   one handshake/touch, then reuse for 10 minutes.
 - `ForwardAgent=no`, `ForwardX11=no`, `Compression=no`,
@@ -148,6 +149,32 @@ gh ssh-key add config/ssh/id_ed25519_sk_rk_alexis-work.pub --title "work yubikey
   `ConnectTimeout=10`, `ServerAliveInterval=30`.
 
 `ssh -O exit <host>` drops a stale multiplexing master socket.
+
+### Agent forwarding
+
+`services.ssh-agent` runs the local agent; `AddKeysToAgent=yes` loads a key
+handle into it on first use. Forwarding is off by default and enabled only for
+trusted hosts: `workstation`, `nas`/`backup-nas`, `pve`/`proxmox`, and every
+host in the generated work-fleet fragment.
+
+```bash
+ssh workstation 'echo $SSH_AUTH_SOCK; ssh-add -l'  # forwarded socket + keys
+ssh -G nas | grep -i forwardagent                  # forwardagent yes
+ssh -G github.com | grep -i forwardagent           # forwardagent no
+```
+
+The FIDO2 resident key stays on the YubiKey, so signing an onward connection
+from the remote host touches the key on this machine. Load the handles after
+`ssh-keygen -K` if the agent is empty:
+
+```bash
+ssh-add ~/.ssh/id_ed25519 ~/.ssh/id_ed25519_sk_rk_alexis-perso \
+  ~/.ssh/id_ed25519_sk_rk_alexis-work
+```
+
+Do not add `ForwardAgent yes` to `Host *`: any user or root on a compromised
+remote host could then authenticate as you through the forwarded socket. Prefer
+`ProxyJump` when you only need to reach a host through a bastion.
 
 ## Server side
 

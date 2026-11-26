@@ -197,8 +197,13 @@ let
                 "ddkjiahejlhfcafbddmgiahcphecmpfh" # uBlock Origin Lite
               ];
               # S3 (deep) makes NIC wake-on-LAN reliable; the lock module
-              # suspends after 15 min idle and WoL resumes it.
-              wakeOnLan.sleepState = "deep";
+              # suspends after 15 min idle and WoL resumes it. Naming the
+              # interface also emits a 40-enp4s0.link (WakeOnLan=magic) at udev
+              # link setup, so the setting survives NetworkManager resets.
+              wakeOnLan = {
+                sleepState = "deep";
+                interfaces = [ lan.workstation.interface ];
+              };
               # Already enrolled manually; the auto-* flags keep the keys
               # recoverable and let systemd-boot re-enroll them from the ESP
               # after a firmware update wipes NVRAM (it only does so in Setup

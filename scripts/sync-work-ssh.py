@@ -115,6 +115,10 @@ def render(hosts: dict[str, dict[str, str]], extra: Path) -> str:
             lines.append(f"  User {entry['user']}")
         if entry.get("port") and entry["port"] != "22":
             lines.append(f"  Port {entry['port']}")
+        # Onward ssh/git run on a fleet host authenticates through the local
+        # agent (the YubiKey stays on the controller). The main config keeps
+        # ForwardAgent off for every other host.
+        lines.append("  ForwardAgent yes")
         lines.append("")
 
     if extra.is_file():

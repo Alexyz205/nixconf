@@ -40,6 +40,12 @@ let
           syncWorkSsh = mkWorkSsh pkgs;
         in
         {
+          # Local agent for key handles. Agent forwarding is only meaningful
+          # with an agent running; the FIDO2 resident keys stay on the YubiKey
+          # and every signature still needs a touch (or the software key's
+          # passphrase) on the client. sshAuthSock exports SSH_AUTH_SOCK and
+          # preserves a forwarded socket on hosts reached over SSH.
+          services.ssh-agent.enable = true;
           programs.ssh = {
             enable = true;
             enableDefaultConfig = false;
@@ -53,28 +59,34 @@ let
             ++ lib.optional config.modules.ssh.workHosts "~/.ssh/config.d/*";
             # PiHole serves workstation.alexyz.org (added with the other static
             # LAN names); use the name so the config survives address changes.
+            # Trusted hosts opt in to agent forwarding here: onward ssh/git from
+            # them uses the local agent (touch on the YubiKey at this end).
             settings.workstation = {
               HostName = "workstation.alexyz.org";
+              ForwardAgent = "yes";
             };
             # Short aliases for the NAS (PiHole static records).
             settings.nas = {
               HostName = "nas.alexyz.org";
+              ForwardAgent = "yes";
             };
             settings.backup-nas = {
               HostName = "nas.alexyz.org";
+              ForwardAgent = "yes";
             };
             # Proxmox node (web UI on 8006, SSH on 22).
             settings.proxmox = {
               HostName = "proxmox.alexyz.org";
+              ForwardAgent = "yes";
             };
             settings.pve = {
               HostName = "proxmox.alexyz.org";
+              ForwardAgent = "yes";
             };
             settings."*" = {
               IdentityFile = [ "~/.ssh/id_ed25519" ] ++ config.modules.ssh.identityFiles;
               IdentitiesOnly = "yes";
               SecurityKeyProvider = "internal";
-              IdentityAgent = "none";
               # Connection multiplexing: the first SSH to a host pays the
               # handshake (and the YubiKey touch); later tabs, `ws` reattaches and
               # scp/git over SSH reuse the master socket for 10 minutes.
@@ -85,9 +97,11 @@ let
               ServerAliveInterval = 30;
               ServerAliveCountMax = 3;
               # Explicit, conservative client defaults (nothing here overrides a
-              # per-host block): no forwarding, no compression on LAN/VPN, a
-              # bounded connect timeout, and hashed host names on disk.
-              AddKeysToAgent = "no";
+              # per-host block): no forwarding unless a trusted host opts in,
+              # no compression on LAN/VPN, a bounded connect timeout, and
+              # hashed host names on disk. AddKeysToAgent loads a key into the
+              # local agent on first use so it can be forwarded.
+              AddKeysToAgent = "yes";
               ForwardAgent = "no";
               ForwardX11 = "no";
               ForwardX11Trusted = "no";
