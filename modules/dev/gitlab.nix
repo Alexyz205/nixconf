@@ -24,7 +24,6 @@ let
     hosts = lib.mkOption {
       type = lib.types.listOf lib.types.str;
       default = [
-        "git.dxyz.pro"
         "gitlab.alexyz.org"
       ];
       description = ''

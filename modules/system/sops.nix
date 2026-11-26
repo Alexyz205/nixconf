@@ -5,8 +5,8 @@
 }:
 let
   secretsFile = ../../secrets/secrets.yaml;
-  # Both YubiKey stubs, so any host can decrypt the secret that matches the
-  # plugged key: personal -> secrets.yaml, work -> corp.yaml.
+  # Personal YubiKey stub used by the personal secrets.
+  # The work stub lives in the private work repository.
   ageIdentities = ../../config/sops/age-identities;
   homeSopsModule = config.nixconf.modules.homeManager.sops;
 in
@@ -31,7 +31,7 @@ in
           default = secretsFile;
           description = ''
             Default sops file for NixOS secrets. Hosts that keep their own
-            secrets (e.g. a corporate host with corp.yaml) point this at a
+            secrets point this at a
             dedicated file instead of secrets.yaml.
           '';
         };
@@ -39,7 +39,7 @@ in
           type = lib.types.bool;
           default = true;
           description = ''
-            Wire the home-manager sops module (sec/secc/secx aliases). Disable on
+            Wire the home-manager sops module (sec/secx aliases). Disable on
             hosts whose age identity cannot decrypt secrets.yaml.
           '';
         };
@@ -57,7 +57,7 @@ in
           default = false;
           description = ''
             Install pcscd and the YubiKey plugin so sops files can be opened and
-            edited with the YubiKey (sec/secc/secx), while unattended activation
+            edited with the YubiKey (sec/secx), while unattended activation
             keeps using modules.sops.ageKeyFile.
           '';
         };
@@ -134,7 +134,6 @@ in
       # whose unattended activation must use a software key (no touch at boot).
       sopsAliases = {
         sec = "SOPS_AGE_KEY_FILE=${config.modules.sops.interactiveAgeKeyFile} sops $NIXCONF/secrets/secrets.yaml";
-        secc = "SOPS_AGE_KEY_FILE=${config.modules.sops.interactiveAgeKeyFile} sops $NIXCONF/secrets/corp.yaml";
         secx = "SOPS_AGE_KEY_FILE=${config.modules.sops.interactiveAgeKeyFile} sops";
       };
     in
@@ -154,7 +153,7 @@ in
           default = false;
           description = ''
             Ship the YubiKey age identity to ~/.config/sops/yubi-age-identity and
-            install age-plugin-yubikey, so sec/secc/secx open secrets with the
+            install age-plugin-yubikey, so sec/secx open secrets with the
             YubiKey even when boot uses a software key.
           '';
         };
@@ -194,7 +193,7 @@ in
               config.modules.sops.ageKeyFile;
           defaultText = lib.literalExpression "the YubiKey identity when modules.sops.useYubikey or modules.sops.interactiveYubikey, else modules.sops.ageKeyFile";
           description = ''
-            Identity used by the sec/secc/secx aliases. Separate from
+            Identity used by the sec/secx aliases. Separate from
             modules.sops.ageKeyFile so an unattended activation can decrypt with
             a software key while interactive edits still require the YubiKey.
           '';

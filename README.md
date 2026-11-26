@@ -87,38 +87,34 @@ starship, tmux, tools, aliases) from a standalone home-manager profile:
 It installs Nix via the official installer (downloaded to a temp file — never
 `curl | sh`), clones this repo, and activates the matching home-manager config
 (`<user>@container` for containers, `alexis@server` for servers,
-`alexis.pigeon@RNSL-APIGEON5` for work desktops). The container user is picked
 at runtime from `id -un` (`root@container` or `vscode@container`). `desktop`
 also sets zsh as the login shell.
 
 ## Hosts
 
-| Host              | Platform       | Type    | Key Features                                                                                                                                   |
-| ----------------- | -------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| `macbook`         | aarch64-darwin | Laptop  | nix-darwin, Homebrew, Ghostty                                                                                                                  |
-| `workstation`     | x86_64-linux   | Desktop | Niri WM, Catppuccin (stylix), greetd, pipewire, YubiKey LUKS + sudo, Nextcloud (davfs2)                                                        |
-| `rnsw-apigeon1`   | x86_64-linux   | Desktop | Dell Precision 3680, both NVMe encrypted (LUKS+impermanence, `/data`), RTX 4090 on driver 620, Take-Two LDAP/SSSD, SentinelOne, Nessus, Ollama |
-| `headless-worker` | x86_64-linux   | Server  | systemd-networkd, btrfs disko, SSH via YubiKey key, weekly GC                                                                                  |
-| `proxmox-vm`      | x86_64-linux   | VM      | cloud-init, Proxmox image, qemu-guest, minimal                                                                                                 |
-| `installer-iso`   | x86_64-linux   | USB ISO | Guided installer script with YubiKey auth                                                                                                      |
+| Host              | Platform       | Type    | Key Features                                                                            |
+| ----------------- | -------------- | ------- | --------------------------------------------------------------------------------------- |
+| `macbook`         | aarch64-darwin | Laptop  | nix-darwin, Homebrew, Ghostty                                                           |
+| `workstation`     | x86_64-linux   | Desktop | Niri WM, Catppuccin (stylix), greetd, pipewire, YubiKey LUKS + sudo, Nextcloud (davfs2) |
+| `headless-worker` | x86_64-linux   | Server  | systemd-networkd, btrfs disko, SSH via YubiKey key, weekly GC                           |
+| `proxmox-vm`      | x86_64-linux   | VM      | cloud-init, Proxmox image, qemu-guest, minimal                                          |
+| `installer-iso`   | x86_64-linux   | USB ISO | Guided installer script with YubiKey auth                                               |
 
 Standalone home-manager profiles (`flake.homeConfigurations`):
 
-| Config                        | Username      | Platform       | Notes                                |
-| ----------------------------- | ------------- | -------------- | ------------------------------------ |
-| `alexis@macos`                | alexis        | aarch64-darwin | macOS profile                        |
-| `alexis@linux`                | alexis        | x86_64-linux   | Linux profile                        |
-| `alexis.pigeon@RNSL-APIGEON5` | alexis.pigeon | x86_64-linux   | Work station, Ubuntu/GNOME           |
-| `alexis@server`               | alexis        | x86_64-linux   | Headless server (terminal-only)      |
-| `root@container`              | root          | x86_64-linux   | Container profile (root)             |
-| `vscode@container`            | vscode        | x86_64-linux   | Devcontainer profile (non-root user) |
+| Config             | Username | Platform       | Notes                                |
+| ------------------ | -------- | -------------- | ------------------------------------ |
+| `alexis@macos`     | alexis   | aarch64-darwin | macOS profile                        |
+| `alexis@linux`     | alexis   | x86_64-linux   | Linux profile                        |
+| `alexis@server`    | alexis   | x86_64-linux   | Headless server (terminal-only)      |
+| `root@container`   | root     | x86_64-linux   | Container profile (root)             |
+| `vscode@container` | vscode   | x86_64-linux   | Devcontainer profile (non-root user) |
 
 The profile extras are layered (`modules/flake/home-manager.nix`):
 `defaultExtra` is the base every interactive Linux profile starts from (sops,
 yubikey, ghostty, containers plus gitlab, youtube-music, chromium, rdp, artcraft
 and vlc); `personalExtra` builds on it with claude, thunderbird, Nextcloud and
 the Blender/FreeCAD 3D stack; `workExtra` is the default set plus FreeCAD (with
-the OpenCode MCP bridge) used by the `RNSL` work station. macOS gets a
 cross-platform subset (`macosExtra`) since artcraft/youtube-music are
 Linux-only. The work profile runs on the distro's own desktop (GNOME) — no
 niri/noctalia/stylix and no Nextcloud. `imv` (yazi's image opener) is a
@@ -156,7 +152,6 @@ hm   # nh home switch $NIXCONF#<profile> (standalone home-manager)
 The variants (`nrb`/`nrt`/`nro`, `drb`, `hmb`) also use `nh`; only `drc` and
 `hmc` stay on `darwin-rebuild check`/`home-manager build --check` because `nh`
 has no check subcommand. Profiles whose username contains a dot (the
-`alexis.pigeon@...` work stations) use nh's auto-detection
 (`nh home switch $NIXCONF`), which resolves `$USER@$HOSTNAME`. Nix tooling is
 `nb` (`nom build`), `nd` (`nvd diff`) and `nhc`
 (`nh clean all --keep-since 7d`); server deploys are `dep`/`depr`. The complete
@@ -296,8 +291,6 @@ examples, default excludes, and a restore test.
 Wake-on-LAN is enabled on the server and desktop tiers; use `wol <MAC>` from
 another LAN host. LUKS changes what "wake" means (the server has no LUKS, the
 workstation stops at its passphrase): see
-[docs/wake-on-lan.md](docs/wake-on-lan.md). The corporate desktop
-(`rnsw-apigeon1`) is woken with `wsa`, hibernates by default, and uses TPM2
 (Secure Boot/PCR 7) to unseal LUKS on a remote resume.
 
 Work SSH aliases (the `tk2edcdxzci*` fleet, the studio workstation, this
@@ -309,7 +302,6 @@ Remote desktop uses Moonlight (client) + Sunshine (Windows host) with NVENC,
 and keeps RDP/Remmina as a console fallback:
 see [docs/moonlight-sunshine.md](docs/moonlight-sunshine.md).
 
-GlobalProtect on the RNSL work profile uses the upstream `gpclient` CLI
 (`gpvpn` wrapper, SAML/Okta through the external browser, `pkexec` for the
 tunnel): see [docs/globalprotect.md](docs/globalprotect.md).
 
@@ -409,10 +401,7 @@ YubiKey-based age identity.
     any other secret a personal host needs. Edit with `sec` (alias for
     `sops $NIXCONF/secrets/secrets.yaml`). Server backups are documented in
     [docs/backup.md](docs/backup.md).
-  - `corp.yaml` — corporate host secrets (LDAP bind password, NAS, Nessus and
-    SentinelOne keys). Edit with `secc`.
 - The module `modules/system/sops.nix` wires sops into NixOS: default sops file
-  (`secrets.yaml` or the host's `secrets/corp.yaml`), age key file
   (`/etc/yubi-age-identity`), age-plugin-yubikey, and exposes a home-manager
   `sops` feature that decrypts those secrets under
   `~/.config/sops-nix/secrets/`. The feature is shared by every home-manager
@@ -426,11 +415,9 @@ YubiKey-based age identity.
 --scopes "repo,read:org,gist,workflow"` (personal GitHub; `workflow` is
     needed to push `.github/workflows/` changes).
   - `glab auth login --hostname gitlab.alexyz.org --web` (personal GitLab).
-  - `glab auth login --hostname git.dxyz.pro --web` (work GitLab, rnsw only).
     Its OAuth application needs redirect URI
     `http://localhost:7171/auth/redirect`, **Confidential** unchecked and scopes
     `openid profile read_user write_repository api`; pin the ID with
-    `glab config set client_id <application-id> --host git.dxyz.pro`. glab
     preflights the ID, so an unknown or confidential app fails before the
     browser opens, while a wrong redirect URI fails inside it.
     The CLIs keep the token in the OS keyring (or their own 0600 config when no
@@ -447,7 +434,6 @@ YubiKey-based age identity.
   identity per host/profile and adds `includeIf` rules for both trees:
   `~/repos/work/` uses the work name/email, `~/repos/personal/` the personal one.
   On the workstation the default is personal (a work repo still switches to the
-  work identity); on `rnsw-apigeon1` the default is work and `~/repos/personal/`
   switches back to personal. The `gh:`/`gl:` clone shortcuts resolve to HTTPS,
   so they use the same helpers.
 - The age identity and SSH keys are stored under `config/` and referenced by the
@@ -462,15 +448,12 @@ YubiKey-based age identity.
 - GitLab tooling (`glab`, the `gitlab.nvim` LazyVim plugin, and the
   git credential helpers) lives in the standalone `gitlab` feature module and is
   part of the default desktop set — enabled on the workstation and every
-  interactive Linux profile (`alexis@linux`, `alexis.pigeon@RNSL-APIGEON5`).
   Credentials are per-host keyring entries created by `glab auth login`, not
   sops templates, so each machine keeps only the hosts it actually signed in to
   and no `GITLAB_TOKEN` is set. gitlab.nvim and the dashboard identify the
-  remote host (`git.dxyz.pro`, `gitlab.alexyz.org`, `github.com`) and ask glab
   for that host's token instead of reading the environment; run
   `glab auth status --all` to inspect the stored credentials. The `hosts`
   option only controls which credential helpers are wired (workstation:
-  personal GitLab; `rnsw-apigeon1`: work GitLab).
 
 ## Nextcloud
 

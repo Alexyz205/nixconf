@@ -1,29 +1,52 @@
-{
-  lib,
-  ...
-}:
+_:
 let
   # Resident FIDO2 SSH keys. Only the .pub halves are tracked; the private
   # handles are downloaded per machine with `ssh-keygen -K`.
   personalYubiKey = "id_ed25519_sk_rk_alexis-perso";
-  yubiKeys = [
-    personalYubiKey
-    "id_ed25519_sk_rk_alexis-work"
-  ];
-  keyPub = key: ../../config/ssh + "/${key}.pub";
-  # The work .pub appears only after it has been generated and committed.
-  presentYubiKeys = builtins.filter (key: builtins.pathExists (keyPub key)) yubiKeys;
+  defaultSshKeys = [ personalYubiKey ];
+  defaultSshKeyDir = ../../config/ssh;
+  defaultU2fKeysFile = ../../config/Yubico/u2f_keys;
   u2fOrigin = "pam://localhost";
-  u2fMapping = ../../config/Yubico/u2f_keys;
+
+  keyPub = dir: key: dir + "/${key}.pub";
+  presentKeys = dir: keys: builtins.filter (key: builtins.pathExists (keyPub dir key)) keys;
+
+  # Shared between the NixOS home-manager wiring and the standalone
+  # home-manager profile.
+  yubiSettings =
+    { lib, ... }:
+    {
+      options.modules.yubikey = {
+        sshKeys = lib.mkOption {
+          type = lib.types.listOf lib.types.str;
+          default = defaultSshKeys;
+          description = "Resident FIDO2 SSH key names appended to the identity list";
+        };
+        sshKeyDir = lib.mkOption {
+          type = lib.types.path;
+          default = defaultSshKeyDir;
+          description = "Directory containing <key>.pub for the resident keys";
+        };
+        u2fKeysFile = lib.mkOption {
+          type = lib.types.path;
+          default = defaultU2fKeysFile;
+          description = "pamu2fcfg mapping file for sudo/login";
+        };
+      };
+    };
 
   yubiCfg =
     {
+      config,
+      lib,
       pkgs,
       ...
     }:
     let
-      u2fKeyFile = lib.optionalAttrs (builtins.pathExists u2fMapping) {
-        ".config/Yubico/u2f_keys".source = u2fMapping;
+      dir = config.modules.yubikey.sshKeyDir;
+      keys = presentKeys dir config.modules.yubikey.sshKeys;
+      u2fKeyFile = lib.optionalAttrs (builtins.pathExists config.modules.yubikey.u2fKeysFile) {
+        ".config/Yubico/u2f_keys".source = config.modules.yubikey.u2fKeysFile;
       };
     in
     {
@@ -39,13 +62,13 @@ let
         builtins.listToAttrs (
           map (key: {
             name = ".ssh/${key}.pub";
-            value.source = keyPub key;
-          }) presentYubiKeys
+            value.source = keyPub dir key;
+          }) keys
         )
         // u2fKeyFile;
       # Append the resident YubiKeys to the default identity list owned by the
       # ssh module (id_ed25519 stays primary).
-      modules.ssh.identityFiles = map (key: "~/.ssh/${key}") presentYubiKeys;
+      modules.ssh.identityFiles = map (key: "~/.ssh/${key}") keys;
     };
 in
 {
@@ -62,7 +85,27 @@ in
         sshKey = lib.mkOption {
           type = lib.types.bool;
           default = true;
-          description = "Use the resident FIDO2 YubiKey SSH keys (personal and work) for git/ssh";
+          description = "Use the resident FIDO2 YubiKey SSH keys for git/ssh";
+        };
+        sshKeys = lib.mkOption {
+          type = lib.types.listOf lib.types.str;
+          default = defaultSshKeys;
+          description = "Resident FIDO2 SSH key names appended to the client identity list";
+        };
+        sshKeyDir = lib.mkOption {
+          type = lib.types.path;
+          default = defaultSshKeyDir;
+          description = "Directory containing <key>.pub for the resident keys";
+        };
+        authorizedKeys = lib.mkOption {
+          type = lib.types.listOf lib.types.str;
+          default = [ personalYubiKey ];
+          description = "Resident FIDO2 SSH key names authorized in the host's authorized_keys";
+        };
+        u2fKeysFile = lib.mkOption {
+          type = lib.types.path;
+          default = defaultU2fKeysFile;
+          description = "pamu2fcfg mapping file shipped to the users for sudo/login";
         };
         luksUnlock = lib.mkOption {
           type = lib.types.bool;
@@ -124,22 +167,34 @@ in
 
         programs.ssh = lib.mkIf config.modules.yubikey.sshKey {
           extraConfig = ''
-            ${lib.concatMapStringsSep "\n" (key: "IdentityFile ~/.ssh/${key}") presentYubiKeys}
+            ${lib.concatMapStringsSep "\n" (key: "IdentityFile ~/.ssh/${key}") (
+              presentKeys config.modules.yubikey.sshKeyDir config.modules.yubikey.sshKeys
+            )}
             IdentitiesOnly yes
             SecurityKeyProvider internal
             IdentityAgent none
           '';
         };
-        # Personal hosts authorize only the personal key. The work public key
-        # is installed on the work fleet by Ansible (and can be added to GitHub).
+        # The default authorizes only the personal key. The work public key is
+        # installed on the work fleet by Ansible (and can be added to GitHub).
         users.users.${config.modules.users.userName}.openssh.authorizedKeys.keys =
-          lib.mkIf config.modules.yubikey.sshKey (
-            lib.optional (builtins.pathExists (keyPub personalYubiKey)) (
-              lib.trim (builtins.readFile (keyPub personalYubiKey))
-            )
-          );
+          lib.mkIf config.modules.yubikey.sshKey
+            (
+              map (key: lib.trim (builtins.readFile (keyPub config.modules.yubikey.sshKeyDir key))) (
+                presentKeys config.modules.yubikey.sshKeyDir config.modules.yubikey.authorizedKeys
+              )
+            );
         home-manager.users = lib.genAttrs config.modules.users.homeUsers (
-          _: lib.mkIf config.modules.yubikey.sshKey yubiCfg
+          _:
+          lib.mkIf config.modules.yubikey.sshKey {
+            imports = [
+              yubiSettings
+              yubiCfg
+            ];
+            modules.yubikey.sshKeys = lib.mkDefault config.modules.yubikey.sshKeys;
+            modules.yubikey.sshKeyDir = lib.mkDefault config.modules.yubikey.sshKeyDir;
+            modules.yubikey.u2fKeysFile = lib.mkDefault config.modules.yubikey.u2fKeysFile;
+          }
         );
       };
     };
@@ -152,9 +207,10 @@ in
       ...
     }:
     {
+      imports = [ yubiSettings ];
       options.modules.yubikey.enable = lib.mkEnableOption "YubiKey hardware auth";
       config = lib.mkIf config.modules.yubikey.enable (yubiCfg {
-        inherit pkgs;
+        inherit config lib pkgs;
       });
     };
 }

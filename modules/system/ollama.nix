@@ -16,7 +16,7 @@ _: {
         host = lib.mkOption {
           type = lib.types.str;
           default = "127.0.0.1";
-          description = "Listen address; loopback keeps the API off the corporate LAN.";
+          description = "Listen address; loopback keeps the API off the LAN.";
         };
 
         loadModels = lib.mkOption {

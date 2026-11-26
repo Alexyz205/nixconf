@@ -1,5 +1,2 @@
-# Both YubiKey age identities in one file: age tries each and uses the one
-# whose secret is plugged in. sec/secc support either key on any host.
-# Personal: secrets.yaml. Work: corp.yaml.
+# Personal YubiKey age identity (secrets.yaml).
 AGE-PLUGIN-YUBIKEY-1KMP7KQVZVWL90ZG9RD4D0
-AGE-PLUGIN-YUBIKEY-1G6FRSQVZUSQVZFS9KP7NA

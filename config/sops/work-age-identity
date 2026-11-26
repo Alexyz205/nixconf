@@ -1,4 +1,0 @@
-# Work YubiKey (serial 20484678, PIV slot 1, name "work").
-# Recipient: age1yubikey1qvlj00n93jexlsgg3zzfhpahnk36yvunyrxmpamvwt5fyvnwmzrx6zy6a76
-# Regenerate the stub with: age-plugin-yubikey --identity --slot 1
-AGE-PLUGIN-YUBIKEY-1G6FRSQVZUSQVZFS9KP7NA

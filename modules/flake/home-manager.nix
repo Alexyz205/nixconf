@@ -72,10 +72,6 @@ let
       moonlight
       { modules.moonlight.enable = true; }
     ];
-    globalprotect = [
-      globalprotect
-      { modules.globalprotect.enable = true; }
-    ];
     claude = [
       claude
       { modules.claude.enable = true; }
@@ -189,29 +185,6 @@ let
       }
     ];
 
-  # Tier 2 — the RNSL work station. The default set plus the 3D CAD stack (no
-  # claude/thunderbird/nextcloud); keep the name so work-only additions have an
-  # obvious home.
-  workExtra =
-    defaultExtra
-    ++ extras.freecad
-    ++ extras.blender
-    ++ extras.globalprotect
-    ++ [
-      {
-        # Corporate fleet aliases (tk2edcdxzci1, ...) generated from the local
-        # infra_management checkout into ~/.ssh/config.d/work.
-        modules.ssh.workHosts = true;
-        modules.git = {
-          userName = "Alexis Pigeon";
-          userEmail = "alexis.pigeon@take2games.com";
-        };
-        modules.gitlab.hosts = [ "git.dxyz.pro" ];
-      }
-      { modules.opencode.mcp.freecad.enable = true; }
-      { modules.chromium.okta = true; }
-    ];
-
   # macOS can't run the Linux-only packages (artcraft/youtube-music,
   # and the `desktop` group's vlc which has no aarch64-darwin build), so it gets
   # a cross-platform subset of the default set.
@@ -227,7 +200,7 @@ let
   # Required for standalone home-manager on non-NixOS Linux: wires nix.sh into
   # the shell config so $HOME/.nix-profile/bin lands on PATH in managed shells.
   # Every non-darwin standalone config targets a non-NixOS host (Ubuntu desktop,
-  # server, container, RNSL), so this is auto-derived from the system instead of
+  # server, container, standalone), so this is auto-derived from the system instead of
   # hand-listed per host — any future Linux profile gets it for free.
   genericLinux = {
     targets.genericLinux.enable = true;
@@ -331,42 +304,41 @@ let
   }) containerUsers;
 in
 {
-  flake-file.inputs.home-manager = {
-    url = "github:nix-community/home-manager";
-    inputs.nixpkgs.follows = "nixpkgs";
-  };
+  config = {
+    flake-file.inputs.home-manager = {
+      url = "github:nix-community/home-manager";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
-  flake.homeConfigurations = {
-    "alexis@macos" = mkHome {
-      system = "aarch64-darwin";
-      username = "alexis";
-      homeDirectory = "/Users/alexis";
-      hmProfile = "alexis@macos";
-      extra = macosExtra;
+    nixconf.mkHome = mkHome;
+    nixconf.homeManagerExtras = {
+      inherit defaultExtra extras;
     };
-    "alexis@linux" = mkHome {
-      system = "x86_64-linux";
-      username = "alexis";
-      homeDirectory = "/home/alexis";
-      hmProfile = "alexis@linux";
-      extra = personalExtra;
-    };
-    # The RNSL work station (Ubuntu/GNOME) uses workExtra.
-    "alexis.pigeon@RNSL-APIGEON5" = mkHome {
-      system = "x86_64-linux";
-      username = "alexis.pigeon";
-      homeDirectory = "/home/alexis.pigeon";
-      hmProfile = "alexis.pigeon@RNSL-APIGEON5";
-      extra = workExtra;
-    };
-    # Headless Ubuntu server: terminal-only, no GUI extras.
-    "alexis@server" = mkHome {
-      system = "x86_64-linux";
-      username = "alexis";
-      homeDirectory = "/home/alexis";
-      hmProfile = "alexis@server";
-      extra = extras.sops ++ extras.bitwarden;
-    };
-  }
-  // containerConfigs;
+
+    flake.homeConfigurations = {
+      "alexis@macos" = mkHome {
+        system = "aarch64-darwin";
+        username = "alexis";
+        homeDirectory = "/Users/alexis";
+        hmProfile = "alexis@macos";
+        extra = macosExtra;
+      };
+      "alexis@linux" = mkHome {
+        system = "x86_64-linux";
+        username = "alexis";
+        homeDirectory = "/home/alexis";
+        hmProfile = "alexis@linux";
+        extra = personalExtra;
+      };
+      # Headless Ubuntu server: terminal-only, no GUI extras.
+      "alexis@server" = mkHome {
+        system = "x86_64-linux";
+        username = "alexis";
+        homeDirectory = "/home/alexis";
+        hmProfile = "alexis@server";
+        extra = extras.sops ++ extras.bitwarden;
+      };
+    }
+    // containerConfigs;
+  };
 }

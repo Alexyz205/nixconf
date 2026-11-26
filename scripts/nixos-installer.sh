@@ -48,7 +48,7 @@ gum style \
 echo
 
 step "Selecting host"
-HOST=$(gum choose --header "Which host to install?" headless-worker workstation rnsw-apigeon1)
+HOST=$(gum choose --header "Which host to install?" headless-worker workstation)
 ok "Selected host: $HOST"
 
 USERNAME=$(nix eval "$FLAKE_DIR#$HOST.config.modules.users.userName" --raw 2>/dev/null || echo "alexis")
@@ -258,7 +258,7 @@ ok "Home directory owned by $USERNAME ($USER_UID:$USER_GID)"
 echo
 step "SOPS age key (optional)"
 info "Hosts using modules.sops need an age key; without it only local login works."
-info "For rnsw-apigeon1 that is the generated rnsw-apigeon1.key file."
+info "Place the host age key at ~/.config/sops/age/keys.txt."
 KEY_SRC=$(gum input --placeholder "Path to the age key file (empty to skip)")
 if [[ -n $KEY_SRC && -f $KEY_SRC ]]; then
   install -Dm600 "$KEY_SRC" "/mnt/home/$USERNAME/.config/sops/age/keys.txt"

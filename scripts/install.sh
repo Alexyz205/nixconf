@@ -39,7 +39,7 @@ Commands:
   server               Bootstrap a new server/image: multi-user Nix (daemon),
                        clone repo, activate the server home-manager profile.
   desktop              Bootstrap a desktop Ubuntu (GNOME) work machine:
-                       multi-user Nix, clone repo, activate the RNSL
+                       multi-user Nix, clone repo, activate the desktop
                        home-manager profile (apps + tools), set zsh login shell.
   -h, --help           Show this help message
 
@@ -322,7 +322,7 @@ EOF
 
 cmd_desktop() {
   check_deps
-  HM_CONFIG="alexis.pigeon@RNSL-APIGEON5"
+  HM_CONFIG="alexis@linux"
   ensure_nix daemon
   ensure_flakes
   clone_repo

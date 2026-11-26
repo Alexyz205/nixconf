@@ -64,7 +64,6 @@ by the host/profile tiers.
 | `yq`             | YAML/JSON/XML/TOML querying and conversion                           |
 | `tree-sitter`    | Parser CLI, grammar tests and syntax tooling                         |
 | `fastfetch`      | Fast system information summary                                      |
-| `wakeonlan`      | `wol <MAC>`, `wsw`, `wsa`: send a Wake-on-LAN magic packet           |
 | `tokei`          | Code statistics by language (files, code, comments, blanks)          |
 | `sd`             | Simpler, faster `sed` for find/replace with literal/regex            |
 | `7z`, `tar`      | 7z (`p7zip`) for 7z/zip/rar; `tar` from the base system              |
@@ -89,7 +88,6 @@ by the host/profile tiers.
 Notes:
 
 - `nh` handles sudo/elevation and shows a diff before activation. On profiles
-  whose username contains a dot (`alexis.pigeon@...`) `hm` uses nh's
   auto-detection (`nh home switch $NIXCONF`) because nh treats dotted explicit
   keys as attribute paths.
 - `nr`/`nrb`/`nrt`/`nro` mirror `nixos-rebuild switch/build/test/boot`; `dr`/
@@ -155,7 +153,6 @@ These are installed globally so LazyVim/OpenCode and any editor find them on
 
 | Tool                            | Purpose                                                                              |
 | ------------------------------- | ------------------------------------------------------------------------------------ |
-| `sops`                          | Edit/decrypt encrypted YAML (`secrets/secrets.yaml`, `secrets/corp.yaml`)            |
 | `age`                           | Modern encryption used by sops; YubiKey plugin for hardware identity                 |
 | `age-plugin-yubikey`            | Age identity backed by the YubiKey                                                   |
 | `gnupg`                         | GPG keys/signing where needed                                                        |
@@ -166,7 +163,6 @@ These are installed globally so LazyVim/OpenCode and any editor find them on
 | `gh`, `glab`                    | GitHub/GitLab CLIs; credentials come from interactive login, not sops                |
 
 Rules: never print or commit plaintext secrets; `sec` edits
-`secrets/secrets.yaml` and `secc` edits `secrets/corp.yaml`; decryption needs
 the YubiKey except on the workstation (software age key). `gh auth login` and
 `glab auth login` store their token in the OS keyring (or their own 0600 config
 when no keyring runs); the repo only wires the non-secret credential helpers.
@@ -199,10 +195,8 @@ with those IDs squashed to the calling user instead of failing the pull with
 | Monitoring     | `node_exporter`, `smartd`, btrfs scrub, journald limits | Metrics on `127.0.0.1:9100`, disk health, silent-corruption detection        |
 | Backup         | `restic` service, `restic-nas`                          | Daily encrypted/pruned snapshots; enabled on workstation and headless-worker |
 | Secure Boot    | `lanzaboote`, `sbctl`                                   | Signed UKIs; opt-in after key enrollment                                     |
-| Wake-on-LAN    | `ethtool`, `wakeonlan`                                  | Magic-packet wake (`wol`, `wsw`, `wsa`); hibernate/TPM2 on rnsw              |
 | Remote desktop | `moonlight-qt`, `remmina`, `freerdp`                    | Sunshine/Moonlight for low latency; RDP console fallback                     |
 | Work SSH       | `sync-work-ssh`                                         | Fleet aliases from infra_management into ~/.ssh/config.d/work                |
-| VPN            | `gpclient`, `gpvpn`                                     | GlobalProtect SSO via the external browser; `pkexec` sets up the tunnel      |
 | Networking     | NetworkManager/systemd-networkd, `nmcli`, `resolvectl`  | Wired/Wi-Fi, DNS, firewall                                                   |
 | Disks          | `disko`, `lsblk`, `udisksctl`, `mount`                  | Declarative layout and inspection                                            |
 | Remote deploy  | `deploy-rs`, `nixos-anywhere`                           | Push closures; install over SSH                                              |

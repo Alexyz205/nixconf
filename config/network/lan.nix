@@ -12,10 +12,4 @@
   backup-nas = {
     ip = "192.168.1.113";
   };
-  # Corporate desktop (RNSW-APIGEON1, 10.113.64.0/24). Only the wired NIC
-  # matters for Wake-on-LAN; the address is not used by the alias.
-  rnsw-apigeon1 = {
-    mac = "4c:d7:17:a6:60:06";
-    interface = "enp0s31f6";
-  };
 }

@@ -333,7 +333,7 @@ let
             open-on-workspace = "game";
           }
           {
-            # RDP fallback for rnsw-studio1 (Remmina, or a bare FreeRDP client).
+            # RDP fallback for the Windows host (Remmina, or a bare FreeRDP client).
             # Remmina reports "remmina" on Wayland and org.remmina.Remmina from
             # its desktop file; xfreerdp/sdl-freerdp arrive through XWayland.
             matches = [

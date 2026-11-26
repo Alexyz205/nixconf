@@ -2,26 +2,21 @@
 
 ## Inventory
 
-| Flake output                             | Type          | Tier / notes                                                                                                                                                                                |
-| ---------------------------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `nixosConfigurations.workstation`        | NixOS desktop | `desktop` tier, disko + LUKS, NVIDIA, niri                                                                                                                                                  |
-| `nixosConfigurations.rnsw-apigeon1`      | NixOS desktop | `desktop` tier, disko + LUKS on both NVMe (2 TB system + 512 GB `/data`), RTX 4090 (driver 620), Take-Two corporate stack; `alexis.pigeon` is the default session, `alexis` the local admin |
-| `nixosConfigurations.headless-worker`    | NixOS server  | `server` tier, disko + btrfs, systemd-networkd                                                                                                                                              |
-| `nixosConfigurations.backup-nas`         | NixOS NAS     | WTR production layout: `base` tier + ZFS/NFSv4/SFTP/restic/snapshots/NUT; see `proxmox-infra/hardware/nas-build-plan.md`                                                                    |
-| `nixosConfigurations.backup-nas-minimal` | NixOS NAS     | **Current test NAS** (`192.168.1.113`): ZFS/NFSv4/SFTP/restic with key-only root (no password); no base/home-manager tier                                                                   |
-| `nixosConfigurations.proxmox-vm`         | NixOS VM      | minimal (`nix`, `users`, `ssh`), qemu-guest + cloud-init                                                                                                                                    |
-| `nixosConfigurations.installer-iso`      | USB ISO       | guided installer (`nixos-installer`)                                                                                                                                                        |
-| `darwinConfigurations.macbook`           | nix-darwin    | Homebrew + Ghostty                                                                                                                                                                          |
-| `homeConfigurations.*`                   | standalone HM | `alexis@linux`, `alexis@macos`, `alexis.pigeon@RNSL-APIGEON5`, `alexis@server`, `root@container`, `vscode@container`                                                                        |
-| `deploy.nodes.headless-worker`           | deploy-rs     | push a locally built closure to the server                                                                                                                                                  |
+| Flake output                             | Type          | Tier / notes                                                                                                              |
+| ---------------------------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `nixosConfigurations.workstation`        | NixOS desktop | `desktop` tier, disko + LUKS, NVIDIA, niri                                                                                |
+| `nixosConfigurations.headless-worker`    | NixOS server  | `server` tier, disko + btrfs, systemd-networkd                                                                            |
+| `nixosConfigurations.backup-nas`         | NixOS NAS     | WTR production layout: `base` tier + ZFS/NFSv4/SFTP/restic/snapshots/NUT; see `proxmox-infra/hardware/nas-build-plan.md`  |
+| `nixosConfigurations.backup-nas-minimal` | NixOS NAS     | **Current test NAS** (`192.168.1.113`): ZFS/NFSv4/SFTP/restic with key-only root (no password); no base/home-manager tier |
+| `nixosConfigurations.proxmox-vm`         | NixOS VM      | minimal (`nix`, `users`, `ssh`), qemu-guest + cloud-init                                                                  |
+| `nixosConfigurations.installer-iso`      | USB ISO       | guided installer (`nixos-installer`)                                                                                      |
+| `darwinConfigurations.macbook`           | nix-darwin    | Homebrew + Ghostty                                                                                                        |
+| `deploy.nodes.headless-worker`           | deploy-rs     | push a locally built closure to the server                                                                                |
 
 Hosts are composed from tiers defined in `modules/flake/nixos.nix`: the tier
 module imports each feature **and** enables it with `mkDefault`, so a host file
 only lists deltas. Disable a tier feature with a plain `modules.<name>.enable =
 false`, or override its settings (`modules.sops.useYubikey = false`).
-
-The corporate workstation has its own install + enrollment runbook:
-[docs/rnsw-apigeon1.md](rnsw-apigeon1.md).
 
 ## Rebuild
 
@@ -37,9 +32,7 @@ hmb   # nh home build $NIXCONF#<profile>
 ```
 
 `drc` and `hmc` stay on `darwin-rebuild check` / `home-manager build --check`
-because `nh` has no `check` subcommand. The `alexis.pigeon@...` profiles use
 `nh home switch $NIXCONF` (no explicit key): nh resolves `$USER@$HOSTNAME`,
-which matches the RNSL flake key.
 
 Before switching, `nvd diff` (`nd`) shows exactly which packages and versions
 change between the current and the next generation.
@@ -64,25 +57,6 @@ supported path:
 ```bash
 nixos-anywhere --flake .#headless-worker root@<ip>
 ```
-
-## Work laptop (`rnsw-apigeon1`)
-
-`rnsw-apigeon1` pulls two corporate artifacts from `packages.gametools.dev`:
-the T2 Palo Alto root CA (`modules/system/corp-auth.nix`) and the SentinelOne
-agent package (`modules/system/sentinelone.nix`). Both are fixed-output,
-hash-pinned, and unreachable outside the corporate network.
-
-Evaluation is network-independent on purpose. The CA is installed with
-`security.pki.certificateFiles` (a store path), **not** `builtins.readFile`,
-because reading a `fetchurl` output during evaluation is import-from-derivation:
-it made every `nix eval`/dry-run of this host block on the corporate mirror.
-So `nix flake check`, the pre-push suite and `nix build --dry-run .#rnsw-apigeon1`
-work from home.
-
-Building the host still needs the corp network (or a store/binary cache already
-containing those two artifacts), so build it on the laptop itself or over VPN.
-For an emergency push from an untrusted network:
-`SKIP_NIXCONF_TESTS=1 git push`.
 
 ## Rollback
 
@@ -138,8 +112,6 @@ sudo systemctl restart nix-daemon
 
 ```bash
 sec    # sops $NIXCONF/secrets/secrets.yaml   (personal host secrets)
-secc   # sops $NIXCONF/secrets/corp.yaml      (corporate host secrets)
-secx   # sops <file>                          (same key, any sops file, e.g. corp.yaml)
 ```
 
 The three aliases use `modules.sops.interactiveAgeKeyFile`, which defaults to the
@@ -151,10 +123,6 @@ edit secrets with the YubiKey.
 `secrets/secrets.yaml` is the default sops file for every host that does not
 override `modules.sops.secretsFile`: the Nextcloud password and the restic
 credentials live there, so `sops.secrets.<NAME> = { }` needs no `sopsFile`.
-Corporate hosts pin `modules.sops.secretsFile` to `secrets/corp.yaml` (LDAP bind
-password, NAS, Nessus and SentinelOne keys) and declare those secrets with an
-explicit `sopsFile = ../../secrets/corp.yaml`.
-
 Git `user.name`/`user.email` and the GitLab/GitHub credentials are **not** sops
 secrets. `modules/dev/git.nix` switches identity by directory (`~/repos/work/`,
 `~/repos/personal/`), and `gh`/`glab` keep their tokens in the OS keyring after a
@@ -164,12 +132,9 @@ one-time login:
 gh auth login --hostname github.com --git-protocol https --web \
   --scopes "repo,read:org,gist,workflow"
 glab auth login --hostname gitlab.alexyz.org --web
-glab auth login --hostname git.dxyz.pro --web
 # Self-managed OAuth app: redirect http://localhost:7171/auth/redirect,
 # Confidential off, scopes openid profile read_user write_repository api.
-glab config set client_id <application-id> --host git.dxyz.pro
 # The login flow defaults ssh_hostname to github.com.
-glab config set ssh_hostname git.dxyz.pro --host git.dxyz.pro
 ```
 
 Only the machine that runs the login can use that host; the repo, sops files and
@@ -178,11 +143,6 @@ to verify. GitLab OAuth access tokens expire and are renewed by the next
 authenticated `glab` call, which is also what `gitlab.nvim` relies on.
 
 `modules.users.homeUsers` lists every account that gets a home-manager profile.
-On `rnsw-apigeon1` it is `[ "alexis" "alexis.pigeon" ]`, so both accounts get
-the same feature modules. The sops identity differs: `alexis` uses the rnsw
-software key for unattended `corp.yaml` access, while `alexis.pigeon` uses the
-YubiKey identity (`modules.sops.interactiveYubikey = true`), so `sec`/`secc`
-work with a touch and no private key is copied into the corporate home.
 
 After adding a recipient or editing from a machine other than the YubiKey host,
 re-key with `sops updatekeys secrets/secrets.yaml`. The former split

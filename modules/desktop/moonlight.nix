@@ -1,6 +1,6 @@
 _: {
-  # Moonlight is the client; the Sunshine host runs on Windows (rnsw-studio1).
-  # See docs/moonlight-sunshine.md for the host-side setup and recommended
+  # Moonlight is the client; the Sunshine host runs on Windows.
+  # See the work repo docs for the host-side setup and recommended
   # bitrate/codec settings. RDP (Remmina/FreeRDP) stays installed as a console
   # fallback for the same machine.
   nixconf.modules.nixos.moonlight =

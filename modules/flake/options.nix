@@ -84,6 +84,8 @@ in
       default = { };
     };
     mkHostCommon = lib.mkOption { type = lib.types.raw; };
+    mkHome = lib.mkOption { type = lib.types.raw; };
+    homeManagerExtras = lib.mkOption { type = lib.types.raw; };
     mkDarwinCommon = lib.mkOption { type = lib.types.raw; };
     mkBtrfsLayout = lib.mkOption { type = lib.types.raw; };
   };

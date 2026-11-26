@@ -10,7 +10,7 @@ g.lazyvim_python_lsp = "basedpyright"
 
 -- GitLab instances glab is logged in to. Kept here so the dashboard panes and
 -- the gitlab.nvim spec share one list.
-g.nixconf_gitlab_hosts = { "git.dxyz.pro", "gitlab.alexyz.org" }
+g.nixconf_gitlab_hosts = { "gitlab.alexyz.org" }
 
 vim.filetype.add({ extension = { ino = "cpp" } })
 

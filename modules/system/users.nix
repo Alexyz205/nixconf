@@ -18,7 +18,7 @@ _: {
           description = ''
             Accounts that get a home-manager profile from the feature modules.
             Defaults to the primary local user; hosts with a second interactive
-            account (e.g. rnsw-apigeon1's LDAP account) list both here so they
+            account (for example an LDAP account) list both here so they
             receive the same modules instead of a hand-maintained subset.
           '';
         };

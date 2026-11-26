@@ -3,7 +3,7 @@ let
   palette = import ../../config/theme/catppuccin-mocha.nix;
   lan = import ../../config/network/lan.nix;
   # nh resolves nixosConfigurations.<hostname> from the system hostname
-  # verbatim; hosts like RNSW-APIGEON1 use an uppercase hostname while flake
+  # verbatim; some hosts use an uppercase hostname while flake
   # attributes are lowercase, so the rebuild aliases pass this explicitly.
   nhHost = "$(hostname | tr \"[:upper:]\" \"[:lower:]\")";
   baseAliases = {
@@ -24,8 +24,6 @@ let
   # always-on host that is woken/ssh'd first).
   lanAliases = {
     wsw = "wakeonlan ${lan.workstation.mac}";
-    # Corporate desktop: only works from the same L2 segment (10.113.64.0/24).
-    wsa = "wakeonlan ${lan.rnsw-apigeon1.mac}";
   };
   nixAliases = {
     nc = "nix flake check $NIXCONF";
@@ -43,7 +41,7 @@ let
     # Rebuilds all go through nh. `nr`/`nrb`/`nrt`/`nro` mirror
     # nixos-rebuild switch/build/test/boot, with nh's diff + nom output.
     # nh auto-selects nixosConfigurations.<hostname> literally, and hosts such
-    # as RNSW-APIGEON1 carry an uppercase hostname while flake attrs are
+    # with an uppercase hostname carry a lowercased flake attr, so
     # lowercase, so always pass the lowercased hostname explicitly.
     nr = "nh os switch $NIXCONF -H ${nhHost}";
     nrb = "nh os build $NIXCONF -H ${nhHost}";
@@ -68,7 +66,7 @@ let
   #
   # nh parses dots in an explicit config key as an attribute path, so profiles
   # whose username contains a dot use nh's auto-detection instead: with no
-  # `#key`, nh resolves `$USER@$HOSTNAME` (RNSL-APIGEON5).
+  # `#key`, nh resolves `$USER@$HOSTNAME` for uppercase-hostname machines.
   hmAliases =
     profile:
     let

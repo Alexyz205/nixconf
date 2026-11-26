@@ -43,7 +43,7 @@ let
     };
     workUserEmail = lib.mkOption {
       type = lib.types.str;
-      default = "alexis.pigeon@take2games.com";
+      default = "alexis@alexyz.org";
       description = "Committer email applied to repositories under workDir.";
     };
     workDir = lib.mkOption {
@@ -137,7 +137,7 @@ let
           # Shortcuts resolve to HTTPS so gh/glab's credential helpers are used
           # instead of relying on a per-context SSH key.
           url."https://github.com/".insteadOf = "gh:";
-          url."https://git.dxyz.pro/".insteadOf = "gl:";
+          url."https://gitlab.alexyz.org/".insteadOf = "gl:";
           credential."https://github.com".helper = [
             ""
             "!${pkgs.gh}/bin/gh auth git-credential"
