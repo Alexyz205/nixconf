@@ -5,7 +5,9 @@
 }:
 let
   secretsFile = ../../secrets/secrets.yaml;
-  yubiIdentity = ../../config/sops/yubi-age-identity;
+  # Both YubiKey stubs, so any host can decrypt the secret that matches the
+  # plugged key: personal -> secrets.yaml, work -> corp.yaml.
+  ageIdentities = ../../config/sops/age-identities;
   homeSopsModule = config.nixconf.modules.homeManager.sops;
 in
 {
@@ -37,7 +39,7 @@ in
           type = lib.types.bool;
           default = true;
           description = ''
-            Wire the home-manager sops module (sec/sece/secx aliases). Disable on
+            Wire the home-manager sops module (sec/secc/secx aliases). Disable on
             hosts whose age identity cannot decrypt secrets.yaml.
           '';
         };
@@ -55,8 +57,16 @@ in
           default = false;
           description = ''
             Install pcscd and the YubiKey plugin so sops files can be opened and
-            edited with the YubiKey (sec/sece/secx), while unattended activation
+            edited with the YubiKey (sec/secc/secx), while unattended activation
             keeps using modules.sops.ageKeyFile.
+          '';
+        };
+        yubiIdentityFile = lib.mkOption {
+          type = lib.types.path;
+          default = ageIdentities;
+          description = ''
+            YubiKey age identity stub shipped to /etc/yubi-age-identity. Override
+            on hosts that use a different physical key (e.g. the work YubiKey).
           '';
         };
         ageKeyFile = lib.mkOption {
@@ -88,9 +98,11 @@ in
           useSystemdActivation = true;
         };
         environment.etc."yubi-age-identity" = lib.mkIf config.modules.sops.useYubikey {
-          source = yubiIdentity;
+          source = config.modules.sops.yubiIdentityFile;
         };
-        services.pcscd.enable = lib.mkIf config.modules.sops.interactiveYubikey true;
+        services.pcscd.enable = lib.mkIf (
+          config.modules.sops.useYubikey || config.modules.sops.interactiveYubikey
+        ) true;
         environment.systemPackages = lib.optional (
           config.modules.sops.useYubikey || config.modules.sops.interactiveYubikey
         ) pkgs.age-plugin-yubikey;
@@ -122,7 +134,7 @@ in
       # whose unattended activation must use a software key (no touch at boot).
       sopsAliases = {
         sec = "SOPS_AGE_KEY_FILE=${config.modules.sops.interactiveAgeKeyFile} sops $NIXCONF/secrets/secrets.yaml";
-        sece = "SOPS_AGE_KEY_FILE=${config.modules.sops.interactiveAgeKeyFile} sops $NIXCONF/secrets/corp.yaml";
+        secc = "SOPS_AGE_KEY_FILE=${config.modules.sops.interactiveAgeKeyFile} sops $NIXCONF/secrets/corp.yaml";
         secx = "SOPS_AGE_KEY_FILE=${config.modules.sops.interactiveAgeKeyFile} sops";
       };
     in
@@ -142,8 +154,16 @@ in
           default = false;
           description = ''
             Ship the YubiKey age identity to ~/.config/sops/yubi-age-identity and
-            install age-plugin-yubikey, so sec/sece/secx open secrets with the
+            install age-plugin-yubikey, so sec/secc/secx open secrets with the
             YubiKey even when boot uses a software key.
+          '';
+        };
+        yubiIdentityFile = lib.mkOption {
+          type = lib.types.path;
+          default = ageIdentities;
+          description = ''
+            YubiKey age identity stub shipped to ~/.config/sops/yubi-age-identity.
+            Override per user when the host uses a different physical key.
           '';
         };
         ageKeyFile = lib.mkOption {
@@ -174,7 +194,7 @@ in
               config.modules.sops.ageKeyFile;
           defaultText = lib.literalExpression "the YubiKey identity when modules.sops.useYubikey or modules.sops.interactiveYubikey, else modules.sops.ageKeyFile";
           description = ''
-            Identity used by the sec/sece/secx aliases. Separate from
+            Identity used by the sec/secc/secx aliases. Separate from
             modules.sops.ageKeyFile so an unattended activation can decrypt with
             a software key while interactive edits still require the YubiKey.
           '';
@@ -201,7 +221,7 @@ in
         # The YubiKey identity is a stub that lives in the repo; ship it to the
         # user's home so the aliases work wherever the repo is cloned or absent.
         home.file = lib.mkIf (config.modules.sops.useYubikey || config.modules.sops.interactiveYubikey) {
-          ".config/sops/yubi-age-identity".source = yubiIdentity;
+          ".config/sops/yubi-age-identity".source = config.modules.sops.yubiIdentityFile;
         };
         programs.zsh.shellAliases = sopsAliases;
         programs.zsh.initContent = lib.mkOrder 950 ''

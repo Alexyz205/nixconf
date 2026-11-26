@@ -410,7 +410,7 @@ YubiKey-based age identity.
     `sops $NIXCONF/secrets/secrets.yaml`). Server backups are documented in
     [docs/backup.md](docs/backup.md).
   - `corp.yaml` — corporate host secrets (LDAP bind password, NAS, Nessus and
-    SentinelOne keys). Edit with `sece`.
+    SentinelOne keys). Edit with `secc`.
 - The module `modules/system/sops.nix` wires sops into NixOS: default sops file
   (`secrets.yaml` or the host's `secrets/corp.yaml`), age key file
   (`/etc/yubi-age-identity`), age-plugin-yubikey, and exposes a home-manager

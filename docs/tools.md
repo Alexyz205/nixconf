@@ -166,7 +166,7 @@ These are installed globally so LazyVim/OpenCode and any editor find them on
 | `gh`, `glab`                    | GitHub/GitLab CLIs; credentials come from interactive login, not sops                |
 
 Rules: never print or commit plaintext secrets; `sec` edits
-`secrets/secrets.yaml` and `sece` edits `secrets/corp.yaml`; decryption needs
+`secrets/secrets.yaml` and `secc` edits `secrets/corp.yaml`; decryption needs
 the YubiKey except on the workstation (software age key). `gh auth login` and
 `glab auth login` store their token in the OS keyring (or their own 0600 config
 when no keyring runs); the repo only wires the non-secret credential helpers.

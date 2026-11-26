@@ -138,7 +138,7 @@ sudo systemctl restart nix-daemon
 
 ```bash
 sec    # sops $NIXCONF/secrets/secrets.yaml   (personal host secrets)
-sece   # sops $NIXCONF/secrets/corp.yaml      (corporate host secrets)
+secc   # sops $NIXCONF/secrets/corp.yaml      (corporate host secrets)
 secx   # sops <file>                          (same key, any sops file, e.g. corp.yaml)
 ```
 
@@ -181,7 +181,7 @@ authenticated `glab` call, which is also what `gitlab.nvim` relies on.
 On `rnsw-apigeon1` it is `[ "alexis" "alexis.pigeon" ]`, so both accounts get
 the same feature modules. The sops identity differs: `alexis` uses the rnsw
 software key for unattended `corp.yaml` access, while `alexis.pigeon` uses the
-YubiKey identity (`modules.sops.interactiveYubikey = true`), so `sec`/`sece`
+YubiKey identity (`modules.sops.interactiveYubikey = true`), so `sec`/`secc`
 work with a touch and no private key is copied into the corporate home.
 
 After adding a recipient or editing from a machine other than the YubiKey host,

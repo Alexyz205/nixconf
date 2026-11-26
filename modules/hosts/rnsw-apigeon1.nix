@@ -499,8 +499,8 @@ in
               # avatar when no AccountsService icon is set.
               home.file.".face".source = "${mkAvatar "alexis-pigeon" "AP" palette.lavender}/avatar.png";
               stylix.targets = stylixTargets;
-              # No software age key in this home: sec/sece use the YubiKey
-              # identity shipped by modules.sops.interactiveYubikey.
+              # No software age key in this home: sec/secc use the combined
+              # personal+work YubiKey stub, so either key opens its own secret.
               modules.sops = {
                 ageKeyFile = "/home/${corpUser}/.config/sops/yubi-age-identity";
                 useYubikey = false;
@@ -523,11 +523,12 @@ in
               home.file.".face".source = "${mkAvatar "alexis" "A" palette.mauve}/avatar.png";
               stylix.targets = stylixTargets;
               modules.sops = {
-                # Boot decrypts corp.yaml with the persistent software key; the
-                # YubiKey opens and edits secrets interactively (sec/sece/secx).
+                # Boot and interactive edits use the persistent software key,
+                # which is a recipient of corp.yaml. The personal YubiKey is not
+                # a recipient; the corp user's home gets the combined stub.
                 ageKeyFile = "/home/${localUser}/.config/sops/age/keys.txt";
                 useYubikey = false;
-                interactiveYubikey = true;
+                interactiveYubikey = false;
                 secretsFile = ../../secrets/corp.yaml;
               };
             };

@@ -108,12 +108,39 @@ Use `C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe` when PowerShell
 `ssh host '<command>'`, so POSIX-style one-liners must become PowerShell (or be
 wrapped in `cmd /c`). Verify with `ssh studio1 '$PSVersionTable.PSVersion'`.
 
+### Work YubiKey SSH key
+
+The work YubiKey carries its own resident FIDO2 SSH key
+(`id_ed25519_sk_rk_alexis-work`) alongside the personal one. Okta also uses the
+FIDO2 applet, but a different resident credential; the age identity is a PIV
+key. They do not interact.
+
+Generate it once with the work key inserted:
+
+```bash
+ssh-keygen -t ed25519-sk -O resident -O application=ssh:alexis-work \
+  -C "yubikey-alexis-work" -f ~/.ssh/id_ed25519_sk_rk_alexis-work
+cp ~/.ssh/id_ed25519_sk_rk_alexis-work.pub config/ssh/
+```
+
+Commit only the `.pub`. On every machine, `cd ~/.ssh && ssh-keygen -K`
+downloads the resident handles present on the inserted key; `modules.yubikey`
+ships both public keys and adds both to `IdentityFile`. Authorize the work
+public key where the work key should log in:
+
+```bash
+ansible-playbook playbooks/ssh-authorized-keys.yml -k \
+  -e 'ssh_keys_public_files=[".../config/ssh/id_ed25519_sk_rk_alexis-work.pub"]'
+
+gh ssh-key add config/ssh/id_ed25519_sk_rk_alexis-work.pub --title "work yubikey"
+```
+
 ### Hardened client defaults
 
 `Host *` sets, among others:
 
-- `IdentitiesOnly=yes`, `IdentityAgent=none`, the software key and the YubiKey
-  resident key (from `modules.yubikey`).
+- `IdentitiesOnly=yes`, `IdentityAgent=none`, the software key and the personal
+  and work YubiKey resident keys (from `modules.yubikey`).
 - `ControlMaster=auto`, `ControlPath=~/.ssh/cm/%C`, `ControlPersist=10m`:
   one handshake/touch, then reuse for 10 minutes.
 - `ForwardAgent=no`, `ForwardX11=no`, `Compression=no`,
@@ -126,7 +153,7 @@ wrapped in `cmd /c`). Verify with `ssh studio1 '$PSVersionTable.PSVersion'`.
 
 `modules.ssh` (NixOS) enables OpenSSH with password and keyboard-interactive
 auth disabled, root login disabled, and fail2ban. The rnsw desktop authorizes
-only the YubiKey resident key for `alexis`; other hosts add their own keys
+the personal YubiKey resident key for `alexis`; other hosts add their own keys
 through `modules.users.authorizedKeys`.
 
 ## Why the fleet list is generated, not committed
