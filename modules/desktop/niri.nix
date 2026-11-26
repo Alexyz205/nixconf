@@ -345,8 +345,11 @@ let
           {
             # Moonlight: both the browser and the streaming window use the
             # upstream desktop-file app-id, so streams stay on workspace 3.
+            # Niri refuses SDL/Wayland exclusive fullscreen, so force the
+            # compositor fullscreen state here instead of relying on the client.
             matches = [ { app-id = "^com\\.moonlight_stream\\.Moonlight$"; } ];
             open-on-workspace = "game";
+            open-fullscreen = true;
           }
           {
             matches = [ { } ];

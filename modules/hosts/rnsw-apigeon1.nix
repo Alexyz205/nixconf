@@ -330,12 +330,12 @@ in
               secretsFile = ../../secrets/corp.yaml;
             };
 
-            # YubiKey for SSH only: disk and sudo stay password-only.
+            # YubiKey for SSH and sudo (touch); disk stays password-only.
             yubikey = {
               enable = true;
               sshKey = true;
               luksUnlock = false;
-              sudoAuth = false;
+              sudoAuth = true;
             };
 
             btop.cudaSupport = true;

@@ -79,8 +79,12 @@ in
       # One-time enrollments:
       #
       # LUKS:     disko enrolls automatically during disko-install
-      # Sudo/PAM: pre-register ONCE, bound to this ISO's YubiKey, and commit:
-      #             pamu2fcfg -u <user> -o pam://localhost > config/Yubico/u2f_keys
+      # Sudo/PAM: pre-register ONCE per key and user, bound to this origin, and
+      # commit the mapping. Multiple credentials for one user are joined with
+      # ':' on the same line:
+      #             pamu2fcfg -u <user> -o pam://localhost
+      #           The personal key and the work key can both authenticate the
+      #           same user, or one key per user (alexis vs alexis.pigeon).
       # SSH:      download the resident key handles on each machine (touch +
       #           FIDO2 PIN). They stay in ~/.ssh and are NOT committed — only
       #           the .pub halves are tracked. Home-manager points at the files,
