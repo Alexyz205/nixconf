@@ -35,9 +35,9 @@ by the host/profile tiers.
 | ----------------- | ---------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
 | Zsh               | `zsh`                                                            | Interactive shell; vi keymap, autosuggestions, syntax highlighting, 100k shared history |
 | Starship          | prompt                                                           | Fast cross-shell prompt with git/nix/language segments                                  |
-| tmux              | `t`, `tmux`                                                      | Persistent sessions, panes, popups, agent status, smart window rename                   |
+| tmux              | `t`, `tmux`                                                      | Persistent sessions, panes, popups, smart window rename                                 |
 | zoxide            | `z`, `zi`                                                        | Frecency directory jumping (`z nixconf`)                                                |
-| fzf               | `fzf`                                                            | Fuzzy finder used by tmux switchers, history pickers and LazyVim                        |
+| fzf               | `fzf`                                                            | Fuzzy finder for files, shell history and LazyVim                                       |
 | eza               | `ls`, `ll`, `la`, `lt`, `lta`, `ldir`, `lm`, `lz`, `ldu`, `ldus` | `ls` replacement with git status, icons, tree                                           |
 | bat               | `bat`                                                            | Syntax highlighter; pager for files, `git diff`, `gh`/`glab` (plain style, no grid)     |
 | yazi              | `y`                                                              | Terminal file manager with previews, mounts, bulk rename                                |

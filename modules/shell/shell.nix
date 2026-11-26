@@ -159,8 +159,6 @@ let
           config.lib.file.mkOutOfStoreSymlink "${nixconf}/config/opencode/agents";
         ".config/opencode/skills".source =
           config.lib.file.mkOutOfStoreSymlink "${nixconf}/config/opencode/skills";
-        ".config/opencode/plugins".source =
-          config.lib.file.mkOutOfStoreSymlink "${nixconf}/config/opencode/plugins";
         ".config/delta/catppuccin.gitconfig".text = ''
           # Generated from config/theme/catppuccin-mocha.nix — do not edit by hand.
           [delta "catppuccin-mocha"]

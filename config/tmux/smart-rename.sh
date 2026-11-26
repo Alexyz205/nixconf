@@ -27,8 +27,6 @@ oc_active="" oc_first=""
 active_cmd="" active_path="" active_title=""
 
 while IFS=$tab read -r pane_active pane_cmd pane_path pane_title; do
-  [ "$pane_title" = "agent-sidebar" ] && continue
-
   case "$pane_title" in
   "OC | "*)
     title="${pane_title#OC | }"
@@ -63,7 +61,7 @@ fi
 
 if [ -z "$name" ]; then
   case "$active_title" in
-  "" | "agent-sidebar") ;;
+  "") ;;
   */*)
     name="${active_title%/}"
     name="${name##*/}"
