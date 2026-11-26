@@ -69,6 +69,8 @@ let
         # runtime. Point it at the pinned nixpkgs packages instead.
         plugins.nix_pinned = ''
           return {
+            { "mfussenegger/nvim-dap", dir = "${pkgs.vimPlugins.nvim-dap}", dev = true, pin = true },
+            { "mfussenegger/nvim-dap-python", dir = "${pkgs.vimPlugins.nvim-dap-python}", dev = true, pin = true },
             { "nickjvandyke/opencode.nvim", dir = "${pkgs.vimPlugins.opencode-nvim}", dev = true, pin = true },
             { "mikavilpas/yazi.nvim", dir = "${pkgs.vimPlugins.yazi-nvim}", dev = true, pin = true },
             { "christoomey/vim-tmux-navigator", dir = "${pkgs.vimPlugins.vim-tmux-navigator}", dev = true, pin = true },
