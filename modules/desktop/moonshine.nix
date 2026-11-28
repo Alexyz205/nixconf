@@ -48,6 +48,23 @@
           default = [ ];
           description = "Extra packages on the service PATH for launched apps.";
         };
+        extraApplications = lib.mkOption {
+          type = lib.types.listOf lib.types.attrs;
+          default = [ ];
+          example = lib.literalExpression ''
+            [
+              {
+                title = "Niri Desktop";
+                command = [ "/run/current-system/sw/bin/niri" ];
+              }
+            ]
+          '';
+          description = ''
+            Extra `[[application]]` entries appended after the built-in Steam
+            (and Heroic) ones. Use this rather than `settings.application`,
+            which replaces the list instead of extending it.
+          '';
+        };
         settings = lib.mkOption {
           type = lib.types.attrs;
           default = { };
@@ -83,7 +100,8 @@
                 stdout = "journal";
                 stderr = "journal";
               }
-            ];
+            ]
+            ++ cfg.extraApplications;
 
             # Expose every installed Steam game directly in Moonlight, plus
             # Heroic (GOG/Epic/Amazon) titles when the Heroic feature is on.

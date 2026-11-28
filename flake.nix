@@ -80,5 +80,9 @@
       url = "github:BirdeeHub/nix-wrapper-modules";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    x11-ewmh-shim = {
+      url = "github:yannhodiesne/x11-ewmh-shim";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 }

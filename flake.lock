@@ -634,7 +634,8 @@
         "sentinelone": "sentinelone",
         "sops-nix": "sops-nix",
         "stylix": "stylix",
-        "wrapper-modules": "wrapper-modules"
+        "wrapper-modules": "wrapper-modules",
+        "x11-ewmh-shim": "x11-ewmh-shim"
       }
     },
     "rust-analyzer-src": {
@@ -952,6 +953,26 @@
       "original": {
         "owner": "BirdeeHub",
         "repo": "nix-wrapper-modules",
+        "type": "github"
+      }
+    },
+    "x11-ewmh-shim": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1795552757,
+        "narHash": "sha256-iGvaZfB3KRNSPpRBL6shZ2vDoK1rpaAR6l/vjIWggrY=",
+        "owner": "yannhodiesne",
+        "repo": "x11-ewmh-shim",
+        "rev": "83c3ee6e27bc923b8520ecff3c86d30990ca5fe5",
+        "type": "github"
+      },
+      "original": {
+        "owner": "yannhodiesne",
+        "repo": "x11-ewmh-shim",
         "type": "github"
       }
     }

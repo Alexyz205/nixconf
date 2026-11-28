@@ -31,6 +31,8 @@ let
       ++ [
         config.nixconf.modules.nixos.networkTuning
         config.nixconf.modules.nixos.moonshine
+        config.nixconf.modules.nixos.dofus
+        config.nixconf.modules.nixos.ganymede
         (
           {
             config,
@@ -290,14 +292,24 @@ let
                 blender.enable = true;
                 freecad.enable = true;
               };
+              # Dofus 3 via the Ankama Launcher, plus the x11-ewmh-shim user
+              # service this host's niri/xwayland-satellite session needs for it.
+              dofus.enable = true;
+              # Dofus guide overlay; floating top-right, see the niri window
+              # rules in modules/desktop/niri.nix.
+              ganymede.enable = true;
               niri = {
                 # Match the greeter (below) and lock screen (stylix -> hyprlock).
                 wallpaper = config.stylix.image;
                 settings = {
                   # The MSI MAG401QR reports 60 Hz as its preferred mode, so force
-                  # the 155 Hz mode. Must match `niri msg outputs` down to three
-                  # decimals.
-                  outputs."DP-3".mode = "3440x1440@155.000";
+                  # the 155 Hz mode. Matched by make/model/serial rather than the
+                  # connector name: the DRM connector changed from DP-3 to DP-4
+                  # and a name match silently fell back to 60 Hz. niri matches
+                  # the full "make model serial" string from `niri msg outputs`
+                  # (a make/model prefix alone does not match), and the refresh
+                  # rate must be identical to three decimals.
+                  outputs."Microstep MSI MAG401QR 0000000000001".mode = "3440x1440@155.000";
                   # NVIDIA: force a full modeset on resume. Without this, waking
                   # from suspend leaves niri's DRM output corrupted and the screen
                   # freezes/greys on the first redraw after unlock.
@@ -310,6 +322,19 @@ let
               moonshine = {
                 enable = true;
                 firewallInterfaces = [ "enp4s0" ];
+                # Second, independent desktop inside a stream. Niri runs nested
+                # in Moonshine's compositor (no --session, which would import
+                # env globally and clash with the real session), so the desktop
+                # works while the PC screen keeps its own session. Steam Big
+                # Picture and the scanned Steam/Heroic libraries stay available.
+                extraApplications = [
+                  {
+                    title = "Niri Desktop";
+                    command = [ "${config.programs.niri.package}/bin/niri" ];
+                    stdout = "journal";
+                    stderr = "journal";
+                  }
+                ];
               };
               thunderbird = {
                 email = "alexis@alexyz.org";

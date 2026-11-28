@@ -41,7 +41,8 @@ modules/
 ├── hosts/              # One file per machine / image
 ├── system/             # boot, disko, network, nextcloud, nix, podman, sops, security, ssh, users, yubikey
 ├── shell/              # shell, starship, tmux, zoxide, eza, diskusage, bat, btop, yazi, ghostty
-├── desktop/            # niri, chromium, claude, discord, steam, rdp, youtube-music, ...
+├── desktop/            # niri, chromium, claude, discord, rdp, youtube-music, ...
+│   └── games/          # steam, heroic, prism, controller, dofus, ganymede
 └── dev/                # devenv, git, gitlab, lazygit, lazyvim, opencode, containers, ...
 config/                 # Dotfiles & static assets referenced from feature modules
 scripts/                # install.sh, test-all.sh, build-iso.sh

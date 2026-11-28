@@ -356,6 +356,44 @@ let
             geometry-corner-radius = 20.0;
             clip-to-geometry = true;
           }
+          # Dofus 3 (Unity, X11 window via xwayland-satellite): maximise to the
+          # edges instead of going fullscreen. niri hides floating windows over
+          # a fullscreen one, which would hide the Ganymède guide overlay. The
+          # game draws its own frame, so undo the catch-all rounding above.
+          {
+            matches = [
+              { app-id = "^[Dd]ofus$"; }
+              { title = "^Dofus"; }
+            ];
+            open-maximized-to-edges = true;
+            open-fullscreen = false;
+            open-floating = false;
+            geometry-corner-radius = 0.0;
+            clip-to-geometry = false;
+          }
+          # Ganymède guide overlay: floating keeps it above the tiled game (the
+          # app's own alwaysOnTop hint is a no-op on Wayland), opened unfocused
+          # so it does not steal the keyboard from Dofus, pinned to the
+          # top-right corner. Its window is transparent and self-rounded, so
+          # skip the catch-all radius/clip.
+          {
+            matches = [
+              { app-id = "^[Gg]anymede$"; }
+              { app-id = "^com\\.ganymede"; }
+              { title = "^Ganym"; }
+            ];
+            open-floating = true;
+            open-focused = false;
+            default-floating-position = _: {
+              props = {
+                x = 0;
+                y = 0;
+                relative-to = "top-right";
+              };
+            };
+            geometry-corner-radius = 0.0;
+            clip-to-geometry = false;
+          }
         ];
 
         xwayland-satellite.path = pkgs.lib.getExe pkgs.xwayland-satellite;

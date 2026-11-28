@@ -52,7 +52,9 @@ in
     unfreePackages = lib.mkOption {
       type = lib.types.listOf lib.types.str;
       default = [
+        "ankama-launcher"
         "claude-desktop"
+        "ganymede"
         "steam"
         "steam-unwrapped"
         "vesktop"
